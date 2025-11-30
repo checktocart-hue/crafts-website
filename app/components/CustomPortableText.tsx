@@ -1,5 +1,4 @@
 import { PortableText } from '@portabletext/react';
-import { urlFor } from '@/app/lib/sanity'; // Helper for images if needed later
 
 // 1. Define how to render the Table
 const TableComponent = ({ value }: { value: any }) => {
