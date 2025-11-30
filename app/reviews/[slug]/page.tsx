@@ -1,11 +1,11 @@
 import Link from 'next/link';
 import { Check, Star, ShoppingCart, ArrowLeft, ShieldCheck } from 'lucide-react';
 import { client } from '@/app/lib/sanity';
-import { PortableText } from '@portabletext/react';
+import CustomPortableText from '@/app/components/CustomPortableText'; // <--- The New Component
 import AdUnit from '@/app/components/AdUnit';
 import { Metadata } from 'next';
 
-// 1. HELPER: Fetch data for the specific slug
+// 1. HELPER: Fetch data
 async function getReview(slug: string) {
   const query = `*[_type == "review" && slug.current == "${slug}"][0] {
     title,
@@ -23,7 +23,7 @@ async function getReview(slug: string) {
   return await client.fetch(query);
 }
 
-// 2. SEO MAGIC: This tells Google what to show in search results
+// 2. SEO MAGIC
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
   const { slug } = await params; 
   const review = await getReview(slug);
@@ -31,8 +31,8 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   if (!review) return { title: 'Review Not Found' };
 
   return {
-    title: review.seo?.metaTitle || review.title, // Use Custom SEO Title, or fallback to Product Name
-    description: review.seo?.metaDescription || review.description, // Use Custom Desc, or fallback to auto-summary
+    title: review.seo?.metaTitle || review.title, 
+    description: review.seo?.metaDescription || review.description,
   }
 }
 
@@ -109,7 +109,8 @@ export default async function ReviewArticle({ params }: { params: { slug: string
             <AdUnit format="square" />
 
             <div className="mt-8">
-              {review.body ? <PortableText value={review.body} /> : <p className="text-gray-400">Content loading...</p>}
+              {/* Using the Custom Component here to render Tables */}
+              {review.body ? <CustomPortableText value={review.body} /> : <p className="text-gray-400">Content loading...</p>}
             </div>
           </div>
         </main>

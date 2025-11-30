@@ -1,5 +1,5 @@
 import { client } from '@/app/lib/sanity';
-import { PortableText } from '@portabletext/react';
+import CustomPortableText from '@/app/components/CustomPortableText'; // <--- The New Component
 import Header from '@/app/components/Header';
 import AdUnit from '@/app/components/AdUnit';
 import Link from 'next/link';
@@ -21,7 +21,7 @@ async function getProject(slug: string) {
   }`);
 }
 
-// 2. SEO MAGIC: Tell Google the custom title
+// 2. SEO MAGIC
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
   const { slug } = await params;
   const project = await getProject(slug);
@@ -72,7 +72,8 @@ export default async function ProjectArticle({ params }: { params: { slug: strin
            </div>
 
            <div className="prose prose-lg prose-stone max-w-none">
-              <PortableText value={project.body} />
+              {/* Using the Custom Component here to render Tables */}
+              <CustomPortableText value={project.body} />
            </div>
         </div>
 
