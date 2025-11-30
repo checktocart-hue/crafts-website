@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@portabletext/react": "^5.0.0",
+    "@sanity/image-url": "^2.0.1",
     "clsx": "^2.1.1",
     "lucide-react": "^0.555.0",
     "next": "16.0.5",
