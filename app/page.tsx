@@ -3,8 +3,22 @@ import Link from 'next/link';
 import { ArrowRight, Star, Home as HomeIcon, BookOpen, Box, PlayCircle } from 'lucide-react'; 
 import ProductCard from './components/ProductCard'; 
 import AdUnit from './components/AdUnit';
+import { client } from '@/app/lib/sanity'; // <--- Import the database connection
 
-export default function Home() {
+// 1. Fetch the 3 most recent reviews
+async function getLatestReviews() {
+  return await client.fetch(`*[_type == "review"] | order(_createdAt desc)[0..2] {
+    title,
+    "slug": slug.current,
+    rating,
+    price,
+    description
+  }`);
+}
+
+export default async function Home() {
+  const latestReviews = await getLatestReviews();
+
   return (
     <main className="min-h-screen bg-white">
       <Header />
@@ -69,13 +83,10 @@ export default function Home() {
       <section className="py-24 max-w-7xl mx-auto px-4">
         <div className="flex justify-between items-end mb-12 border-b border-gray-100 pb-6">
           <h2 className="text-4xl font-serif text-gray-900">Explore Collections</h2>
-          {/* Linked to All Categories Page */}
           <Link href="/categories" className="text-primary font-bold hover:underline hidden md:block">View All</Link>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          
-          {/* Card 1: Book Nooks */}
           <Link href="/categories/book-nooks" className="group relative h-96 rounded-2xl overflow-hidden cursor-pointer bg-stone-100 shadow-sm hover:shadow-lg transition block">
              <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1506880018603-83d5b814b5a6?auto=format&fit=crop&q=80')] bg-cover bg-center group-hover:scale-110 transition duration-700"></div>
              <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
@@ -86,7 +97,6 @@ export default function Home() {
              </div>
           </Link>
 
-          {/* Card 2: Dollhouses */}
           <Link href="/categories/dollhouses" className="group relative h-96 rounded-2xl overflow-hidden cursor-pointer bg-stone-100 shadow-sm hover:shadow-lg transition block">
              <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1513519245088-0e12902e5a38?auto=format&fit=crop&q=80')] bg-cover bg-center group-hover:scale-110 transition duration-700"></div>
              <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
@@ -97,7 +107,6 @@ export default function Home() {
              </div>
           </Link>
 
-          {/* Card 3: Metal Models */}
           <Link href="/categories/metal-models" className="group relative h-96 rounded-2xl overflow-hidden cursor-pointer bg-stone-100 shadow-sm hover:shadow-lg transition block">
              <div className="absolute inset-0 bg-[url('https://plus.unsplash.com/premium_photo-1664110691109-655866191b72?auto=format&fit=crop&q=80')] bg-cover bg-center group-hover:scale-110 transition duration-700"></div>
              <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
@@ -115,7 +124,7 @@ export default function Home() {
         <AdUnit format="horizontal" />
       </div>
 
-      {/* 3. LATEST REVIEWS */}
+      {/* 3. LATEST REVIEWS (DYNAMIC DATA) */}
       <section className="bg-[#F8F9FA] py-24 border-t border-gray-100">
         <div className="max-w-7xl mx-auto px-4">
           <div className="text-center mb-16">
@@ -124,32 +133,26 @@ export default function Home() {
           </div>
 
           <div className="grid md:grid-cols-3 gap-8 mb-12">
-            <ProductCard 
-              title="Rolife Sunshine Town"
-              rating={5}
-              price="$39.99"
-              tag="Best Book Nook"
-              features={["Touch-activated lights", "No painting required", "5-hour build time"]}
-              link="/reviews/rolife-sunshine-town"
-            />
-            <ProductCard 
-              title="Cutebee Magic House"
-              rating={4}
-              price="$42.50"
-              tag="Fan Favorite"
-              features={["Complex detail", "Dust cover included", "Great gift box"]}
-              link="/reviews/magic-house"
-            />
-            <ProductCard 
-              title="Metal Earth Millenium Falcon"
-              rating={4}
-              price="$15.99"
-              features={["No glue needed", "Laser cut steel", "Challenging build"]}
-              link="/reviews/metal-earth-falcon"
-            />
+            {latestReviews.length > 0 ? (
+              latestReviews.map((review: any) => (
+                <ProductCard 
+                  key={review.slug}
+                  title={review.title}
+                  rating={review.rating}
+                  price={review.price}
+                  tag="New Review"
+                  features={["Verified Build", "In-Depth Guide"]} // Generic features for card preview
+                  link={`/reviews/${review.slug}`} // <--- THIS IS THE FIX. Uses real slug.
+                />
+              ))
+            ) : (
+              <div className="col-span-3 text-center text-gray-400">
+                No reviews published yet. Go to Sanity to add some!
+              </div>
+            )}
           </div>
 
-          {/* THE BUTTON */}
+          {/* BUTTON */}
           <div className="text-center">
             <Link 
               href="/reviews" 
