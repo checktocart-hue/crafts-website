@@ -39,7 +39,7 @@ export default function RootLayout({
         {children}
         <Footer />
         {/* Google Analytics - Replace G-XYZ with your real ID */}
-        <GoogleAnalytics gaId=G-TL2C8ED873 /> 
+        <GoogleAnalytics gaId="G-TL2C8ED873" /> 
       </body>
     </html>
   );
