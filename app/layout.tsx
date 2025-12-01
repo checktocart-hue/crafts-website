@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Playfair_Display, Lato, Dancing_Script } from "next/font/google"; 
-import Footer from "./components/Footer"; // <--- Import Footer
+import Footer from "./components/Footer";
+import { GoogleAnalytics } from '@next/third-parties/google'; // <--- Import the tool
 import "./globals.css";
 
 const playfair = Playfair_Display({ 
@@ -22,6 +23,9 @@ const dancingScript = Dancing_Script({
 export const metadata: Metadata = {
   title: "CraftsAndKits | Handmade Inspiration",
   description: "Discover the best DIY kits and projects for your creative journey.",
+  icons: {
+    icon: '/favicon.ico', // Standard favicon path
+  }
 };
 
 export default function RootLayout({
@@ -33,7 +37,9 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${playfair.variable} ${lato.variable} ${dancingScript.variable} font-sans bg-white text-gray-900 antialiased`}>
         {children}
-        <Footer /> {/* <--- Footer added here! */}
+        <Footer />
+        {/* Google Analytics - Replace G-XYZ with your real ID */}
+        <GoogleAnalytics gaId=G-TL2C8ED873 /> 
       </body>
     </html>
   );
