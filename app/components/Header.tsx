@@ -1,4 +1,4 @@
-"use client"; // <--- This makes the buttons work!
+"use client";
 
 import Link from 'next/link';
 import { useState } from 'react';
@@ -26,8 +26,8 @@ export default function Header() {
             </div>
           </Link>
 
-          {/* DESKTOP NAVIGATION */}
-          <div className="hidden md:flex gap-8 items-center text-sm font-bold tracking-widest text-gray-500">
+          {/* DESKTOP NAVIGATION (Updated to match Mobile) */}
+          <div className="hidden lg:flex gap-8 items-center text-xs font-bold tracking-widest text-gray-500">
             <Link href="/" className="hover:text-primary transition">HOME</Link>
             
             {/* REVIEWS DROPDOWN */}
@@ -39,17 +39,17 @@ export default function Header() {
               {/* Dropdown Menu */}
               <div className="absolute top-16 left-0 w-64 bg-white shadow-xl rounded-xl border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 transform translate-y-2 group-hover:translate-y-0 overflow-hidden">
                 <div className="py-2 flex flex-col">
-                  <div className="px-5 py-2 text-xs text-gray-400 uppercase tracking-widest border-b border-gray-50 bg-gray-50">By Category</div>
-                  <Link href="/categories/book-nooks" className="px-5 py-3 hover:bg-stone-50 hover:text-primary text-gray-600 border-b border-gray-50 flex justify-between items-center">
+                  <div className="px-5 py-2 text-[10px] text-gray-400 uppercase tracking-widest border-b border-gray-50 bg-gray-50">Browse Categories</div>
+                  <Link href="/categories/book-nooks" className="px-5 py-3 hover:bg-stone-50 hover:text-primary text-gray-600 border-b border-gray-50 flex justify-between items-center text-sm capitalize font-medium tracking-normal">
                     📚 Book Nooks
                   </Link>
-                  <Link href="/categories/dollhouses" className="px-5 py-3 hover:bg-stone-50 hover:text-primary text-gray-600 border-b border-gray-50 flex justify-between items-center">
+                  <Link href="/categories/dollhouses" className="px-5 py-3 hover:bg-stone-50 hover:text-primary text-gray-600 border-b border-gray-50 flex justify-between items-center text-sm capitalize font-medium tracking-normal">
                     🏠 Dollhouses
                   </Link>
-                  <Link href="/categories/metal-models" className="px-5 py-3 hover:bg-stone-50 hover:text-primary text-gray-600 border-b border-gray-50 flex justify-between items-center">
+                  <Link href="/categories/metal-models" className="px-5 py-3 hover:bg-stone-50 hover:text-primary text-gray-600 border-b border-gray-50 flex justify-between items-center text-sm capitalize font-medium tracking-normal">
                     🤖 Metal Models
                   </Link>
-                  <Link href="/categories/tools-supplies" className="px-5 py-3 hover:bg-stone-50 hover:text-primary text-gray-600 border-b border-gray-50 flex justify-between items-center">
+                  <Link href="/categories/tools-supplies" className="px-5 py-3 hover:bg-stone-50 hover:text-primary text-gray-600 border-b border-gray-50 flex justify-between items-center text-sm capitalize font-medium tracking-normal">
                     ✂️ Tools & Supplies
                   </Link>
                   <Link href="/reviews" className="px-5 py-3 text-center text-primary font-bold hover:bg-green-50 transition text-xs uppercase">
@@ -59,8 +59,9 @@ export default function Header() {
               </div>
             </div>
 
-            <Link href="/projects" className="hover:text-primary transition">GUIDES</Link>
-            <Link href="/about" className="hover:text-primary transition">ABOUT</Link>
+            <Link href="/projects" className="hover:text-primary transition">BUILDER'S GUIDES</Link>
+            <Link href="/about" className="hover:text-primary transition">ABOUT US</Link>
+            <Link href="/contact" className="hover:text-primary transition">CONTACT</Link>
           </div>
 
           {/* ACTIONS & MOBILE TOGGLE */}
@@ -75,9 +76,9 @@ export default function Header() {
               TOP KITS
             </Link>
 
-            {/* Mobile Menu Button (Hamburger) */}
+            {/* Mobile Menu Button (Hamburger) - Visible on lg and below */}
             <button 
-              className="text-gray-900 md:hidden z-50 p-2"
+              className="text-gray-900 lg:hidden z-50 p-2"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             >
               {isMobileMenuOpen ? <X size={28} /> : <Menu size={28} />}
@@ -88,7 +89,7 @@ export default function Header() {
 
       {/* MOBILE MENU OVERLAY */}
       {isMobileMenuOpen && (
-        <div className="fixed inset-0 bg-white z-40 pt-24 px-6 md:hidden overflow-y-auto animate-in fade-in slide-in-from-top-10 duration-200">
+        <div className="fixed inset-0 bg-white z-40 pt-24 px-6 lg:hidden overflow-y-auto animate-in fade-in slide-in-from-top-10 duration-200">
           <div className="flex flex-col space-y-6 text-lg font-bold text-gray-800">
             <Link href="/" onClick={() => setIsMobileMenuOpen(false)} className="border-b border-gray-100 pb-4">
               Home
