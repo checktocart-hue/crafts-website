@@ -1,11 +1,11 @@
 import Link from 'next/link';
-import { Check, Star, ShoppingCart, ArrowLeft, ShieldCheck } from 'lucide-react';
+import { Star, ShoppingCart, ArrowLeft, ShieldCheck } from 'lucide-react';
 import { client } from '@/app/lib/sanity';
-import CustomPortableText from '@/app/components/CustomPortableText'; // <--- The New Component
+import CustomPortableText from '@/app/components/CustomPortableText';
 import AdUnit from '@/app/components/AdUnit';
 import { Metadata } from 'next';
 
-// 1. HELPER: Fetch data
+// 1. HELPER: Fetch data (Now including the Image URL!)
 async function getReview(slug: string) {
   const query = `*[_type == "review" && slug.current == "${slug}"][0] {
     title,
@@ -14,6 +14,7 @@ async function getReview(slug: string) {
     price,
     affiliateLink,
     body,
+    "imageUrl": mainImage.asset->url, // <--- This grabs the image link directly
     seo {
       metaTitle,
       metaDescription,
@@ -76,8 +77,17 @@ export default async function ReviewArticle({ params }: { params: { slug: string
             </div>
             
             <div className="flex flex-col md:flex-row gap-8 items-center">
-              <div className="w-full md:w-48 h-48 bg-white rounded-xl flex items-center justify-center border border-gray-100 text-gray-300">
-                [Image]
+              {/* IMAGE DISPLAY LOGIC */}
+              <div className="w-full md:w-48 h-48 bg-white rounded-xl flex items-center justify-center border border-gray-100 overflow-hidden">
+                {review.imageUrl ? (
+                  <img 
+                    src={review.imageUrl} 
+                    alt={review.title} 
+                    className="w-full h-full object-contain p-2" 
+                  />
+                ) : (
+                  <span className="text-gray-300 text-xs">No Image</span>
+                )}
               </div>
               
               <div className="flex-1">
@@ -91,6 +101,7 @@ export default async function ReviewArticle({ params }: { params: { slug: string
                 <a 
                   href={review.affiliateLink || "#"} 
                   target="_blank"
+                  rel="noopener noreferrer"
                   className="bg-gray-900 text-white w-full py-4 rounded-xl font-bold text-lg hover:bg-[#FF9900] hover:text-black transition flex items-center justify-center gap-2 shadow-lg mb-3"
                 >
                   <ShoppingCart size={20}/> Check Price on Amazon
@@ -109,7 +120,6 @@ export default async function ReviewArticle({ params }: { params: { slug: string
             <AdUnit format="square" />
 
             <div className="mt-8">
-              {/* Using the Custom Component here to render Tables */}
               {review.body ? <CustomPortableText value={review.body} /> : <p className="text-gray-400">Content loading...</p>}
             </div>
           </div>
