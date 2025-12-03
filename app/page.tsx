@@ -3,16 +3,17 @@ import Link from 'next/link';
 import { ArrowRight, Star, Home as HomeIcon, BookOpen, Box, PlayCircle } from 'lucide-react'; 
 import ProductCard from './components/ProductCard'; 
 import AdUnit from './components/AdUnit';
-import { client } from '@/app/lib/sanity'; // <--- Import the database connection
+import { client } from '@/app/lib/sanity'; // Database connection
 
-// 1. Fetch the 3 most recent reviews
+// 1. Fetch the 3 most recent reviews (Now including Image URL)
 async function getLatestReviews() {
   return await client.fetch(`*[_type == "review"] | order(_createdAt desc)[0..2] {
     title,
     "slug": slug.current,
     rating,
     price,
-    description
+    description,
+    "imageUrl": mainImage.asset->url // <--- THIS LINE FETCHES THE IMAGE
   }`);
 }
 
@@ -87,6 +88,7 @@ export default async function Home() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          
           <Link href="/categories/book-nooks" className="group relative h-96 rounded-2xl overflow-hidden cursor-pointer bg-stone-100 shadow-sm hover:shadow-lg transition block">
              <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1506880018603-83d5b814b5a6?auto=format&fit=crop&q=80')] bg-cover bg-center group-hover:scale-110 transition duration-700"></div>
              <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
@@ -124,7 +126,7 @@ export default async function Home() {
         <AdUnit format="horizontal" />
       </div>
 
-      {/* 3. LATEST REVIEWS (DYNAMIC DATA) */}
+      {/* 3. LATEST REVIEWS (Now using real data + Images) */}
       <section className="bg-[#F8F9FA] py-24 border-t border-gray-100">
         <div className="max-w-7xl mx-auto px-4">
           <div className="text-center mb-16">
@@ -141,8 +143,9 @@ export default async function Home() {
                   rating={review.rating}
                   price={review.price}
                   tag="New Review"
-                  features={["Verified Build", "In-Depth Guide"]} // Generic features for card preview
-                  link={`/reviews/${review.slug}`} // <--- THIS IS THE FIX. Uses real slug.
+                  features={["Verified Build", "In-Depth Guide"]} 
+                  link={`/reviews/${review.slug}`}
+                  imageUrl={review.imageUrl} // <--- THIS SENDS THE IMAGE TO THE CARD
                 />
               ))
             ) : (
@@ -152,7 +155,6 @@ export default async function Home() {
             )}
           </div>
 
-          {/* BUTTON */}
           <div className="text-center">
             <Link 
               href="/reviews" 

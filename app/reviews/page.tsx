@@ -4,16 +4,17 @@ import { client } from '@/app/lib/sanity';
 import Header from '@/app/components/Header';
 import AdUnit from '@/app/components/AdUnit';
 
-// This forces the page to refresh data every time a user visits
 export const dynamic = 'force-dynamic';
 
 async function getReviews() {
-  const query = `*[_type == "review"] {
+  // Added "imageUrl" to the query
+  const query = `*[_type == "review"] | order(_createdAt desc) {
     title,
     "slug": slug.current,
     description,
     rating,
-    price
+    price,
+    "imageUrl": mainImage.asset->url 
   }`;
   return await client.fetch(query);
 }
@@ -25,7 +26,6 @@ export default async function ReviewsPage() {
     <main className="min-h-screen bg-white">
       <Header />
       
-      {/* Header Section */}
       <div className="bg-stone-50 border-b border-gray-100 py-16 text-center">
         <h1 className="text-5xl font-serif font-bold text-gray-900 mb-4">All Kit Reviews</h1>
         <p className="text-gray-500 max-w-2xl mx-auto text-lg">
@@ -34,7 +34,6 @@ export default async function ReviewsPage() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 py-12">
-        {/* Back to Home Link */}
         <div className="mb-8">
             <Link href="/" className="inline-flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-primary transition">
             <ArrowLeft size={16} /> Back to Home
@@ -48,9 +47,17 @@ export default async function ReviewsPage() {
             reviews.map((review: any) => (
               <Link key={review.slug} href={`/reviews/${review.slug}`} className="group block">
                 <div className="border border-gray-200 rounded-xl overflow-hidden hover:shadow-xl transition-all duration-300 bg-white h-full flex flex-col">
-                  {/* Placeholder Image */}
-                  <div className="bg-stone-100 h-48 w-full flex items-center justify-center text-gray-400 group-hover:bg-stone-200 transition">
-                    [Image: {review.title}]
+                  {/* IMAGE AREA - Updated to show Real Image */}
+                  <div className="bg-stone-100 h-48 w-full flex items-center justify-center text-gray-400 group-hover:bg-stone-200 transition overflow-hidden">
+                    {review.imageUrl ? (
+                      <img 
+                        src={review.imageUrl} 
+                        alt={review.title} 
+                        className="w-full h-full object-contain p-4 group-hover:scale-105 transition duration-500" 
+                      />
+                    ) : (
+                      <span>[No Image]</span>
+                    )}
                   </div>
                   
                   <div className="p-6 flex flex-col flex-grow">
@@ -72,10 +79,7 @@ export default async function ReviewsPage() {
               </Link>
             ))
           ) : (
-            <div className="col-span-3 text-center py-20 border border-dashed border-gray-300 rounded-xl">
-              <p className="text-gray-400 text-lg">No reviews found in database.</p>
-              <p className="text-gray-500 text-sm mt-2">Go to Sanity Dashboard to add your first review!</p>
-            </div>
+            <div className="col-span-3 text-center text-gray-400">No reviews found.</div>
           )}
         </div>
       </div>
