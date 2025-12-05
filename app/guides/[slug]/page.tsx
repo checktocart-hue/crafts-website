@@ -1,3 +1,5 @@
+// File: app/guides/[slug]/page.tsx
+
 import { client } from "@/app/lib/sanity"; 
 import { PortableText } from "next-sanity";
 import Image from "next/image";
@@ -9,13 +11,13 @@ export const revalidate = 30;
 async function getData(slug: string) {
   const query = `
     {
-      "currentPost": *[_type == "review" && slug.current == $slug][0] {
+      "currentPost": *[_type == "post" && slug.current == $slug][0] {
           title, _createdAt, body,
           "slug": slug.current,
           "mainImage": mainImage,
           "categoryId": categories[0]->_ref 
       },
-      "relatedPosts": *[_type == "review" && slug.current != $slug && references(^.categories[0]->_ref)] | order(_createdAt desc)[0...3] {
+      "relatedPosts": *[_type == "post" && slug.current != $slug && references(^.categories[0]->_ref)] | order(_createdAt desc)[0...3] {
           title, "slug": slug.current, "mainImage": mainImage, _createdAt
       }
     }
@@ -24,15 +26,16 @@ async function getData(slug: string) {
   return data;
 }
 
-export default async function ReviewPage({ params }: { params: { slug: string } }) {
+export default async function GuidePage({ params }: { params: { slug: string } }) {
   const data = await getData(params.slug);
   const post = data.currentPost;
 
-  if (!post) return <div className="p-10 text-center">Review not found</div>;
+  if (!post) return <div className="p-10 text-center">Guide not found</div>;
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-4">{post.title}</h1>
+      <span className="bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded">Guide</span>
+      <h1 className="text-3xl font-bold mt-2 mb-4">{post.title}</h1>
       <p className="text-gray-500 mb-6">{new Date(post._createdAt).toLocaleDateString()}</p>
       
       {post.mainImage && (
@@ -45,14 +48,14 @@ export default async function ReviewPage({ params }: { params: { slug: string } 
         <PortableText value={post.body} />
       </article>
 
-      {/* SIMILAR REVIEWS */}
+      {/* SIMILAR GUIDES */}
       <hr className="border-gray-200 my-12" />
       <div>
-        <h3 className="text-2xl font-bold mb-6">You might also like</h3>
+        <h3 className="text-2xl font-bold mb-6">More Guides</h3>
         {data.relatedPosts?.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {data.relatedPosts.map((related: any) => (
-              <Link href={`/reviews/${related.slug}`} key={related.slug} className="group border rounded-lg overflow-hidden hover:shadow-lg transition-all">
+              <Link href={`/guides/${related.slug}`} key={related.slug} className="group border rounded-lg overflow-hidden hover:shadow-lg transition-all">
                 {related.mainImage && (
                   <div className="relative h-40 w-full bg-gray-100">
                     <Image src={urlFor(related.mainImage).url()} alt={related.title} fill className="object-cover group-hover:scale-105 transition-transform" />
@@ -64,7 +67,7 @@ export default async function ReviewPage({ params }: { params: { slug: string } 
               </Link>
             ))}
           </div>
-        ) : <p className="text-gray-500 italic">No similar reviews found.</p>}
+        ) : <p className="text-gray-500 italic">No similar guides found.</p>}
       </div>
     </div>
   );
