@@ -18,7 +18,7 @@ export default function AboutPage() {
           Welcome to CraftsAndKits, your number one source for all things miniature. We're dedicated to giving you the very best of DIY kits, with a focus on quality, intricacy, and the joy of building.
         </p>
         <p>
-          Founded in 2024, CraftsAndKits has come a long way from its beginnings in Lagos. When we first started out, our passion for "building magical worlds" drove us to do tons of research on Book Nooks and 3D metal puzzles so that CraftsAndKits can offer you the world's most comprehensive building guides and reviews.
+          Founded in 2024, CraftsAndKits has come a long way from its humble beginning. When we first started out, our passion for "building magical worlds" drove us to do tons of research on Book Nooks and 3D metal puzzles so that CraftsAndKits can offer you the world's most comprehensive building guides and reviews.
         </p>
         <p>
           We now serve customers and readers all over the world and are thrilled that we're able to turn our passion into our own website.

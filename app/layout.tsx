@@ -2,15 +2,13 @@ import type { Metadata } from "next";
 import { Inter, Dancing_Script } from "next/font/google"; 
 import "./globals.css";
 import Header from "./components/Header"; 
-import { Facebook, Instagram, Youtube, Twitter } from "lucide-react"; // Importing icons for the footer
+import { Facebook, Instagram, Youtube } from "lucide-react";
 
-// 1. Standard Text Font (Inter)
 const inter = Inter({ 
   subsets: ["latin"], 
   variable: "--font-inter" 
 });
 
-// 2. Fancy Hero Font (Dancing Script)
 const dancingScript = Dancing_Script({ 
   subsets: ["latin"],
   variable: "--font-dancing" 
@@ -29,15 +27,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${inter.variable} ${dancingScript.variable} font-sans antialiased text-gray-800 bg-white`}>
-        {/* Navigation Bar - Global */}
         <Header />
         
-        {/* Main Page Content */}
         <main className="min-h-screen">
           {children}
         </main>
         
-        {/* EXPANDED FOOTER */}
         <footer className="bg-black text-gray-300 py-20 mt-20 border-t border-gray-800">
           <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 md:grid-cols-4 gap-12 text-sm">
              
@@ -96,13 +91,12 @@ export default function RootLayout({
              </div>
           </div>
 
-          {/* Copyright Section */}
           <div className="max-w-7xl mx-auto px-4 mt-16 pt-8 border-t border-gray-800 flex flex-col md:flex-row justify-between items-center text-xs text-gray-500">
             <p>© {new Date().getFullYear()} CraftsAndKits. All rights reserved.</p>
             <div className="flex gap-6 mt-4 md:mt-0">
                <span>Made for Makers</span>
                <span>•</span>
-               <span>Lagos, Nigeria</span>
+               <span>Global Community</span>
             </div>
           </div>
         </footer>

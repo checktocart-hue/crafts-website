@@ -57,7 +57,7 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* --- EXPLORE COLLECTION --- */}
+      {/* --- EXPLORE COLLECTION (Optimized Images) --- */}
       <section className="max-w-7xl mx-auto px-4 w-full">
         <div className="flex justify-between items-end mb-8">
           <div>
@@ -68,11 +68,12 @@ export default async function Home() {
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Link href="/reviews?cat=book-nooks" className="group relative h-64 rounded-2xl overflow-hidden block shadow-md">
+          <Link href="/reviews?cat=book-nooks" className="group relative h-64 rounded-2xl overflow-hidden block shadow-md bg-gray-100">
              <div className="absolute inset-0 bg-black/40 z-10 group-hover:bg-black/50 transition-colors duration-300" />
              <img 
-               src="https://images.unsplash.com/photo-1550399105-c4db5fb85c18?auto=format&fit=crop&q=80" 
+               src="https://images.unsplash.com/photo-1550399105-c4db5fb85c18?auto=format&fit=crop&w=600&q=75" 
                alt="Book Nooks"
+               loading="lazy"
                className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
              />
              <div className="absolute bottom-6 left-6 z-20 text-white">
@@ -81,11 +82,12 @@ export default async function Home() {
              </div>
           </Link>
 
-          <Link href="/reviews?cat=dollhouses" className="group relative h-64 rounded-2xl overflow-hidden block shadow-md">
+          <Link href="/reviews?cat=dollhouses" className="group relative h-64 rounded-2xl overflow-hidden block shadow-md bg-gray-100">
              <div className="absolute inset-0 bg-black/40 z-10 group-hover:bg-black/50 transition-colors duration-300" />
              <img 
-               src="https://images.unsplash.com/photo-1513161455079-7dc1bad15a4e?auto=format&fit=crop&q=80" 
+               src="https://images.unsplash.com/photo-1513161455079-7dc1bad15a4e?auto=format&fit=crop&w=600&q=75" 
                alt="Dollhouses"
+               loading="lazy"
                className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
              />
              <div className="absolute bottom-6 left-6 z-20 text-white">
@@ -94,11 +96,12 @@ export default async function Home() {
              </div>
           </Link>
 
-          <Link href="/reviews?cat=metal-models" className="group relative h-64 rounded-2xl overflow-hidden block shadow-md">
+          <Link href="/reviews?cat=metal-models" className="group relative h-64 rounded-2xl overflow-hidden block shadow-md bg-gray-100">
              <div className="absolute inset-0 bg-black/40 z-10 group-hover:bg-black/50 transition-colors duration-300" />
              <img 
-               src="https://images.unsplash.com/photo-1615655406736-b37c4fabf923?auto=format&fit=crop&q=80" 
+               src="https://images.unsplash.com/photo-1615655406736-b37c4fabf923?auto=format&fit=crop&w=600&q=75" 
                alt="Metal Models"
+               loading="lazy"
                className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
              />
              <div className="absolute bottom-6 left-6 z-20 text-white">
@@ -126,6 +129,7 @@ export default async function Home() {
                     <img
                       src={urlFor(post.mainImage).url()}
                       alt={post.title}
+                      loading="lazy"
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     />
                   ) : (
@@ -151,7 +155,7 @@ export default async function Home() {
           </div>
         ) : (
           <div className="text-center py-10 bg-gray-50 rounded-xl border border-dashed border-gray-200">
-            <p className="text-gray-400">Loading latest kits...</p>
+            <p className="text-gray-400">Loading latest kits... (No reviews published yet)</p>
           </div>
         )}
       </section>
@@ -159,7 +163,7 @@ export default async function Home() {
       {/* --- COMMUNITY & CONTACT --- */}
       <section className="max-w-7xl mx-auto px-4 w-full grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-12 mt-10">
         
-        {/* Join Community Box (NEWSLETTER) */}
+        {/* Join Community Box */}
         <div className="bg-primary rounded-3xl p-8 md:p-12 text-white relative overflow-hidden">
            <div className="absolute top-0 right-0 w-64 h-64 bg-white opacity-10 rounded-full blur-3xl translate-x-1/2 -translate-y-1/2"></div>
            <div className="relative z-10">
@@ -171,23 +175,10 @@ export default async function Home() {
                 Get free building guides, discount codes for kits, and inspiration delivered to your inbox every Friday.
               </p>
               
-              {/* NEWSLETTER FORM */}
-              {/* REPLACE 'YOUR_FORMSPREE_ID' WITH YOUR ACTUAL ID */}
-              <form 
-                action="https://formspree.io/f/YOUR_FORMSPREE_ID" 
-                method="POST"
-                className="flex flex-col gap-3"
-              >
-                 <input 
-                   type="email" 
-                   name="email"  // <--- Crucial for Formspree
-                   required
-                   placeholder="Your email address" 
-                   className="w-full px-5 py-3 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-green-300"
-                 />
-                 <button className="bg-green-900 text-white font-bold py-3 rounded-xl hover:bg-green-950 transition">
-                    Subscribe Free
-                 </button>
+              {/* Replace YOUR_FORMSPREE_ID in this line */}
+              <form action="https://formspree.io/f/YOUR_FORMSPREE_ID" method="POST" className="flex flex-col gap-3">
+                 <input type="email" name="email" required placeholder="Your email address" className="w-full px-5 py-3 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-green-300" />
+                 <button className="bg-green-900 text-white font-bold py-3 rounded-xl hover:bg-green-950 transition">Subscribe Free</button>
               </form>
               <p className="text-xs text-green-200 mt-4 text-center">No spam, just crafts. Unsubscribe anytime.</p>
            </div>
@@ -203,44 +194,18 @@ export default async function Home() {
              Stuck on a build? Looking for a specific review? Send us a message.
            </p>
            
-           {/* QUESTION FORM */}
-           {/* REPLACE 'YOUR_FORMSPREE_ID' WITH YOUR ACTUAL ID */}
-           <form 
-             action="https://formspree.io/f/meoyzpqb" 
-             method="POST"
-             className="flex flex-col gap-3"
-           >
+           {/* Replace YOUR_FORMSPREE_ID in this line */}
+           <form action="https://formspree.io/f/YOUR_FORMSPREE_ID" method="POST" className="flex flex-col gap-3">
               <div className="grid grid-cols-2 gap-3">
-                  <input 
-                    type="text" 
-                    name="name" // <--- Crucial
-                    required
-                    placeholder="Name" 
-                    className="w-full px-5 py-3 rounded-xl border border-gray-200 focus:outline-none focus:border-primary bg-white" 
-                  />
-                  <input 
-                    type="email" 
-                    name="email" // <--- Crucial
-                    required
-                    placeholder="Email" 
-                    className="w-full px-5 py-3 rounded-xl border border-gray-200 focus:outline-none focus:border-primary bg-white" 
-                  />
+                  <input type="text" name="name" required placeholder="Name" className="w-full px-5 py-3 rounded-xl border border-gray-200 focus:outline-none focus:border-primary bg-white" />
+                  <input type="email" name="email" required placeholder="Email" className="w-full px-5 py-3 rounded-xl border border-gray-200 focus:outline-none focus:border-primary bg-white" />
               </div>
-              <textarea 
-                name="message" // <--- Crucial
-                required
-                rows={3} 
-                placeholder="How can we help?" 
-                className="w-full px-5 py-3 rounded-xl border border-gray-200 focus:outline-none focus:border-primary bg-white"
-              ></textarea>
-              <button className="bg-gray-900 text-white font-bold py-3 rounded-xl hover:bg-black transition">
-                 Send Message
-              </button>
+              <textarea name="message" required rows={3} placeholder="How can we help?" className="w-full px-5 py-3 rounded-xl border border-gray-200 focus:outline-none focus:border-primary bg-white"></textarea>
+              <button className="bg-gray-900 text-white font-bold py-3 rounded-xl hover:bg-black transition">Send Message</button>
            </form>
         </div>
 
       </section>
-
     </div>
   );
 }

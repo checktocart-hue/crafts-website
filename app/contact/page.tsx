@@ -5,7 +5,7 @@ export default function ContactPage() {
     <div className="max-w-7xl mx-auto px-4 py-16">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
         
-        {/* Left Side: Contact Information */}
+        {/* Contact Info */}
         <div>
           <h1 className="text-4xl font-bold mb-6">Get in Touch</h1>
           <p className="text-gray-600 mb-8 text-lg">
@@ -28,13 +28,13 @@ export default function ContactPage() {
               </div>
               <div>
                 <h3 className="font-bold text-gray-900">Location</h3>
-                <p className="text-gray-600">Lagos, Nigeria</p>
+                <p className="text-gray-600">Online / Worldwide</p>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Right Side: Contact Form */}
+        {/* Contact Form */}
         <div className="bg-gray-50 p-8 rounded-3xl border border-gray-100 shadow-sm">
           
           {/* REPLACE 'YOUR_FORMSPREE_ID' WITH YOUR ACTUAL ID */}
