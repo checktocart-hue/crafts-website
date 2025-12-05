@@ -2,18 +2,24 @@ import { client } from "@/app/lib/sanity";
 import Link from "next/link";
 import { urlFor } from "@/app/lib/sanity";
 
-export const revalidate = 30;
+// Revalidate every 60 seconds to keep data fresh
+export const revalidate = 60;
 
 async function getData() {
-  // CHANGED: Now looks for both "post" AND "project" types
+  // QUERY UPDATE:
+  // 1. We look for types "post" OR "project"
+  // 2. We ensure 'slug.current' is defined (to prevent errors)
+  // 3. We fetch both 'overview' and 'description' to handle different schema definitions
   const query = `
-    *[_type == "post" || _type == "project"] | order(_createdAt desc) {
+    *[(_type == "post" || _type == "project") && defined(slug.current)] | order(_createdAt desc) {
+      _id,
       title,
       overview,
-      description, // Projects use 'description' instead of overview sometimes
+      description, 
       "slug": slug.current,
       "mainImage": mainImage,
-      _createdAt
+      _createdAt,
+      _type
     }
   `;
   const data = await client.fetch(query);
@@ -37,7 +43,7 @@ export default async function BlogIndexPage() {
           {posts.map((post: any) => (
             <Link
               href={`/blog/${post.slug}`}
-              key={post.slug}
+              key={post._id}
               className="group block border border-gray-100 rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300 bg-white"
             >
               {post.mainImage ? (
@@ -56,6 +62,11 @@ export default async function BlogIndexPage() {
               )}
               
               <div className="p-6">
+                <div className="mb-2">
+                   <span className="text-[10px] uppercase font-bold tracking-widest text-primary bg-green-50 px-2 py-1 rounded">
+                     {post._type === 'project' ? 'Guide' : 'Article'}
+                   </span>
+                </div>
                 <h2 className="text-xl font-bold mb-3 text-gray-800 group-hover:text-blue-600 transition-colors line-clamp-2">
                   {post.title}
                 </h2>
@@ -64,7 +75,7 @@ export default async function BlogIndexPage() {
                 </p>
                 {/* Shows description OR overview, depending on which one exists */}
                 <p className="text-gray-600 text-sm line-clamp-3 leading-relaxed">
-                   {post.overview || post.description || "Read more about this project..."}
+                   {post.overview || post.description || "Click to read more..."}
                 </p>
                 <div className="mt-4 text-blue-600 font-bold text-sm group-hover:underline">
                   Read Article →
@@ -75,8 +86,13 @@ export default async function BlogIndexPage() {
         </div>
       ) : (
         <div className="text-center py-20 bg-gray-50 rounded-lg border border-dashed border-gray-200">
-          <p className="text-gray-500 text-lg">No articles found.</p>
-          <p className="text-sm text-gray-400">Create a "Post" or "Project" in Sanity to see it here.</p>
+          <h3 className="text-xl font-bold text-gray-700 mb-2">No Content Found</h3>
+          <p className="text-gray-500 text-sm">
+            We couldn't find any Published 'Posts' or 'Projects'.
+          </p>
+          <p className="text-xs text-gray-400 mt-4">
+            (Check your Sanity Studio: Ensure items are Green/Published and have a generated Slug)
+          </p>
         </div>
       )}
     </div>
