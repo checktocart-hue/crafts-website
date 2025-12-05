@@ -6,42 +6,31 @@ import { urlFor } from "@/app/lib/sanity";
 export const revalidate = 0; 
 
 async function getData(categorySlug?: string) {
-  let query;
-  
-  // IF a category is selected in the URL: Filter by that category
-  if (categorySlug) {
-    query = `
-      *[(_type == "post" || _type == "project") && $categorySlug in categories[]->slug.current] | order(_createdAt desc) {
-        _id, 
-        title, 
-        overview, 
-        description, 
-        "slug": slug.current, 
-        mainImage, 
-        _createdAt,
-        "categories": categories[]->title
-      }
-    `;
-  } else {
-    // ELSE: Fetch ALL posts and projects
-    query = `
-      *[(_type == "post" || _type == "project")] | order(_createdAt desc) {
-        _id, 
-        title, 
-        overview, 
-        description, 
-        "slug": slug.current, 
-        mainImage, 
-        _createdAt,
-        "categories": categories[]->title
-      }
-    `;
-  }
+  // 1. Construct the filter. 
+  // If a category is selected, we look for posts that "reference" that category's ID.
+  // This is the robust way to filter in Sanity.
+  const categoryFilter = categorySlug 
+    ? `&& references(*[_type == "category" && slug.current == "${categorySlug}"]._id)`
+    : "";
 
-  // Fetch list of categories for the buttons
+  // 2. The Main Query
+  const query = `
+    *[(_type == "post" || _type == "project") ${categoryFilter}] | order(_createdAt desc) {
+      _id, 
+      title, 
+      overview, 
+      description, 
+      "slug": slug.current, 
+      mainImage, 
+      _createdAt,
+      "categories": categories[]->title
+    }
+  `;
+
+  // 3. Fetch Categories for the buttons
   const categoriesQuery = `*[_type == "category"] { title, "slug": slug.current }`;
 
-  const posts = await client.fetch(query, { categorySlug });
+  const posts = await client.fetch(query);
   const categories = await client.fetch(categoriesQuery);
   
   return { posts, categories };
@@ -54,6 +43,8 @@ export default async function BlogIndexPage({
 }) {
   const resolvedParams = await searchParams;
   const selectedCat = resolvedParams.cat;
+  
+  // Fetch data
   const { posts, categories } = await getData(selectedCat);
 
   return (
@@ -88,6 +79,11 @@ export default async function BlogIndexPage({
         ))}
       </div>
 
+      {/* --- RESULTS COUNT (Helps verify it works) --- */}
+      <div className="mb-6 text-sm text-gray-400 font-bold uppercase tracking-widest">
+        Showing {posts.length} Article{posts.length !== 1 ? 's' : ''}
+      </div>
+
       {/* --- BLOG GRID --- */}
       {posts.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -116,7 +112,7 @@ export default async function BlogIndexPage({
               {/* Content */}
               <div className="p-6">
                 <div className="flex gap-2 mb-2 flex-wrap">
-                   {/* Display Categories if available */}
+                   {/* Display Categories */}
                    {post.categories?.map((c: string) => (
                      <span key={c} className="text-[10px] uppercase font-bold tracking-widest text-primary bg-green-50 px-2 py-1 rounded">{c}</span>
                    ))}
@@ -126,7 +122,6 @@ export default async function BlogIndexPage({
                 </h2>
                 <p className="text-sm text-gray-400 mb-4">{new Date(post._createdAt).toLocaleDateString()}</p>
                 
-                {/* Description (Project) or Overview (Post) */}
                 <p className="text-gray-600 text-sm line-clamp-3 leading-relaxed">
                    {post.overview || post.description || "Click to read more..."}
                 </p>
@@ -140,7 +135,7 @@ export default async function BlogIndexPage({
         <div className="text-center py-20 bg-gray-50 rounded-lg border border-dashed border-gray-200">
           <h3 className="text-xl font-bold text-gray-700 mb-2">No Posts Found</h3>
           <p className="text-gray-500 text-sm">
-            Try selecting a different category or view "All Posts".
+            Try selecting a different category or click "All Posts".
           </p>
         </div>
       )}
