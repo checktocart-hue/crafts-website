@@ -4,42 +4,64 @@ import { urlFor } from "@/app/lib/sanity";
 
 export const revalidate = 30;
 
-// 1. Fetch Categories (For the buttons) and Reviews (For the grid)
+// 1. Updated Data Fetching Logic
 async function getData(categorySlug?: string) {
-  // If a category is selected in the URL (e.g. ?cat=book-nook), filter by it.
-  // Otherwise, fetch all reviews.
-  const filter = categorySlug 
-    ? `&& references(*[_type=="category" && slug.current == "${categorySlug}"]._id)`
-    : "";
+  let query;
+  let params = {};
 
-  const query = `
-    {
-      "categories": *[_type == "category"] {
-        title,
-        "slug": slug.current
-      },
-      "reviews": *[_type == "review" ${filter}] | order(_createdAt desc) {
-        title,
-        overview,
-        "slug": slug.current,
-        "mainImage": mainImage,
-        _createdAt,
-        "categories": categories[]->title
+  if (categorySlug) {
+    // IF we have a category: Filter by that category slug
+    query = `
+      {
+        "categories": *[_type == "category"] {
+          title,
+          "slug": slug.current
+        },
+        "reviews": *[_type == "review" && $categorySlug in categories[]->slug.current] | order(_createdAt desc) {
+          title,
+          overview,
+          "slug": slug.current,
+          "mainImage": mainImage,
+          _createdAt,
+          "categories": categories[]->title
+        }
       }
-    }
-  `;
+    `;
+    params = { categorySlug };
+  } else {
+    // ELSE (No category selected): Fetch everything
+    query = `
+      {
+        "categories": *[_type == "category"] {
+          title,
+          "slug": slug.current
+        },
+        "reviews": *[_type == "review"] | order(_createdAt desc) {
+          title,
+          overview,
+          "slug": slug.current,
+          "mainImage": mainImage,
+          _createdAt,
+          "categories": categories[]->title
+        }
+      }
+    `;
+  }
 
-  const data = await client.fetch(query);
+  const data = await client.fetch(query, params);
   return data;
 }
 
+// 2. Updated Component to handle Async Params
 export default async function ReviewsPage({
   searchParams,
 }: {
-  searchParams: { cat?: string };
+  searchParams: Promise<{ cat?: string }>; // <--- Defined as a Promise now
 }) {
-  // Get the category from the URL (if one exists)
-  const selectedCat = searchParams.cat;
+  // AWAIT the parameters (Crucial fix for Next.js 15/16)
+  const resolvedParams = await searchParams;
+  const selectedCat = resolvedParams.cat;
+
   const data = await getData(selectedCat);
 
   return (
@@ -91,7 +113,7 @@ export default async function ReviewsPage({
               key={post.slug}
               className="group block border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-shadow duration-300"
             >
-              {/* IMAGE - Using standard <img> tag for reliability */}
+              {/* IMAGE */}
               {post.mainImage ? (
                 <div className="w-full h-64 bg-gray-100 overflow-hidden relative">
                   <img
@@ -109,7 +131,7 @@ export default async function ReviewsPage({
               {/* CONTENT */}
               <div className="p-6">
                 <div className="flex gap-2 mb-3">
-                    {/* Tiny category tags above title */}
+                    {/* Tiny category tags */}
                     {post.categories && post.categories.map((c: string) => (
                         <span key={c} className="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded">
                             {c}
