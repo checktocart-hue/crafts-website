@@ -1,24 +1,28 @@
-// File: app/guides/[slug]/page.tsx
-
-import { client } from "@/app/lib/sanity"; 
+import { client } from "@/app/lib/sanity";
 import { PortableText } from "next-sanity";
-import Image from "next/image";
+import { urlFor } from "@/app/lib/sanity";
 import Link from "next/link";
-import { urlFor } from "@/app/lib/sanity"; 
 
-export const revalidate = 30; 
+export const revalidate = 30;
 
 async function getData(slug: string) {
   const query = `
     {
-      "currentPost": *[_type == "post" && slug.current == $slug][0] {
-          title, _createdAt, body,
+      // CHANGED: Looks for slug in "post" OR "project"
+      "currentPost": *[(_type == "post" || _type == "project") && slug.current == $slug][0] {
+          title,
+          _createdAt,
           "slug": slug.current,
           "mainImage": mainImage,
+          body,
           "categoryId": categories[0]->_ref 
       },
-      "relatedPosts": *[_type == "post" && slug.current != $slug && references(^.categories[0]->_ref)] | order(_createdAt desc)[0...3] {
-          title, "slug": slug.current, "mainImage": mainImage, _createdAt
+      // CHANGED: Related posts query also allows both types
+      "relatedPosts": *[(_type == "post" || _type == "project") && slug.current != $slug] | order(_createdAt desc)[0...3] {
+          title,
+          "slug": slug.current,
+          "mainImage": mainImage,
+          _createdAt
       }
     }
   `;
@@ -26,39 +30,77 @@ async function getData(slug: string) {
   return data;
 }
 
-export default async function GuidePage({ params }: { params: { slug: string } }) {
-  const data = await getData(params.slug);
+export default async function BlogArticlePage({ 
+  params 
+}: { 
+  params: Promise<{ slug: string }> 
+}) {
+  const { slug } = await params;
+  const data = await getData(slug);
   const post = data.currentPost;
 
-  if (!post) return <div className="p-10 text-center">Guide not found</div>;
+  if (!post) {
+    return (
+      <div className="max-w-3xl mx-auto px-4 py-20 text-center">
+        <h1 className="text-2xl font-bold">Article not found</h1>
+        <Link href="/blog" className="text-blue-600 underline mt-4 block">
+          Back to Blog
+        </Link>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-8">
-      <span className="bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded">Guide</span>
-      <h1 className="text-3xl font-bold mt-2 mb-4">{post.title}</h1>
-      <p className="text-gray-500 mb-6">{new Date(post._createdAt).toLocaleDateString()}</p>
+      {/* Breadcrumb */}
+      <div className="mb-6">
+        <Link href="/blog" className="text-sm text-gray-500 hover:text-blue-600 transition-colors">
+          ← Back to Blog
+        </Link>
+      </div>
+
+      <h1 className="text-3xl md:text-4xl font-bold mb-4 text-gray-900">
+        {post.title}
+      </h1>
+      <p className="text-gray-500 mb-6">
+        {new Date(post._createdAt).toLocaleDateString()}
+      </p>
       
       {post.mainImage && (
         <div className="relative w-full h-64 md:h-96 mb-8 rounded-lg overflow-hidden bg-gray-100">
-          <Image src={urlFor(post.mainImage).url()} alt={post.title} fill className="object-cover" priority />
+          <img
+            src={urlFor(post.mainImage).url()}
+            alt={post.title}
+            loading="eager"
+            className="w-full h-full object-cover"
+          />
         </div>
       )}
 
-      <article className="prose prose-lg max-w-none mb-16">
+      <article className="prose prose-lg prose-blue max-w-none mb-16">
         <PortableText value={post.body} />
       </article>
 
-      {/* SIMILAR GUIDES */}
+      {/* MORE ARTICLES SECTION */}
       <hr className="border-gray-200 my-12" />
       <div>
         <h3 className="text-2xl font-bold mb-6">More Guides</h3>
         {data.relatedPosts?.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {data.relatedPosts.map((related: any) => (
-              <Link href={`/guides/${related.slug}`} key={related.slug} className="group border rounded-lg overflow-hidden hover:shadow-lg transition-all">
+              <Link 
+                href={`/blog/${related.slug}`} 
+                key={related.slug} 
+                className="group border rounded-lg overflow-hidden hover:shadow-lg transition-all"
+              >
                 {related.mainImage && (
                   <div className="relative h-40 w-full bg-gray-100">
-                    <Image src={urlFor(related.mainImage).url()} alt={related.title} fill className="object-cover group-hover:scale-105 transition-transform" />
+                    <img
+                      src={urlFor(related.mainImage).url()}
+                      alt={related.title}
+                      loading="lazy"
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                    />
                   </div>
                 )}
                 <div className="p-4">
@@ -67,8 +109,16 @@ export default async function GuidePage({ params }: { params: { slug: string } }
               </Link>
             ))}
           </div>
-        ) : <p className="text-gray-500 italic">No similar guides found.</p>}
+        ) : <p className="text-gray-500 italic">No other guides found.</p>}
       </div>
     </div>
   );
 }
+```
+
+### Next Step
+Run the push commands:
+```bash
+git add .
+git commit -m "Fixed blog to show both Posts and Projects"
+git push
