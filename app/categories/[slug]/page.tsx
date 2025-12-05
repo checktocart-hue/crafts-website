@@ -1,79 +1,104 @@
-import Link from 'next/link';
-import { client } from '@/app/lib/sanity';
-import Header from '@/app/components/Header';
-import ProductCard from '@/app/components/ProductCard';
-import { ArrowLeft, Tag } from 'lucide-react';
+import { client } from "@/app/lib/sanity";
+import Image from "next/image";
+import Link from "next/link";
+import { urlFor } from "@/app/lib/sanity";
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 30; // Check for new content every 30 seconds
 
-async function getCategoryData(slug: string) {
-  // 1. Get the Category Details
-  const category = await client.fetch(`*[_type == "category" && slug.current == "${slug}"][0]`);
+async function getData(slug: string) {
+  const query = `
+    {
+      "category": *[_type == "category" && slug.current == $slug][0] {
+        title,
+        description
+      },
+      // We search for reviews that reference this specific category
+      "posts": *[_type == "review" && references(*[_type == "category" && slug.current == $slug][0]._id)] | order(_createdAt desc) {
+        title,
+        overview,
+        "slug": slug.current,
+        "mainImage": mainImage, // <--- This line was likely missing or broken before!
+        _createdAt
+      }
+    }
+  `;
 
-  // 2. Get BOTH Reviews AND Projects (Guides)
-  // Updated Query: _type in ["review", "project"]
-  const posts = await client.fetch(`*[_type in ["review", "project"] && references($id)] | order(_createdAt desc) {
-    title,
-    _type,
-    "slug": slug.current,
-    rating,
-    price,
-    description,
-    excerpt, // Projects use excerpt, Reviews use description
-    "link": "/" + (select(_type == "review" => "reviews", _type == "project" => "projects")) + "/" + slug.current
-  }`, { id: category?._id });
-
-  return { category, posts };
+  const data = await client.fetch(query, { slug });
+  return data;
 }
 
-export default async function CategoryPage({ params }: { params: { slug: string } }) {
-  const { slug } = await params;
-  const { category, posts } = await getCategoryData(slug);
+export default async function CategoryPage({
+  params,
+}: {
+  params: { slug: string };
+}) {
+  const data = await getData(params.slug);
 
-  if (!category) return <div className="text-center py-20">Category Not Found</div>;
+  if (!data.category) {
+    return <div className="text-center py-20">Category not found</div>;
+  }
 
   return (
-    <main className="min-h-screen bg-stone-50">
-      <Header />
-      
-      <div className="bg-white border-b border-gray-100 py-16 text-center">
-        <div className="inline-flex items-center justify-center p-3 bg-green-100 text-primary rounded-full mb-4">
-          <Tag size={24} />
-        </div>
-        <h1 className="text-4xl md:text-5xl font-serif font-bold text-gray-900 mb-4">
-          {category.title}
-        </h1>
-        <p className="text-gray-500 max-w-2xl mx-auto text-lg">
-          {category.description || `Browse our collection of ${category.title}.`}
-        </p>
+    <div className="max-w-7xl mx-auto px-4 py-8">
+      {/* Header Section */}
+      <div className="mb-10 text-center">
+        <h1 className="text-4xl font-bold mb-4">{data.category.title}</h1>
+        {data.category.description && (
+          <p className="text-gray-600 max-w-2xl mx-auto">
+            {data.category.description}
+          </p>
+        )}
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 py-12">
-        <Link href="/" className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-primary mb-8 transition">
-           <ArrowLeft size={16} /> Back to Home
-        </Link>
+      {/* Grid of Reviews in this Category */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {data.posts.map((post: any) => (
+          <Link
+            href={`/reviews/${post.slug}`}
+            key={post.slug}
+            className="group block border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-shadow duration-300"
+          >
+            {/* Image Section */}
+            {post.mainImage ? (
+              <div className="relative w-full h-64 bg-gray-100 overflow-hidden">
+                <Image
+                  src={urlFor(post.mainImage).url()}
+                  alt={post.title}
+                  fill
+                  className="object-cover group-hover:scale-105 transition-transform duration-300"
+                />
+              </div>
+            ) : (
+              // Fallback if no image exists
+              <div className="w-full h-64 bg-gray-200 flex items-center justify-center text-gray-400">
+                No Image
+              </div>
+            )}
 
-        <div className="grid md:grid-cols-3 gap-8">
-          {posts.length > 0 ? (
-            posts.map((post: any) => (
-              <ProductCard 
-                key={post.slug}
-                title={post.title}
-                rating={post.rating || 5} // Projects default to 5 stars
-                price={post.price || "Read Guide"} // Projects show "Read Guide"
-                tag={post._type === "review" ? "Review" : "Guide"} // Tag tells them what it is
-                features={[]} // No features needed for list view
-                link={post.link}
-              />
-            ))
-          ) : (
-            <div className="col-span-3 text-center py-20 bg-white rounded-2xl border border-gray-100">
-              <p className="text-gray-400 text-xl">No content found in this category yet.</p>
-              <p className="text-gray-500 mt-2">Check back soon!</p>
+            {/* Content Section */}
+            <div className="p-6">
+              <h2 className="text-xl font-bold mb-2 group-hover:text-blue-600 transition-colors">
+                {post.title}
+              </h2>
+              <p className="text-gray-500 text-sm mb-4">
+                {new Date(post._createdAt).toLocaleDateString()}
+              </p>
+              {post.overview && (
+                <p className="text-gray-600 line-clamp-3">{post.overview}</p>
+              )}
             </div>
-          )}
-        </div>
+          </Link>
+        ))}
       </div>
-    </main>
+
+      {/* Empty State */}
+      {data.posts.length === 0 && (
+        <div className="text-center py-20 bg-gray-50 rounded-lg">
+          <p className="text-gray-500 text-lg">
+            No reviews found in this category yet.
+          </p>
+        </div>
+      )}
+    </div>
   );
 }
