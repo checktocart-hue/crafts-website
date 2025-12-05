@@ -8,8 +8,7 @@ export const revalidate = 30;
 async function getData(slug: string) {
   const query = `
     {
-      // CHANGED: Looks for slug in "post" OR "project"
-      "currentPost": *[(_type == "post" || _type == "project") && slug.current == $slug][0] {
+      "currentPost": *[_type == "post" && slug.current == $slug][0] {
           title,
           _createdAt,
           "slug": slug.current,
@@ -17,8 +16,7 @@ async function getData(slug: string) {
           body,
           "categoryId": categories[0]->_ref 
       },
-      // CHANGED: Related posts query also allows both types
-      "relatedPosts": *[(_type == "post" || _type == "project") && slug.current != $slug] | order(_createdAt desc)[0...3] {
+      "relatedPosts": *[_type == "post" && slug.current != $slug] | order(_createdAt desc)[0...3] {
           title,
           "slug": slug.current,
           "mainImage": mainImage,
@@ -43,6 +41,7 @@ export default async function BlogArticlePage({
     return (
       <div className="max-w-3xl mx-auto px-4 py-20 text-center">
         <h1 className="text-2xl font-bold">Article not found</h1>
+        <p className="text-gray-500 mt-2">The article you are looking for might have been moved or deleted.</p>
         <Link href="/blog" className="text-blue-600 underline mt-4 block">
           Back to Blog
         </Link>
@@ -84,7 +83,7 @@ export default async function BlogArticlePage({
       {/* MORE ARTICLES SECTION */}
       <hr className="border-gray-200 my-12" />
       <div>
-        <h3 className="text-2xl font-bold mb-6">More Guides</h3>
+        <h3 className="text-2xl font-bold mb-6">Read Next</h3>
         {data.relatedPosts?.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {data.relatedPosts.map((related: any) => (
@@ -109,16 +108,8 @@ export default async function BlogArticlePage({
               </Link>
             ))}
           </div>
-        ) : <p className="text-gray-500 italic">No other guides found.</p>}
+        ) : <p className="text-gray-500 italic">More articles coming soon.</p>}
       </div>
     </div>
   );
 }
-```
-
-### Next Step
-Run the push commands:
-```bash
-git add .
-git commit -m "Fixed blog to show both Posts and Projects"
-git push
