@@ -1,88 +1,142 @@
-import Link from 'next/link';
-import { Star, ArrowLeft } from 'lucide-react';
-import { client } from '@/app/lib/sanity';
-import Header from '@/app/components/Header';
-import AdUnit from '@/app/components/AdUnit';
+import { client } from "@/app/lib/sanity";
+import Link from "next/link";
+import { urlFor } from "@/app/lib/sanity";
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 30;
 
-async function getReviews() {
-  // Added "imageUrl" to the query
-  const query = `*[_type == "review"] | order(_createdAt desc) {
-    title,
-    "slug": slug.current,
-    description,
-    rating,
-    price,
-    "imageUrl": mainImage.asset->url 
-  }`;
-  return await client.fetch(query);
+// 1. Fetch Categories (For the buttons) and Reviews (For the grid)
+async function getData(categorySlug?: string) {
+  // If a category is selected in the URL (e.g. ?cat=book-nook), filter by it.
+  // Otherwise, fetch all reviews.
+  const filter = categorySlug 
+    ? `&& references(*[_type=="category" && slug.current == "${categorySlug}"]._id)`
+    : "";
+
+  const query = `
+    {
+      "categories": *[_type == "category"] {
+        title,
+        "slug": slug.current
+      },
+      "reviews": *[_type == "review" ${filter}] | order(_createdAt desc) {
+        title,
+        overview,
+        "slug": slug.current,
+        "mainImage": mainImage,
+        _createdAt,
+        "categories": categories[]->title
+      }
+    }
+  `;
+
+  const data = await client.fetch(query);
+  return data;
 }
 
-export default async function ReviewsPage() {
-  const reviews = await getReviews(); 
+export default async function ReviewsPage({
+  searchParams,
+}: {
+  searchParams: { cat?: string };
+}) {
+  // Get the category from the URL (if one exists)
+  const selectedCat = searchParams.cat;
+  const data = await getData(selectedCat);
 
   return (
-    <main className="min-h-screen bg-white">
-      <Header />
-      
-      <div className="bg-stone-50 border-b border-gray-100 py-16 text-center">
-        <h1 className="text-5xl font-serif font-bold text-gray-900 mb-4">All Kit Reviews</h1>
-        <p className="text-gray-500 max-w-2xl mx-auto text-lg">
-          Unbiased, hands-on reviews of the best DIY kits on the market.
-        </p>
+    <div className="max-w-7xl mx-auto px-4 py-8">
+      {/* --- PAGE HEADER --- */}
+      <div className="mb-10 text-center">
+        <h1 className="text-4xl font-bold mb-4">
+          {selectedCat ? `${selectedCat.replace('-', ' ')} Reviews` : "All Reviews"}
+        </h1>
+        <p className="text-gray-600">Explore our latest craft projects and kits.</p>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 py-12">
-        <div className="mb-8">
-            <Link href="/" className="inline-flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-primary transition">
-            <ArrowLeft size={16} /> Back to Home
-            </Link>
-        </div>
+      {/* --- CATEGORY FILTER BUTTONS --- */}
+      <div className="flex flex-wrap justify-center gap-3 mb-12">
+        {/* 'All' Button */}
+        <Link
+          href="/reviews"
+          className={`px-4 py-2 rounded-full text-sm font-semibold transition-colors ${
+            !selectedCat
+              ? "bg-blue-600 text-white"
+              : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+          }`}
+        >
+          All
+        </Link>
 
-        <AdUnit format="horizontal" />
+        {/* Dynamic Category Buttons */}
+        {data.categories.map((cat: any) => (
+          <Link
+            key={cat.slug}
+            href={`/reviews?cat=${cat.slug}`}
+            className={`px-4 py-2 rounded-full text-sm font-semibold transition-colors ${
+              selectedCat === cat.slug
+                ? "bg-blue-600 text-white"
+                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+            }`}
+          >
+            {cat.title}
+          </Link>
+        ))}
+      </div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mt-12">
-          {reviews.length > 0 ? (
-            reviews.map((review: any) => (
-              <Link key={review.slug} href={`/reviews/${review.slug}`} className="group block">
-                <div className="border border-gray-200 rounded-xl overflow-hidden hover:shadow-xl transition-all duration-300 bg-white h-full flex flex-col">
-                  {/* IMAGE AREA - Updated to show Real Image */}
-                  <div className="bg-stone-100 h-48 w-full flex items-center justify-center text-gray-400 group-hover:bg-stone-200 transition overflow-hidden">
-                    {review.imageUrl ? (
-                      <img 
-                        src={review.imageUrl} 
-                        alt={review.title} 
-                        className="w-full h-full object-contain p-4 group-hover:scale-105 transition duration-500" 
-                      />
-                    ) : (
-                      <span>[No Image]</span>
-                    )}
-                  </div>
-                  
-                  <div className="p-6 flex flex-col flex-grow">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex gap-1">
-                        {[...Array(5)].map((_, i) => (
-                          <Star key={i} size={14} className={i < review.rating ? "fill-orange-400 text-orange-400" : "text-gray-200"} />
-                        ))}
-                      </div>
-                      <span className="font-bold text-gray-900 bg-stone-100 px-2 py-1 rounded text-xs">{review.price}</span>
-                    </div>
-                    
-                    <h3 className="text-xl font-serif font-bold mb-2 text-gray-900 group-hover:text-primary transition">{review.title}</h3>
-                    <p className="text-gray-500 text-sm line-clamp-3 leading-relaxed">{review.description}</p>
-                    
-                    <span className="mt-4 text-primary font-bold text-sm uppercase tracking-widest group-hover:underline">Read Review</span>
-                  </div>
+      {/* --- REVIEWS GRID --- */}
+      {data.reviews.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {data.reviews.map((post: any) => (
+            <Link
+              href={`/reviews/${post.slug}`}
+              key={post.slug}
+              className="group block border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-shadow duration-300"
+            >
+              {/* IMAGE - Using standard <img> tag for reliability */}
+              {post.mainImage ? (
+                <div className="w-full h-64 bg-gray-100 overflow-hidden relative">
+                  <img
+                    src={urlFor(post.mainImage).url()}
+                    alt={post.title}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
                 </div>
-              </Link>
-            ))
-          ) : (
-            <div className="col-span-3 text-center text-gray-400">No reviews found.</div>
-          )}
+              ) : (
+                <div className="w-full h-64 bg-gray-200 flex items-center justify-center text-gray-400">
+                  No Image
+                </div>
+              )}
+
+              {/* CONTENT */}
+              <div className="p-6">
+                <div className="flex gap-2 mb-3">
+                    {/* Tiny category tags above title */}
+                    {post.categories && post.categories.map((c: string) => (
+                        <span key={c} className="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded">
+                            {c}
+                        </span>
+                    ))}
+                </div>
+                <h2 className="text-xl font-bold mb-2 group-hover:text-blue-600 transition-colors">
+                  {post.title}
+                </h2>
+                <p className="text-gray-500 text-sm mb-4">
+                  {new Date(post._createdAt).toLocaleDateString()}
+                </p>
+                {post.overview && (
+                  <p className="text-gray-600 line-clamp-3">{post.overview}</p>
+                )}
+              </div>
+            </Link>
+          ))}
         </div>
-      </div>
-    </main>
+      ) : (
+        <div className="text-center py-20 bg-gray-50 rounded-lg">
+          <p className="text-gray-500 text-lg">No reviews found for this category.</p>
+          <Link href="/reviews" className="text-blue-600 font-bold mt-2 inline-block hover:underline">
+            View all reviews
+          </Link>
+        </div>
+      )}
+    </div>
   );
 }
