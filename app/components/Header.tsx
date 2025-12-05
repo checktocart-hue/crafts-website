@@ -7,10 +7,10 @@ import { Sprout, Search, Menu, ShoppingBag, ChevronDown, X } from 'lucide-react'
 export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isReviewsOpen, setIsReviewsOpen] = useState(false);
-  // Removed isGuidesOpen because we simplified Blog to a single link for tidiness
 
   return (
-    <nav className="bg-white sticky top-0 z-50 border-b border-stone-100 font-sans">
+    // UPDATED: Added 'border-b-2 border-green-600' for the colored separator line
+    <nav className="bg-white sticky top-0 z-50 border-b-2 border-green-600 font-sans shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-20 items-center">
           
@@ -31,7 +31,7 @@ export default function Header() {
           <div className="hidden lg:flex gap-8 items-center text-xs font-bold tracking-widest text-gray-500">
             <Link href="/" className="hover:text-primary transition">HOME</Link>
             
-            {/* REVIEWS DROPDOWN (Updated with correct links) */}
+            {/* REVIEWS DROPDOWN */}
             <div className="relative group h-20 flex items-center cursor-pointer">
               <Link href="/reviews" className="group-hover:text-primary transition flex items-center gap-1">
                 REVIEWS <ChevronDown size={14}/>
@@ -40,7 +40,6 @@ export default function Header() {
                 <div className="py-2 flex flex-col">
                   <div className="px-5 py-2 text-[10px] text-gray-400 uppercase tracking-widest border-b border-gray-50 bg-gray-50">By Product Type</div>
                   
-                  {/* THESE LINKS NOW USE THE FILTER SYSTEM (?cat=) */}
                   <Link href="/reviews?cat=book-nooks" className="px-5 py-3 hover:bg-stone-50 hover:text-primary text-gray-600 border-b border-gray-50 flex justify-between items-center text-sm capitalize font-medium tracking-normal">
                     📚 Book Nooks
                   </Link>
@@ -57,7 +56,7 @@ export default function Header() {
               </div>
             </div>
 
-            {/* BLOG LINK (Renamed & Simplified) */}
+            {/* BLOG LINK */}
             <Link href="/blog" className="hover:text-primary transition">
                BLOG
             </Link>

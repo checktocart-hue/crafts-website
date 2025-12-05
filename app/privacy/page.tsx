@@ -1,33 +1,82 @@
-import Header from '@/app/components/Header';
+import { Mail, MapPin } from "lucide-react";
 
-export default function PrivacyPage() {
+export default function ContactPage() {
   return (
-    <main className="min-h-screen bg-white">
-      <Header />
-      <div className="max-w-3xl mx-auto px-4 py-16">
-        <h1 className="text-4xl font-serif font-bold mb-8">Privacy Policy</h1>
-        <div className="prose prose-stone max-w-none text-gray-600">
-          <p><strong>Last Updated: November 2025</strong></p>
+    <div className="max-w-7xl mx-auto px-4 py-16">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+        
+        {/* Left Side: Contact Information */}
+        <div>
+          <h1 className="text-4xl font-bold mb-6">Get in Touch</h1>
+          <p className="text-gray-600 mb-8 text-lg">
+            Have a question about a kit? Want to collaborate? Or just want to show off your latest build? We'd love to hear from you.
+          </p>
           
-          <h3>1. Introduction</h3>
-          <p>Welcome to CraftsAndKits. We respect your privacy and are committed to protecting your personal data. This privacy policy will inform you as to how we look after your personal data when you visit our website.</p>
+          <div className="space-y-6">
+            <div className="flex items-start gap-4">
+              <div className="bg-primary/10 p-3 rounded-full text-primary">
+                <Mail size={24} />
+              </div>
+              <div>
+                <h3 className="font-bold text-gray-900">Email</h3>
+                <p className="text-gray-600">support@craftsandkits.com</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-4">
+              <div className="bg-primary/10 p-3 rounded-full text-primary">
+                <MapPin size={24} />
+              </div>
+              <div>
+                <h3 className="font-bold text-gray-900">Location</h3>
+                <p className="text-gray-600">Lagos, Nigeria</p>
+              </div>
+            </div>
+          </div>
+        </div>
 
-          <h3>2. Data We Collect</h3>
-          <p>We may collect, use, store, and transfer different kinds of personal data about you which we have grouped together follows:</p>
-          <ul>
-            <li><strong>Technical Data:</strong> Includes internet protocol (IP) address, browser type and version, time zone setting and location, and operating system.</li>
-            <li><strong>Usage Data:</strong> Includes information about how you use our website and services.</li>
-            <li><strong>Cookies:</strong> We use cookies to analyze traffic and for ad personalization (Google AdSense).</li>
-          </ul>
-
-          <h3>3. Google AdSense & Cookies</h3>
-          <p>Third party vendors, including Google, use cookies to serve ads based on a user's prior visits to your website or other websites. Google's use of advertising cookies enables it and its partners to serve ads to your users based on their visit to your sites and/or other sites on the Internet.</p>
-          <p>Users may opt out of personalized advertising by visiting <a href="https://www.google.com/settings/ads" target="_blank" rel="nofollow">Ads Settings</a>.</p>
-
-          <h3>4. Contact Us</h3>
-          <p>If you have any questions about this privacy policy, please contact us at: <strong>craftsandkits.com@gmail.com</strong></p>
+        {/* Right Side: Contact Form */}
+        <div className="bg-gray-50 p-8 rounded-3xl border border-gray-100 shadow-sm">
+          <form className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+               <div className="space-y-2">
+                 <label className="text-sm font-bold text-gray-700">Name</label>
+                 <input 
+                   type="text" 
+                   className="w-full border border-gray-200 p-3 rounded-xl focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary bg-white" 
+                   placeholder="John Doe" 
+                 />
+               </div>
+               <div className="space-y-2">
+                 <label className="text-sm font-bold text-gray-700">Email</label>
+                 <input 
+                   type="email" 
+                   className="w-full border border-gray-200 p-3 rounded-xl focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary bg-white" 
+                   placeholder="john@example.com" 
+                 />
+               </div>
+            </div>
+            <div className="space-y-2">
+                 <label className="text-sm font-bold text-gray-700">Subject</label>
+                 <input 
+                   type="text" 
+                   className="w-full border border-gray-200 p-3 rounded-xl focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary bg-white" 
+                   placeholder="Regarding a review..." 
+                 />
+            </div>
+            <div className="space-y-2">
+                 <label className="text-sm font-bold text-gray-700">Message</label>
+                 <textarea 
+                   rows={5} 
+                   className="w-full border border-gray-200 p-3 rounded-xl focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary bg-white" 
+                   placeholder="How can we help?"
+                 ></textarea>
+            </div>
+            <button className="w-full bg-black text-white px-8 py-4 rounded-xl font-bold hover:bg-gray-800 transition">
+              Send Message
+            </button>
+          </form>
         </div>
       </div>
-    </main>
+    </div>
   );
 }

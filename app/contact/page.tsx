@@ -1,100 +1,95 @@
-import Header from '@/app/components/Header';
-import { Mail, MessageSquare, HelpCircle, Clock } from 'lucide-react';
-import AdUnit from '@/app/components/AdUnit';
+import { Mail, MapPin } from "lucide-react";
 
 export default function ContactPage() {
   return (
-    <main className="min-h-screen bg-white">
-      <Header />
-
-      {/* 1. HERO SECTION */}
-      <section className="bg-primary text-white py-20 px-4 text-center">
-        <h1 className="text-4xl md:text-5xl font-serif font-bold mb-4">Contact Us</h1>
-        <p className="text-green-100 max-w-xl mx-auto text-lg">
-          Have a question about a kit? Want to request a review? 
-          We are here to help you build your world.
-        </p>
-      </section>
-
-      <div className="max-w-4xl mx-auto px-4 -mt-10 relative z-10">
-        <div className="bg-white rounded-2xl shadow-xl p-8 md:p-12 border border-gray-100 text-center">
-          
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-stone-100 rounded-full mb-6 text-primary">
-            <Mail size={32} />
-          </div>
-          
-          <h2 className="text-2xl font-serif font-bold text-gray-900 mb-2">Email Support</h2>
-          <p className="text-gray-500 mb-6">
-            We are a digital-first team. The best way to reach us is via email.
-            <br/>
-            <span className="text-xs font-bold uppercase tracking-widest text-secondary mt-2 block">
-              <Clock size={10} className="inline mr-1"/> Response time: 24 Hours
-            </span>
+    <div className="max-w-7xl mx-auto px-4 py-16">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+        
+        {/* Left Side: Contact Information */}
+        <div>
+          <h1 className="text-4xl font-bold mb-6">Get in Touch</h1>
+          <p className="text-gray-600 mb-8 text-lg">
+            Have a question about a kit? Want to collaborate? Or just want to show off your latest build? We'd love to hear from you.
           </p>
+          
+          <div className="space-y-6">
+            <div className="flex items-start gap-4">
+              <div className="bg-primary/10 p-3 rounded-full text-primary">
+                <Mail size={24} />
+              </div>
+              <div>
+                <h3 className="font-bold text-gray-900">Email</h3>
+                <p className="text-gray-600">support@craftsandkits.com</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-4">
+              <div className="bg-primary/10 p-3 rounded-full text-primary">
+                <MapPin size={24} />
+              </div>
+              <div>
+                <h3 className="font-bold text-gray-900">Location</h3>
+                <p className="text-gray-600">Lagos, Nigeria</p>
+              </div>
+            </div>
+          </div>
+        </div>
 
-          <a 
-            href="mailto:craftsandkits.com@gmail.com" 
-            className="text-2xl md:text-3xl font-bold text-primary hover:text-green-700 transition break-all border-b-2 border-primary/20 hover:border-primary"
+        {/* Right Side: Contact Form */}
+        <div className="bg-gray-50 p-8 rounded-3xl border border-gray-100 shadow-sm">
+          
+          {/* REPLACE 'YOUR_FORMSPREE_ID' WITH YOUR ACTUAL ID */}
+          <form 
+            action="https://formspree.io/f/YOUR_FORMSPREE_ID" 
+            method="POST"
+            className="space-y-4"
           >
-            craftsandkits.com@gmail.com
-          </a>
-
+            <div className="grid grid-cols-2 gap-4">
+               <div className="space-y-2">
+                 <label className="text-sm font-bold text-gray-700">Name</label>
+                 <input 
+                   type="text" 
+                   name="name" 
+                   required
+                   className="w-full border border-gray-200 p-3 rounded-xl focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary bg-white" 
+                   placeholder="John Doe" 
+                 />
+               </div>
+               <div className="space-y-2">
+                 <label className="text-sm font-bold text-gray-700">Email</label>
+                 <input 
+                   type="email" 
+                   name="email"
+                   required
+                   className="w-full border border-gray-200 p-3 rounded-xl focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary bg-white" 
+                   placeholder="john@example.com" 
+                 />
+               </div>
+            </div>
+            <div className="space-y-2">
+                 <label className="text-sm font-bold text-gray-700">Subject</label>
+                 <input 
+                   type="text" 
+                   name="subject"
+                   className="w-full border border-gray-200 p-3 rounded-xl focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary bg-white" 
+                   placeholder="Regarding a review..." 
+                 />
+            </div>
+            <div className="space-y-2">
+                 <label className="text-sm font-bold text-gray-700">Message</label>
+                 <textarea 
+                   name="message"
+                   required
+                   rows={5} 
+                   className="w-full border border-gray-200 p-3 rounded-xl focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary bg-white" 
+                   placeholder="How can we help?"
+                 ></textarea>
+            </div>
+            <button className="w-full bg-black text-white px-8 py-4 rounded-xl font-bold hover:bg-gray-800 transition">
+              Send Message
+            </button>
+          </form>
         </div>
       </div>
-
-      {/* 2. FAQ SECTION (Adds value for Google) */}
-      <section className="py-20 max-w-3xl mx-auto px-4">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl font-serif font-bold text-gray-900">Frequently Asked Questions</h2>
-        </div>
-
-        <div className="space-y-6">
-          {/* FAQ Item 1 */}
-          <div className="bg-stone-50 rounded-xl p-6 border border-stone-100">
-            <div className="flex gap-4">
-              <HelpCircle className="text-secondary shrink-0" />
-              <div>
-                <h3 className="font-bold text-gray-900 mb-2">Do you sell these kits directly?</h3>
-                <p className="text-gray-600 text-sm leading-relaxed">
-                  No. We are an independent review site. We buy, build, and test the kits, then provide links to trusted retailers like Amazon where you can purchase them safely.
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* FAQ Item 2 */}
-          <div className="bg-stone-50 rounded-xl p-6 border border-stone-100">
-            <div className="flex gap-4">
-              <MessageSquare className="text-secondary shrink-0" />
-              <div>
-                <h3 className="font-bold text-gray-900 mb-2">Can I request a specific kit review?</h3>
-                <p className="text-gray-600 text-sm leading-relaxed">
-                  Absolutely! If there is a new Book Nook or Miniature House you want us to test before you buy, send us an email. We add requests to our build queue every Monday.
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* FAQ Item 3 */}
-          <div className="bg-stone-50 rounded-xl p-6 border border-stone-100">
-            <div className="flex gap-4">
-              <Mail className="text-secondary shrink-0" />
-              <div>
-                <h3 className="font-bold text-gray-900 mb-2">Are you accepting guest posts?</h3>
-                <p className="text-gray-600 text-sm leading-relaxed">
-                  We are currently looking for experienced miniature builders who want to share their painting and assembly tips. Email us with your portfolio!
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 3. AD SLOT */}
-      <div className="max-w-7xl mx-auto px-4 mb-16">
-        <AdUnit format="horizontal" />
-      </div>
-
-    </main>
+    </div>
   );
 }
