@@ -1,17 +1,25 @@
 import Link from "next/link";
 import { client } from "@/app/lib/sanity";
 import { urlFor } from "@/app/lib/sanity";
-import { ArrowRight, Star, Mail, MessageSquare } from "lucide-react";
+import { ArrowRight, Star, Mail, MessageSquare, BookOpen } from "lucide-react";
 
 export const revalidate = 60;
 
 async function getData() {
   const query = `
-    *[_type == "review"] | order(_createdAt desc)[0...3] {
-      title,
-      "slug": slug.current,
-      "mainImage": mainImage,
-      "category": categories[0]->title
+    {
+      "latestReviews": *[_type == "review"] | order(_createdAt desc)[0...3] {
+        title,
+        "slug": slug.current,
+        "mainImage": mainImage,
+        "category": categories[0]->title
+      },
+      "latestPosts": *[_type == "post" || _type == "project"] | order(_createdAt desc)[0...3] {
+        title,
+        "slug": slug.current,
+        "mainImage": mainImage,
+        _createdAt
+      }
     }
   `;
   const data = await client.fetch(query);
@@ -19,7 +27,8 @@ async function getData() {
 }
 
 export default async function Home() {
-  const latestReviews = await getData();
+  const data = await getData();
+  const { latestReviews, latestPosts } = data;
 
   return (
     <div className="flex flex-col gap-20 pb-10">
@@ -57,7 +66,7 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* --- EXPLORE COLLECTION (Optimized Images) --- */}
+      {/* --- EXPLORE COLLECTION --- */}
       <section className="max-w-7xl mx-auto px-4 w-full">
         <div className="flex justify-between items-end mb-8">
           <div>
@@ -70,40 +79,23 @@ export default async function Home() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <Link href="/reviews?cat=book-nooks" className="group relative h-64 rounded-2xl overflow-hidden block shadow-md bg-gray-100">
              <div className="absolute inset-0 bg-black/40 z-10 group-hover:bg-black/50 transition-colors duration-300" />
-             <img 
-               src="https://images.unsplash.com/photo-1550399105-c4db5fb85c18?auto=format&fit=crop&w=600&q=75" 
-               alt="Book Nooks"
-               loading="lazy"
-               className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-             />
+             <img src="https://images.unsplash.com/photo-1550399105-c4db5fb85c18?auto=format&fit=crop&w=600&q=75" alt="Book Nooks" loading="lazy" className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
              <div className="absolute bottom-6 left-6 z-20 text-white">
                 <h3 className="text-2xl font-bold font-[family-name:var(--font-dancing)]">Book Nooks</h3>
                 <p className="text-gray-200 text-xs font-bold tracking-wide mt-1">Magical shelf inserts →</p>
              </div>
           </Link>
-
           <Link href="/reviews?cat=dollhouses" className="group relative h-64 rounded-2xl overflow-hidden block shadow-md bg-gray-100">
              <div className="absolute inset-0 bg-black/40 z-10 group-hover:bg-black/50 transition-colors duration-300" />
-             <img 
-               src="https://images.unsplash.com/photo-1513161455079-7dc1bad15a4e?auto=format&fit=crop&w=600&q=75" 
-               alt="Dollhouses"
-               loading="lazy"
-               className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-             />
+             <img src="https://images.unsplash.com/photo-1513161455079-7dc1bad15a4e?auto=format&fit=crop&w=600&q=75" alt="Dollhouses" loading="lazy" className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
              <div className="absolute bottom-6 left-6 z-20 text-white">
                 <h3 className="text-2xl font-bold font-[family-name:var(--font-dancing)]">Dollhouses</h3>
                 <p className="text-gray-200 text-xs font-bold tracking-wide mt-1">Miniature living spaces →</p>
              </div>
           </Link>
-
           <Link href="/reviews?cat=metal-models" className="group relative h-64 rounded-2xl overflow-hidden block shadow-md bg-gray-100">
              <div className="absolute inset-0 bg-black/40 z-10 group-hover:bg-black/50 transition-colors duration-300" />
-             <img 
-               src="https://images.unsplash.com/photo-1615655406736-b37c4fabf923?auto=format&fit=crop&w=600&q=75" 
-               alt="Metal Models"
-               loading="lazy"
-               className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-             />
+             <img src="https://images.unsplash.com/photo-1615655406736-b37c4fabf923?auto=format&fit=crop&w=600&q=75" alt="Metal Models" loading="lazy" className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
              <div className="absolute bottom-6 left-6 z-20 text-white">
                 <h3 className="text-2xl font-bold font-[family-name:var(--font-dancing)]">Metal Models</h3>
                 <p className="text-gray-200 text-xs font-bold tracking-wide mt-1">Intricate 3D puzzles →</p>
@@ -112,26 +104,16 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* --- FRESH ARRIVALS --- */}
+      {/* --- FRESH REVIEWS --- */}
       <section className="max-w-7xl mx-auto px-4 w-full">
-        <h2 className="text-3xl font-bold text-gray-900 mb-8">Fresh Arrivals</h2>
-        
+        <h2 className="text-3xl font-bold text-gray-900 mb-8">Latest Reviews</h2>
         {latestReviews.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {latestReviews.map((post: any) => (
-              <Link 
-                href={`/reviews/${post.slug}`} 
-                key={post.slug}
-                className="group block"
-              >
+              <Link href={`/reviews/${post.slug}`} key={post.slug} className="group block">
                 <div className="relative w-full h-72 rounded-2xl overflow-hidden mb-5 bg-gray-100 shadow-sm border border-gray-100">
                   {post.mainImage ? (
-                    <img
-                      src={urlFor(post.mainImage).url()}
-                      alt={post.title}
-                      loading="lazy"
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    />
+                    <img src={urlFor(post.mainImage).url()} alt={post.title} loading="lazy" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                   ) : (
                     <div className="flex items-center justify-center h-full text-gray-400">No Image</div>
                   )}
@@ -143,58 +125,67 @@ export default async function Home() {
                   {post.title}
                 </h3>
                 <div className="flex items-center gap-1 text-yellow-500">
-                  <Star size={14} fill="currentColor" />
-                  <Star size={14} fill="currentColor" />
-                  <Star size={14} fill="currentColor" />
-                  <Star size={14} fill="currentColor" />
-                  <Star size={14} fill="currentColor" />
+                  <Star size={14} fill="currentColor" /> <Star size={14} fill="currentColor" /> <Star size={14} fill="currentColor" /> <Star size={14} fill="currentColor" /> <Star size={14} fill="currentColor" />
                   <span className="text-xs text-gray-400 ml-1 font-medium">(5.0)</span>
                 </div>
               </Link>
             ))}
           </div>
         ) : (
-          <div className="text-center py-10 bg-gray-50 rounded-xl border border-dashed border-gray-200">
-            <p className="text-gray-400">Loading latest kits... (No reviews published yet)</p>
+          <div className="text-center py-10 bg-gray-50 rounded-xl border border-dashed border-gray-200"><p className="text-gray-400">Loading reviews...</p></div>
+        )}
+      </section>
+
+      {/* --- LATEST FROM BLOG (NEW SECTION) --- */}
+      <section className="max-w-7xl mx-auto px-4 w-full bg-white py-12 rounded-3xl border border-stone-100 shadow-sm">
+        <div className="flex justify-between items-end mb-8">
+          <h2 className="text-3xl font-bold text-gray-900 flex items-center gap-2">
+            <BookOpen className="text-primary" /> From the Blog
+          </h2>
+          <Link href="/blog" className="text-primary font-bold text-sm hover:underline">Read All Articles</Link>
+        </div>
+
+        {latestPosts.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {latestPosts.map((post: any) => (
+              <Link href={`/blog/${post.slug}`} key={post.slug} className="group flex gap-4 items-center md:block md:space-y-4">
+                <div className="relative w-24 h-24 md:w-full md:h-48 rounded-xl overflow-hidden bg-gray-100 flex-shrink-0">
+                  {post.mainImage ? (
+                    <img src={urlFor(post.mainImage).url()} alt={post.title} loading="lazy" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                  ) : <div className="w-full h-full bg-gray-200" />}
+                </div>
+                <div>
+                  <div className="text-xs text-gray-400 mb-1">{new Date(post._createdAt).toLocaleDateString()}</div>
+                  <h3 className="text-base font-bold text-gray-900 group-hover:text-primary transition-colors line-clamp-2 leading-snug">
+                    {post.title}
+                  </h3>
+                </div>
+              </Link>
+            ))}
           </div>
+        ) : (
+          <p className="text-gray-400 text-center">No blog posts yet.</p>
         )}
       </section>
 
       {/* --- COMMUNITY & CONTACT --- */}
       <section className="max-w-7xl mx-auto px-4 w-full grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-12 mt-10">
-        
-        {/* Join Community Box */}
         <div className="bg-primary rounded-3xl p-8 md:p-12 text-white relative overflow-hidden">
            <div className="absolute top-0 right-0 w-64 h-64 bg-white opacity-10 rounded-full blur-3xl translate-x-1/2 -translate-y-1/2"></div>
            <div className="relative z-10">
-              <div className="bg-white/20 w-12 h-12 rounded-full flex items-center justify-center mb-6">
-                <Mail size={24} />
-              </div>
+              <div className="bg-white/20 w-12 h-12 rounded-full flex items-center justify-center mb-6"><Mail size={24} /></div>
               <h2 className="text-3xl font-bold mb-4 font-[family-name:var(--font-dancing)]">Join the Club</h2>
-              <p className="text-green-100 mb-8 leading-relaxed">
-                Get free building guides, discount codes for kits, and inspiration delivered to your inbox every Friday.
-              </p>
-              
-              {/* Replace YOUR_FORMSPREE_ID in this line */}
+              <p className="text-green-100 mb-8 leading-relaxed">Get free building guides, discount codes for kits, and inspiration delivered to your inbox.</p>
               <form action="https://formspree.io/f/YOUR_FORMSPREE_ID" method="POST" className="flex flex-col gap-3">
                  <input type="email" name="email" required placeholder="Your email address" className="w-full px-5 py-3 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-green-300" />
                  <button className="bg-green-900 text-white font-bold py-3 rounded-xl hover:bg-green-950 transition">Subscribe Free</button>
               </form>
-              <p className="text-xs text-green-200 mt-4 text-center">No spam, just crafts. Unsubscribe anytime.</p>
            </div>
         </div>
-
-        {/* Contact / Ask Us Box */}
         <div className="bg-gray-100 rounded-3xl p-8 md:p-12 text-gray-800 border border-gray-200">
-           <div className="bg-white w-12 h-12 rounded-full flex items-center justify-center mb-6 shadow-sm">
-                <MessageSquare size={24} className="text-primary" />
-           </div>
+           <div className="bg-white w-12 h-12 rounded-full flex items-center justify-center mb-6 shadow-sm"><MessageSquare size={24} className="text-primary" /></div>
            <h2 className="text-3xl font-bold mb-4 font-[family-name:var(--font-dancing)]">Have a Question?</h2>
-           <p className="text-gray-600 mb-8 leading-relaxed">
-             Stuck on a build? Looking for a specific review? Send us a message.
-           </p>
-           
-           {/* Replace YOUR_FORMSPREE_ID in this line */}
+           <p className="text-gray-600 mb-8 leading-relaxed">Stuck on a build? Looking for a specific review? Send us a message.</p>
            <form action="https://formspree.io/f/YOUR_FORMSPREE_ID" method="POST" className="flex flex-col gap-3">
               <div className="grid grid-cols-2 gap-3">
                   <input type="text" name="name" required placeholder="Name" className="w-full px-5 py-3 rounded-xl border border-gray-200 focus:outline-none focus:border-primary bg-white" />
@@ -204,7 +195,6 @@ export default async function Home() {
               <button className="bg-gray-900 text-white font-bold py-3 rounded-xl hover:bg-black transition">Send Message</button>
            </form>
         </div>
-
       </section>
     </div>
   );
