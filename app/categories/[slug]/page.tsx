@@ -1,5 +1,4 @@
 import { client } from "@/app/lib/sanity";
-import Image from "next/image";
 import Link from "next/link";
 import { urlFor } from "@/app/lib/sanity";
 
@@ -12,12 +11,11 @@ async function getData(slug: string) {
         title,
         description
       },
-      // We search for reviews that reference this specific category
       "posts": *[_type == "review" && references(*[_type == "category" && slug.current == $slug][0]._id)] | order(_createdAt desc) {
         title,
         overview,
         "slug": slug.current,
-        "mainImage": mainImage, // <--- This line was likely missing or broken before!
+        "mainImage": mainImage,
         _createdAt
       }
     }
@@ -58,14 +56,13 @@ export default async function CategoryPage({
             key={post.slug}
             className="group block border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-shadow duration-300"
           >
-            {/* Image Section */}
+            {/* Image Section - Using Standard <img> tag for reliability */}
             {post.mainImage ? (
-              <div className="relative w-full h-64 bg-gray-100 overflow-hidden">
-                <Image
+              <div className="w-full h-64 bg-gray-100 overflow-hidden relative">
+                <img
                   src={urlFor(post.mainImage).url()}
                   alt={post.title}
-                  fill
-                  className="object-cover group-hover:scale-105 transition-transform duration-300"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                 />
               </div>
             ) : (
