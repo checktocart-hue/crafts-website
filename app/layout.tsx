@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image"; // <--- Added Image import
 import { Inter, Dancing_Script } from "next/font/google"; 
 import "./globals.css";
 import Header from "./components/Header"; 
@@ -27,13 +28,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    // FIXED: Added 'suppressHydrationWarning' to ignore browser extension changes
     <html lang="en" suppressHydrationWarning>
       <body className={`${inter.variable} ${dancingScript.variable} font-sans antialiased text-gray-800 bg-white`}>
-        {/* GLOBAL HEADER - Appears on every page */}
+        {/* GLOBAL HEADER */}
         <Header />
         
-        {/* PAGE CONTENT - This is where app/page.tsx loads */}
+        {/* PAGE CONTENT */}
         <main className="min-h-screen">
           {children}
         </main>
@@ -44,9 +44,18 @@ export default function RootLayout({
              
              {/* Column 1: Brand & Socials */}
              <div className="space-y-6">
-                <h3 className="text-white font-bold font-[family-name:var(--font-dancing)] text-3xl">
-                  CraftsAndKits
-                </h3>
+                {/* UPDATED: Replaced Text with Image Logo to match Header */}
+                <div className="relative w-48 h-16">
+                  <Image 
+                    src="/logo.png" 
+                    alt="CraftsAndKits" 
+                    fill
+                    className="object-contain object-left brightness-0 invert" // 'brightness-0 invert' turns black logo white
+                    priority
+                    unoptimized
+                  />
+                </div>
+                
                 <p className="text-gray-400 leading-relaxed">
                   Your trusted guide for miniature hobbies. We review, build, and rate the best kits so you can create magical worlds with confidence.
                 </p>
