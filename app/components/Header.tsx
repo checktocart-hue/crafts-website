@@ -1,119 +1,104 @@
 "use client";
 
 import Link from 'next/link';
-import Image from 'next/image'; // Import Image component
 import { useState } from 'react';
 import { Search, Menu, ShoppingBag, ChevronDown, X } from 'lucide-react';
 
 export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isReviewsOpen, setIsReviewsOpen] = useState(false);
 
   return (
-    <nav className="bg-white sticky top-0 z-50 border-b-2 border-green-600 font-sans shadow-sm">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-20 items-center">
+    <div className="bg-white sticky top-0 z-50 shadow-md font-sans">
+      
+      {/* --- ROW 1: LOGO AREA (Compact) --- */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
+        {/* UPDATED: Increased min-h to [85px] so the absolute logo doesn't get covered by the nav bar */}
+        <div className="flex justify-between items-center relative min-h-[85px]"> 
           
-          {/* LOGO SECTION */}
-          <Link href="/" className="flex items-center gap-3 group z-50">
-            {/* Logo Image */}
-            <div className="relative w-12 h-12">
-              <Image 
-                src="/logo.png" 
-                alt="CraftsAndKits Logo" 
-                fill
-                className="object-contain" // Ensures the logo fits without stretching
-                priority
-              />
-            </div>
-            
-            {/* Brand Text */}
-            <div className="flex flex-col">
-              <span className="font-[family-name:var(--font-dancing)] text-3xl text-gray-900 leading-none mt-1">
-                CraftsAndKits
+          {/* Mobile Menu Trigger */}
+          <button 
+            className="lg:hidden p-2 text-gray-600"
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          >
+            {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
+
+          {/* CENTERED LOGO - CODED TEXT */}
+          <div className="flex-1 flex justify-center lg:absolute lg:left-1/2 lg:-translate-x-1/2">
+            <Link href="/" className="flex flex-col items-center group">
+              <h1 className="font-[family-name:var(--font-dancing)] text-4xl md:text-6xl text-gray-900 leading-none group-hover:text-green-800 transition-colors">
+                Crafts & Kits
+              </h1>
+              {/* Added pb-1 for extra safety space */}
+              <span className="text-[9px] md:text-[10px] font-bold tracking-[0.3em] text-green-700 uppercase mt-1 border-t border-green-700 pt-0.5 pb-1">
+                The Miniature Guide
               </span>
-              <span className="text-[10px] uppercase tracking-widest text-primary font-bold">The Miniature Guide</span>
-            </div>
-          </Link>
-
-          {/* DESKTOP NAVIGATION */}
-          <div className="hidden lg:flex gap-8 items-center text-xs font-bold tracking-widest text-gray-500">
-            <Link href="/" className="hover:text-primary transition">HOME</Link>
-            
-            {/* REVIEWS DROPDOWN */}
-            <div className="relative group h-20 flex items-center cursor-pointer">
-              <Link href="/reviews" className="group-hover:text-primary transition flex items-center gap-1">
-                REVIEWS <ChevronDown size={14}/>
-              </Link>
-              <div className="absolute top-16 left-0 w-64 bg-white shadow-xl rounded-xl border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 transform translate-y-2 group-hover:translate-y-0 overflow-hidden">
-                <div className="py-2 flex flex-col">
-                  <div className="px-5 py-2 text-[10px] text-gray-400 uppercase tracking-widest border-b border-gray-50 bg-gray-50">By Product Type</div>
-                  
-                  <Link href="/reviews?cat=book-nooks" className="px-5 py-3 hover:bg-stone-50 hover:text-primary text-gray-600 border-b border-gray-50 flex justify-between items-center text-sm capitalize font-medium tracking-normal">
-                    📚 Book Nooks
-                  </Link>
-                  <Link href="/reviews?cat=dollhouses" className="px-5 py-3 hover:bg-stone-50 hover:text-primary text-gray-600 border-b border-gray-50 flex justify-between items-center text-sm capitalize font-medium tracking-normal">
-                    🏠 Dollhouses
-                  </Link>
-                  <Link href="/reviews?cat=metal-models" className="px-5 py-3 hover:bg-stone-50 hover:text-primary text-gray-600 border-b border-gray-50 flex justify-between items-center text-sm capitalize font-medium tracking-normal">
-                    🤖 Metal Models
-                  </Link>
-                  <Link href="/reviews" className="px-5 py-3 text-center text-primary font-bold hover:bg-green-50 transition text-xs uppercase">
-                    View All Reviews
-                  </Link>
-                </div>
-              </div>
-            </div>
-
-            <Link href="/blog" className="hover:text-primary transition">BLOG</Link>
-            <Link href="/about" className="hover:text-primary transition">ABOUT US</Link>
-            <Link href="/contact" className="hover:text-primary transition">CONTACT</Link>
+            </Link>
           </div>
 
-          {/* ACTIONS */}
-          <div className="flex items-center gap-4">
+          {/* Right Actions */}
+          <div className="flex items-center gap-3">
             <button className="text-gray-400 hover:text-primary transition">
               <Search size={20} />
             </button>
-            <Link href="/reviews" className="hidden sm:flex bg-primary text-white px-5 py-2.5 rounded-full text-xs font-bold hover:bg-green-800 transition shadow-sm items-center gap-2">
-              <ShoppingBag size={14} /> 
-              TOP KITS
+            <Link href="/reviews" className="hidden sm:flex bg-green-700 text-white px-4 py-1.5 rounded-full text-[10px] font-bold hover:bg-green-800 transition shadow-sm items-center gap-2">
+              <ShoppingBag size={12} /> 
+              <span className="hidden lg:inline">TOP KITS</span>
             </Link>
-            <button 
-              className="text-gray-900 lg:hidden z-50 p-2"
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            >
-              {isMobileMenuOpen ? <X size={28} /> : <Menu size={28} />}
-            </button>
           </div>
         </div>
       </div>
 
-      {/* MOBILE MENU */}
-      {isMobileMenuOpen && (
-        <div className="fixed inset-0 bg-white z-40 pt-24 px-6 lg:hidden overflow-y-auto animate-in fade-in slide-in-from-top-10 duration-200">
-          <div className="flex flex-col space-y-6 text-lg font-bold text-gray-800">
-            <Link href="/" onClick={() => setIsMobileMenuOpen(false)} className="border-b border-gray-100 pb-4">Home</Link>
-            <div className="border-b border-gray-100 pb-4">
-              <button onClick={() => setIsReviewsOpen(!isReviewsOpen)} className="flex justify-between items-center w-full mb-4">
-                <span>Reviews & Categories</span>
-                <ChevronDown size={20} className={`transition-transform ${isReviewsOpen ? 'rotate-180' : ''}`} />
-              </button>
-              {isReviewsOpen && (
-                <div className="flex flex-col space-y-4 pl-4 text-base text-gray-600">
-                  <Link href="/reviews?cat=book-nooks" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-2">📚 Book Nooks</Link>
-                  <Link href="/reviews?cat=dollhouses" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-2">🏠 Dollhouses</Link>
-                  <Link href="/reviews?cat=metal-models" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-2">🤖 Metal Models</Link>
-                  <Link href="/reviews" onClick={() => setIsMobileMenuOpen(false)} className="text-primary font-bold pt-2">View All →</Link>
+      {/* --- ROW 2: NAVIGATION BAR (Solid Green & Slim) --- */}
+      <div className="hidden lg:block bg-green-700 border-t border-green-800 shadow-inner">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="flex justify-center gap-10 text-xs font-bold tracking-widest text-white py-2">
+            
+            <Link href="/" className="hover:text-green-200 transition border-b-2 border-transparent hover:border-green-200">
+              HOME
+            </Link>
+            
+            {/* REVIEWS DROPDOWN */}
+            <div className="relative group cursor-pointer border-b-2 border-transparent hover:border-green-200">
+              <Link href="/reviews" className="group-hover:text-green-200 transition flex items-center gap-1">
+                REVIEWS <ChevronDown size={12}/>
+              </Link>
+              <div className="absolute top-full left-1/2 -translate-x-1/2 w-64 bg-white shadow-xl rounded-b-xl border-x border-b border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform translate-y-2 group-hover:translate-y-0 overflow-hidden z-50">
+                <div className="py-2 flex flex-col text-left">
+                  <div className="px-5 py-2 text-[10px] text-gray-400 uppercase tracking-widest border-b border-gray-50 bg-gray-50">Browse Categories</div>
+                  <Link href="/reviews?cat=book-nooks" className="px-5 py-3 hover:bg-green-50 hover:text-green-700 text-gray-600 border-b border-gray-50 font-normal tracking-normal text-sm">📚 Book Nooks</Link>
+                  <Link href="/reviews?cat=dollhouses" className="px-5 py-3 hover:bg-green-50 hover:text-green-700 text-gray-600 border-b border-gray-50 font-normal tracking-normal text-sm">🏠 Dollhouses</Link>
+                  <Link href="/reviews?cat=metal-models" className="px-5 py-3 hover:bg-green-50 hover:text-green-700 text-gray-600 border-b border-gray-50 font-normal tracking-normal text-sm">🤖 Metal Models</Link>
+                  <Link href="/reviews" className="px-5 py-3 text-center text-green-700 font-bold hover:bg-green-50 text-xs uppercase tracking-widest">View All Reviews</Link>
                 </div>
-              )}
+              </div>
             </div>
+
+            <Link href="/blog" className="hover:text-green-200 transition border-b-2 border-transparent hover:border-green-200">
+              BLOG & GUIDES
+            </Link>
+            <Link href="/about" className="hover:text-green-200 transition border-b-2 border-transparent hover:border-green-200">
+              OUR STORY
+            </Link>
+            <Link href="/contact" className="hover:text-green-200 transition border-b-2 border-transparent hover:border-green-200">
+              CONTACT
+            </Link>
+          </div>
+        </div>
+      </div>
+
+      {/* --- MOBILE MENU OVERLAY --- */}
+      {isMobileMenuOpen && (
+        <div className="fixed inset-0 bg-white z-40 pt-28 px-6 lg:hidden overflow-y-auto animate-in fade-in slide-in-from-top-10 duration-200">
+          <div className="flex flex-col space-y-6 text-lg font-bold text-gray-800 text-center">
+            <Link href="/" onClick={() => setIsMobileMenuOpen(false)} className="border-b border-gray-100 pb-4">Home</Link>
+            <Link href="/reviews" onClick={() => setIsMobileMenuOpen(false)} className="border-b border-gray-100 pb-4">Reviews</Link>
             <Link href="/blog" onClick={() => setIsMobileMenuOpen(false)} className="border-b border-gray-100 pb-4">Blog</Link>
             <Link href="/about" onClick={() => setIsMobileMenuOpen(false)} className="border-b border-gray-100 pb-4">About Us</Link>
             <Link href="/contact" onClick={() => setIsMobileMenuOpen(false)} className="pb-4">Contact</Link>
           </div>
         </div>
       )}
-    </nav>
+    </div>
   );
 }
