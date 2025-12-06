@@ -6,14 +6,13 @@ import { urlFor } from "@/app/lib/sanity";
 export const revalidate = 0; 
 
 async function getData(categorySlug?: string) {
-  // 1. Construct the filter. 
-  // If a category is selected, we look for posts that "reference" that category's ID.
-  // This is the robust way to filter in Sanity.
+  // 1. Filter Logic
+  // If a category is selected, we filter by it.
   const categoryFilter = categorySlug 
     ? `&& references(*[_type == "category" && slug.current == "${categorySlug}"]._id)`
     : "";
 
-  // 2. The Main Query
+  // 2. Main Query (Posts + Projects)
   const query = `
     *[(_type == "post" || _type == "project") ${categoryFilter}] | order(_createdAt desc) {
       _id, 
@@ -27,8 +26,8 @@ async function getData(categorySlug?: string) {
     }
   `;
 
-  // 3. Fetch Categories for the buttons
-  const categoriesQuery = `*[_type == "category"] { title, "slug": slug.current }`;
+  // 3. Category Query (Only fetch categories that actually have a slug)
+  const categoriesQuery = `*[_type == "category" && defined(slug.current)] { title, "slug": slug.current }`;
 
   const posts = await client.fetch(query);
   const categories = await client.fetch(categoriesQuery);
@@ -44,7 +43,6 @@ export default async function BlogIndexPage({
   const resolvedParams = await searchParams;
   const selectedCat = resolvedParams.cat;
   
-  // Fetch data
   const { posts, categories } = await getData(selectedCat);
 
   return (
@@ -57,29 +55,32 @@ export default async function BlogIndexPage({
       </div>
 
       {/* --- FILTER BUTTONS --- */}
-      <div className="flex flex-wrap justify-center gap-3 mb-12">
-        <Link
-          href="/blog"
-          className={`px-4 py-2 rounded-full text-sm font-semibold transition-colors ${
-            !selectedCat ? "bg-black text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-          }`}
-        >
-          All Posts
-        </Link>
-        {categories.map((cat: any) => (
+      {/* Only show buttons if we have categories with slugs */}
+      {categories.length > 0 && (
+        <div className="flex flex-wrap justify-center gap-3 mb-12">
           <Link
-            key={cat.slug}
-            href={`/blog?cat=${cat.slug}`}
+            href="/blog"
             className={`px-4 py-2 rounded-full text-sm font-semibold transition-colors ${
-              selectedCat === cat.slug ? "bg-black text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+              !selectedCat ? "bg-black text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"
             }`}
           >
-            {cat.title}
+            All Posts
           </Link>
-        ))}
-      </div>
+          {categories.map((cat: any) => (
+            <Link
+              key={cat.slug}
+              href={`/blog?cat=${cat.slug}`}
+              className={`px-4 py-2 rounded-full text-sm font-semibold transition-colors ${
+                selectedCat === cat.slug ? "bg-black text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+              }`}
+            >
+              {cat.title}
+            </Link>
+          ))}
+        </div>
+      )}
 
-      {/* --- RESULTS COUNT (Helps verify it works) --- */}
+      {/* --- RESULTS COUNT --- */}
       <div className="mb-6 text-sm text-gray-400 font-bold uppercase tracking-widest">
         Showing {posts.length} Article{posts.length !== 1 ? 's' : ''}
       </div>
