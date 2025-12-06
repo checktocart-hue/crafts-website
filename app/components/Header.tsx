@@ -1,24 +1,33 @@
 "use client";
 
 import Link from 'next/link';
+import Image from 'next/image'; // Import Image component
 import { useState } from 'react';
-import { Sprout, Search, Menu, ShoppingBag, ChevronDown, X } from 'lucide-react';
+import { Search, Menu, ShoppingBag, ChevronDown, X } from 'lucide-react';
 
 export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isReviewsOpen, setIsReviewsOpen] = useState(false);
 
   return (
-    // UPDATED: Added 'border-b-2 border-green-600' for the colored separator line
     <nav className="bg-white sticky top-0 z-50 border-b-2 border-green-600 font-sans shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-20 items-center">
           
-          {/* LOGO */}
-          <Link href="/" className="flex items-center gap-2 group z-50">
-            <div className="bg-primary/10 p-2 rounded-full group-hover:bg-primary group-hover:text-white transition-colors duration-300">
-              <Sprout size={24} className="text-primary group-hover:text-white transition-colors" />
+          {/* LOGO SECTION */}
+          <Link href="/" className="flex items-center gap-3 group z-50">
+            {/* Logo Image */}
+            <div className="relative w-12 h-12">
+              <Image 
+                src="/logo.png" 
+                alt="CraftsAndKits Logo" 
+                fill
+                className="object-contain" // Ensures the logo fits without stretching
+                priority
+              />
             </div>
+            
+            {/* Brand Text */}
             <div className="flex flex-col">
               <span className="font-[family-name:var(--font-dancing)] text-3xl text-gray-900 leading-none mt-1">
                 CraftsAndKits
@@ -56,11 +65,7 @@ export default function Header() {
               </div>
             </div>
 
-            {/* BLOG LINK */}
-            <Link href="/blog" className="hover:text-primary transition">
-               BLOG
-            </Link>
-
+            <Link href="/blog" className="hover:text-primary transition">BLOG</Link>
             <Link href="/about" className="hover:text-primary transition">ABOUT US</Link>
             <Link href="/contact" className="hover:text-primary transition">CONTACT</Link>
           </div>
@@ -84,20 +89,13 @@ export default function Header() {
         </div>
       </div>
 
-      {/* MOBILE MENU OVERLAY */}
+      {/* MOBILE MENU */}
       {isMobileMenuOpen && (
         <div className="fixed inset-0 bg-white z-40 pt-24 px-6 lg:hidden overflow-y-auto animate-in fade-in slide-in-from-top-10 duration-200">
           <div className="flex flex-col space-y-6 text-lg font-bold text-gray-800">
-            <Link href="/" onClick={() => setIsMobileMenuOpen(false)} className="border-b border-gray-100 pb-4">
-              Home
-            </Link>
-            
-            {/* Mobile Reviews Dropdown */}
+            <Link href="/" onClick={() => setIsMobileMenuOpen(false)} className="border-b border-gray-100 pb-4">Home</Link>
             <div className="border-b border-gray-100 pb-4">
-              <button 
-                onClick={() => setIsReviewsOpen(!isReviewsOpen)} 
-                className="flex justify-between items-center w-full mb-4"
-              >
+              <button onClick={() => setIsReviewsOpen(!isReviewsOpen)} className="flex justify-between items-center w-full mb-4">
                 <span>Reviews & Categories</span>
                 <ChevronDown size={20} className={`transition-transform ${isReviewsOpen ? 'rotate-180' : ''}`} />
               </button>
@@ -110,12 +108,7 @@ export default function Header() {
                 </div>
               )}
             </div>
-
-            {/* Mobile Blog Link */}
-            <Link href="/blog" onClick={() => setIsMobileMenuOpen(false)} className="border-b border-gray-100 pb-4">
-                Blog
-            </Link>
-
+            <Link href="/blog" onClick={() => setIsMobileMenuOpen(false)} className="border-b border-gray-100 pb-4">Blog</Link>
             <Link href="/about" onClick={() => setIsMobileMenuOpen(false)} className="border-b border-gray-100 pb-4">About Us</Link>
             <Link href="/contact" onClick={() => setIsMobileMenuOpen(false)} className="pb-4">Contact</Link>
           </div>
