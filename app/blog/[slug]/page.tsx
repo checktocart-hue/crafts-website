@@ -2,15 +2,14 @@ import { client } from "@/app/lib/sanity";
 import { PortableText } from "next-sanity";
 import { urlFor } from "@/app/lib/sanity";
 import Link from "next/link";
-import ShareButtons from "@/app/components/ShareButtons"; // <--- Imported Share Component
+import ShareButtons from "@/app/components/ShareButtons"; 
+import AuthorBio from "@/app/components/AuthorBio"; 
 
-// Disable caching to ensure instant updates and no 404s on new content
 export const revalidate = 0; 
 
 async function getData(slug: string) {
   const query = `
     {
-      // 1. SAFETY UPDATE: Look for this slug in EITHER "post" OR "project" types
       "currentPost": *[(_type == "post" || _type == "project") && slug.current == $slug][0] {
           title,
           _createdAt,
@@ -19,7 +18,6 @@ async function getData(slug: string) {
           body,
           "categoryId": categories[0]->_ref 
       },
-      // 2. Fetch Related Posts (Also allowing both types)
       "relatedPosts": *[(_type == "post" || _type == "project") && slug.current != $slug] | order(_createdAt desc)[0...3] {
           title,
           "slug": slug.current,
@@ -37,7 +35,6 @@ export default async function BlogArticlePage({
 }: { 
   params: Promise<{ slug: string }> 
 }) {
-  // Await params (Required for Next.js 15/16)
   const { slug } = await params;
   
   const data = await getData(slug);
@@ -95,8 +92,11 @@ export default async function BlogArticlePage({
         <PortableText value={post.body} />
       </article>
 
-      {/* --- SHARE BUTTONS SECTION --- */}
+      {/* --- SHARE BUTTONS --- */}
       <ShareButtons slug={post.slug} title={post.title} />
+
+      {/* --- AUTHOR BIO --- */}
+      <AuthorBio />
 
       {/* Related Articles */}
       <div className="bg-gray-50 -mx-4 px-4 py-12 md:rounded-3xl mt-12">
