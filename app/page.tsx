@@ -7,7 +7,7 @@ import {
   GraduationCap, Scissors, Trophy 
 } from "lucide-react";
 
-export const revalidate = 0;
+export const revalidate = 0; 
 
 async function getData() {
   const query = `
@@ -26,14 +26,11 @@ async function getData() {
       }
     }
   `;
-
-  // UPDATED: Added try/catch block to prevent "Fetch Failed" crashes
   try {
     const data = await client.fetch(query);
     return data;
   } catch (error) {
-    console.error("Error fetching data from Sanity:", error);
-    // Return empty data so the page can still load
+    console.error("Error fetching data:", error);
     return { latestReviews: [], latestPosts: [] };
   }
 }
@@ -82,7 +79,7 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* 2. WHAT WE DO */}
+      {/* 2. WHAT WE DO (Categories) */}
       <section className="bg-white py-12 border-b border-stone-100">
         <div className="max-w-7xl mx-auto px-4 w-full">
           <div className="text-center max-w-2xl mx-auto mb-8">
@@ -183,7 +180,7 @@ export default async function Home() {
         )}
       </section>
 
-      {/* 5. COMMUNITY & CONTACT */}
+      {/* 5. COMMUNITY & CONTACT (With Hydration Fixes) */}
       <section className="max-w-7xl mx-auto px-4 w-full grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-12 mb-12">
         <div className="bg-green-700 rounded-3xl p-8 md:p-12 text-white relative overflow-hidden">
            <div className="absolute top-0 right-0 w-64 h-64 bg-white opacity-10 rounded-full blur-3xl translate-x-1/2 -translate-y-1/2"></div>
@@ -192,9 +189,22 @@ export default async function Home() {
               <h2 className="text-3xl font-bold mb-4 font-[family-name:var(--font-dancing)]">Join the Club</h2>
               <p className="text-green-100 mb-8 leading-relaxed">Get free building guides, discount codes for kits, and inspiration delivered to your inbox.</p>
               
+              {/* Added suppressHydrationWarning to input/button */}
               <form action="https://formspree.io/f/YOUR_FORMSPREE_ID" method="POST" className="flex flex-col gap-3">
-                 <input type="email" name="email" required placeholder="Your email address" className="w-full px-5 py-3 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-green-300" />
-                 <button className="bg-green-900 text-white font-bold py-3 rounded-xl hover:bg-green-950 transition border border-green-600">Subscribe Free</button>
+                 <input 
+                   suppressHydrationWarning 
+                   type="email" 
+                   name="email" 
+                   required 
+                   placeholder="Your email address" 
+                   className="w-full px-5 py-3 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-green-300" 
+                 />
+                 <button 
+                   suppressHydrationWarning
+                   className="bg-green-900 text-white font-bold py-3 rounded-xl hover:bg-green-950 transition border border-green-600"
+                 >
+                   Subscribe Free
+                 </button>
               </form>
            </div>
         </div>
@@ -205,11 +215,11 @@ export default async function Home() {
            
            <form action="https://formspree.io/f/YOUR_FORMSPREE_ID" method="POST" className="flex flex-col gap-3">
               <div className="grid grid-cols-2 gap-3">
-                  <input type="text" name="name" required placeholder="Name" className="w-full px-5 py-3 rounded-xl border border-gray-200 focus:outline-none focus:border-green-700 bg-white" />
-                  <input type="email" name="email" required placeholder="Email" className="w-full px-5 py-3 rounded-xl border border-gray-200 focus:outline-none focus:border-green-700 bg-white" />
+                  <input suppressHydrationWarning type="text" name="name" required placeholder="Name" className="w-full px-5 py-3 rounded-xl border border-gray-200 focus:outline-none focus:border-green-700 bg-white" />
+                  <input suppressHydrationWarning type="email" name="email" required placeholder="Email" className="w-full px-5 py-3 rounded-xl border border-gray-200 focus:outline-none focus:border-green-700 bg-white" />
               </div>
-              <textarea name="message" required rows={3} placeholder="How can we help?" className="w-full px-5 py-3 rounded-xl border border-gray-200 focus:outline-none focus:border-green-700 bg-white"></textarea>
-              <button className="bg-gray-900 text-white font-bold py-3 rounded-xl hover:bg-black transition">Send Message</button>
+              <textarea suppressHydrationWarning name="message" required rows={3} placeholder="How can we help?" className="w-full px-5 py-3 rounded-xl border border-gray-200 focus:outline-none focus:border-green-700 bg-white"></textarea>
+              <button suppressHydrationWarning className="bg-gray-900 text-white font-bold py-3 rounded-xl hover:bg-black transition">Send Message</button>
            </form>
         </div>
       </section>
