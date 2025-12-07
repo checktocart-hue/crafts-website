@@ -2,6 +2,7 @@ import { client } from "@/app/lib/sanity";
 import { PortableText } from "next-sanity";
 import { urlFor } from "@/app/lib/sanity";
 import Link from "next/link";
+import ShareButtons from "@/app/components/ShareButtons"; // <--- Imported Share Component
 
 // Disable caching to ensure instant updates and no 404s on new content
 export const revalidate = 0; 
@@ -90,12 +91,15 @@ export default async function BlogArticlePage({
       )}
 
       {/* Content Body */}
-      <article className="prose prose-lg prose-green max-w-none mb-20 text-gray-700">
+      <article className="prose prose-lg prose-green max-w-none mb-10 text-gray-700">
         <PortableText value={post.body} />
       </article>
 
+      {/* --- SHARE BUTTONS SECTION --- */}
+      <ShareButtons slug={post.slug} title={post.title} />
+
       {/* Related Articles */}
-      <div className="bg-gray-50 -mx-4 px-4 py-12 md:rounded-3xl">
+      <div className="bg-gray-50 -mx-4 px-4 py-12 md:rounded-3xl mt-12">
         <h3 className="text-2xl font-bold mb-8 text-gray-900">Read Next</h3>
         
         {data.relatedPosts?.length > 0 ? (
