@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
-import Script from "next/script"; 
 import { Inter, Dancing_Script } from "next/font/google"; 
+import { GoogleAdSense } from "@next/third-parties/google"; // <--- Use the official component
 import "./globals.css";
 import Header from "./components/Header"; 
-import Footer from "./components/Footer"; // <--- Now using the separate Footer component
+import Footer from "./components/Footer"; 
 
 const inter = Inter({ 
   subsets: ["latin"], 
@@ -26,29 +26,23 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    // suppressHydrationWarning prevents errors from browser extensions
     <html lang="en" suppressHydrationWarning>
       <body className={`${inter.variable} ${dancingScript.variable} font-sans antialiased text-gray-800 bg-white`}>
         
-        {/* GOOGLE ADSENSE SCRIPT */}
-        {/* Remember to replace 'ca-pub-XXXXXXXXXXXXXXXX' with your real ID before deployment if you haven't already */}
-        <Script
-          id="adsbygoogle-init"
-          strategy="afterInteractive"
-          crossOrigin="anonymous"
-          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5152146437122143"
-        />
-
-        {/* GLOBAL HEADER */}
+        {/* HEADER */}
         <Header />
         
-        {/* MAIN PAGE CONTENT */}
+        {/* MAIN CONTENT */}
         <main className="min-h-screen">
           {children}
         </main>
         
-        {/* GLOBAL FOOTER */}
+        {/* FOOTER */}
         <Footer />
+        
+        {/* OFFICIAL ADSENSE COMPONENT */}
+        {/* This handles placement in <head> automatically for verification */}
+        <GoogleAdSense publisherId="pub-5152146437122143" />
       </body>
     </html>
   );
