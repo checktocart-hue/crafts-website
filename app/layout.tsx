@@ -36,7 +36,7 @@ export default function RootLayout({
           id="adsbygoogle-init"
           strategy="afterInteractive"
           crossOrigin="anonymous"
-          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX"
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5152146437122143"
         />
 
         {/* GLOBAL HEADER */}
