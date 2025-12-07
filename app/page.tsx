@@ -141,11 +141,11 @@ export default async function Home() {
             </div>
           </div>
 
-          {/* Static Tool Image */}
+          {/* Corrected Tool Image (New URL) */}
           <div className="order-1 md:order-2 relative h-64 md:h-96 w-full rounded-3xl overflow-hidden shadow-xl border-4 border-white rotate-2 hover:rotate-0 transition-transform duration-500">
              <img 
-               src="https://images.unsplash.com/photo-1502920917128-1aa500764cbd?auto=format&fit=crop&w=800&q=80" 
-               alt="Tools"
+               src="https://images.unsplash.com/photo-1452860606245-08befc0ff44b?auto=format&fit=crop&w=800&q=80" 
+               alt="Craft Tools and Cutting Mat"
                className="w-full h-full object-cover"
              />
           </div>
