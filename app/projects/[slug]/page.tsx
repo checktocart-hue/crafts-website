@@ -1,100 +1,147 @@
-import { client } from '@/app/lib/sanity';
-import CustomPortableText from '@/app/components/CustomPortableText'; // <--- The New Component
-import Header from '@/app/components/Header';
-import AdUnit from '@/app/components/AdUnit';
-import Link from 'next/link';
-import { ArrowLeft, Calendar, User } from 'lucide-react';
-import { Metadata } from 'next';
+import { client } from "@/app/lib/sanity";
+import { PortableText } from "next-sanity";
+import { urlFor } from "@/app/lib/sanity";
+import Link from "next/link";
+import ShareButtons from "@/app/components/ShareButtons"; 
+import AuthorBio from "@/app/components/AuthorBio"; 
 
-// 1. Helper to fetch data
-async function getProject(slug: string) {
-  return await client.fetch(`*[_type == "project" && slug.current == "${slug}"][0] {
-    title,
-    body,
-    "imageUrl": mainImage.asset->url,
-    _createdAt,
-    seo {
-      metaTitle,
-      metaDescription,
-      focusKeyword
+// Disable caching for instant updates
+export const revalidate = 0; 
+
+async function getData(slug: string) {
+  const query = `
+    {
+      // Specific query for "project" type
+      "currentProject": *[_type == "project" && slug.current == $slug][0] {
+          title,
+          _createdAt,
+          "slug": slug.current,
+          "mainImage": mainImage,
+          body,
+          // Projects often use 'description' as overview
+          description 
+      },
+      // Fetch related content (projects or posts)
+      "relatedContent": *[(_type == "project" || _type == "post") && slug.current != $slug] | order(_createdAt desc)[0...3] {
+          title,
+          "slug": slug.current,
+          "mainImage": mainImage,
+          _createdAt
+      }
     }
-  }`);
+  `;
+  const data = await client.fetch(query, { slug });
+  return data;
 }
 
-// 2. SEO MAGIC
-export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
+export default async function ProjectPage({ 
+  params 
+}: { 
+  params: Promise<{ slug: string }> 
+}) {
   const { slug } = await params;
-  const project = await getProject(slug);
+  
+  const data = await getData(slug);
+  const project = data.currentProject;
 
-  if (!project) return { title: 'Guide Not Found' };
-
-  return {
-    title: project.seo?.metaTitle || project.title, 
-    description: project.seo?.metaDescription || "Read our step-by-step DIY guide.",
+  if (!project) {
+    return (
+      <div className="max-w-3xl mx-auto px-4 py-20 text-center">
+        <h1 className="text-4xl font-bold mb-4 text-gray-900">Guide not found</h1>
+        <p className="text-gray-500 mb-8">
+          This project guide might have been moved.
+        </p>
+        <Link 
+          href="/blog" 
+          className="inline-block bg-green-700 text-white px-6 py-3 rounded-full font-bold hover:bg-green-800 transition"
+        >
+          View All Guides
+        </Link>
+      </div>
+    );
   }
-}
-
-// 3. Page Content
-export default async function ProjectArticle({ params }: { params: { slug: string } }) {
-  const { slug } = await params;
-  const project = await getProject(slug);
-
-  if (!project) return <div>Not Found</div>;
 
   return (
-    <main className="min-h-screen bg-white">
-      <Header />
+    <div className="max-w-3xl mx-auto px-4 py-12">
       
-      <article className="max-w-7xl mx-auto px-4 py-12 grid lg:grid-cols-12 gap-12">
-        
-        {/* LEFT: Main Article (8 Cols) */}
-        <div className="lg:col-span-8">
-           <Link href="/projects" className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-primary mb-8 transition">
-             <ArrowLeft size={16} /> Back to Guides
-           </Link>
+      {/* NO LOCAL HEADER HERE (Handled by Layout.tsx) */}
 
-           <h1 className="text-4xl md:text-5xl font-serif font-bold mb-6 text-gray-900 leading-tight">
-             {project.title}
-           </h1>
+      {/* Breadcrumb */}
+      <div className="mb-8">
+        <Link href="/blog" className="text-sm font-bold text-gray-500 hover:text-green-700 transition-colors flex items-center gap-2">
+          ← Back to Guides
+        </Link>
+      </div>
 
-           <div className="flex items-center gap-6 text-sm text-gray-500 mb-8 border-b border-gray-100 pb-8">
-             <span className="flex items-center gap-2"><User size={16}/> By CraftsAndKits Team</span>
-             <span className="flex items-center gap-2"><Calendar size={16}/> Updated Recently</span>
-           </div>
-
-           {project.imageUrl && (
-             <img src={project.imageUrl} alt={project.title} className="w-full h-[400px] object-cover rounded-2xl mb-10 shadow-sm" />
-           )}
-
-           {/* Ad before content */}
-           <div className="mb-10">
-             <AdUnit format="horizontal" />
-           </div>
-
-           <div className="prose prose-lg prose-stone max-w-none">
-              {/* Using the Custom Component here to render Tables */}
-              <CustomPortableText value={project.body} />
-           </div>
+      {/* Title Header */}
+      <h1 className="text-3xl md:text-5xl font-bold mb-6 text-gray-900 leading-tight">
+        {project.title}
+      </h1>
+      <div className="flex items-center gap-4 text-sm text-gray-500 mb-8 border-b border-gray-100 pb-8">
+        <p>Published: {new Date(project._createdAt).toLocaleDateString()}</p>
+        <span>•</span>
+        <p>By CraftsAndKits Team</p>
+      </div>
+      
+      {/* Main Image */}
+      {project.mainImage && (
+        <div className="relative w-full h-64 md:h-[400px] mb-12 rounded-2xl overflow-hidden bg-gray-100 shadow-sm">
+          <img
+            src={urlFor(project.mainImage).url()}
+            alt={project.title}
+            className="w-full h-full object-cover"
+          />
         </div>
+      )}
 
-        {/* RIGHT: Sidebar (4 Cols) */}
-        <div className="hidden lg:block lg:col-span-4">
-           <div className="sticky top-24 space-y-8">
-              <div className="bg-stone-50 p-6 rounded-xl border border-stone-100">
-                <h3 className="font-serif font-bold text-xl mb-2">Join the Club</h3>
-                <p className="text-gray-600 text-sm mb-4">Get weekly miniature tips and kit discounts.</p>
-                <input type="email" placeholder="Email address" className="w-full px-4 py-2 rounded-lg border border-gray-200 mb-2" />
-                <button className="w-full bg-primary text-white py-2 rounded-lg font-bold hover:bg-green-700">Subscribe</button>
-              </div>
-
-              <div>
-                <span className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2 block">Advertisement</span>
-                <AdUnit format="square" />
-              </div>
-           </div>
-        </div>
-
+      {/* Content Body */}
+      <article className="prose prose-lg prose-green max-w-none mb-10 text-gray-700">
+        <PortableText value={project.body} />
       </article>
-    </main>
+
+      {/* --- SHARE BUTTONS --- */}
+      {/* Passing slug and title for social sharing */}
+      <ShareButtons slug={project.slug} title={project.title} />
+
+      {/* --- AUTHOR BIO --- */}
+      <AuthorBio />
+
+      {/* Related Content */}
+      <div className="bg-gray-50 -mx-4 px-4 py-12 md:rounded-3xl mt-12">
+        <h3 className="text-2xl font-bold mb-8 text-gray-900">You might also like</h3>
+        
+        {data.relatedContent?.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {data.relatedContent.map((related: any) => (
+              <Link 
+                href={`/blog/${related.slug}`} 
+                key={related.slug} 
+                className="group bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all"
+              >
+                {related.mainImage && (
+                  <div className="relative h-48 w-full bg-gray-200">
+                    <img
+                      src={urlFor(related.mainImage).url()}
+                      alt={related.title}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
+                  </div>
+                )}
+                <div className="p-5">
+                  <h4 className="font-bold text-gray-900 line-clamp-2 group-hover:text-green-700 transition-colors">
+                    {related.title}
+                  </h4>
+                  <p className="text-xs text-gray-400 mt-2">
+                    {new Date(related._createdAt).toLocaleDateString()}
+                  </p>
+                </div>
+              </Link>
+            ))}
+          </div>
+        ) : (
+          <p className="text-gray-500 italic">No other guides found.</p>
+        )}
+      </div>
+    </div>
   );
 }

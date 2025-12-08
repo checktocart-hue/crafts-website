@@ -5,11 +5,13 @@ import Link from "next/link";
 import ShareButtons from "@/app/components/ShareButtons"; 
 import AuthorBio from "@/app/components/AuthorBio"; 
 
+// Disable caching to ensure instant updates and no 404s on new content
 export const revalidate = 0; 
 
 async function getData(slug: string) {
   const query = `
     {
+      // Look for this slug in EITHER "post" OR "project" types
       "currentPost": *[(_type == "post" || _type == "project") && slug.current == $slug][0] {
           title,
           _createdAt,
@@ -59,6 +61,9 @@ export default async function BlogArticlePage({
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-12">
+      
+      {/* --- HEADER WAS REMOVED FROM HERE TO FIX DUPLICATION --- */}
+
       {/* Breadcrumb */}
       <div className="mb-8">
         <Link href="/blog" className="text-sm font-bold text-gray-500 hover:text-green-700 transition-colors flex items-center gap-2">
@@ -66,7 +71,7 @@ export default async function BlogArticlePage({
         </Link>
       </div>
 
-      {/* Header */}
+      {/* Title Header */}
       <h1 className="text-3xl md:text-5xl font-bold mb-6 text-gray-900 leading-tight">
         {post.title}
       </h1>
@@ -92,7 +97,7 @@ export default async function BlogArticlePage({
         <PortableText value={post.body} />
       </article>
 
-      {/* --- SHARE BUTTONS --- */}
+      {/* --- SHARE BUTTONS SECTION --- */}
       <ShareButtons slug={post.slug} title={post.title} />
 
       {/* --- AUTHOR BIO --- */}
