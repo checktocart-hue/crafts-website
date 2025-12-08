@@ -4,7 +4,7 @@ import { urlFor } from "@/app/lib/sanity";
 import Link from "next/link";
 import { ShoppingCart, ExternalLink, ArrowLeft } from "lucide-react";
 
-// Disable caching to see updates instantly
+// CRITICAL FIX: Forces the page to fetch fresh data (removing the old table)
 export const revalidate = 0; 
 
 async function getData(slug: string) {
@@ -16,7 +16,6 @@ async function getData(slug: string) {
           "slug": slug.current,
           "mainImage": mainImage,
           body,
-          // CRITICAL: Fetch the Amazon Link you just added to the schema
           amazonLink, 
           "categoryId": categories[0]->_ref 
       },
@@ -80,7 +79,7 @@ export default async function ReviewPage({
         </div>
       )}
 
-      {/* --- AMAZON BUY BUTTON (Only shows if link exists) --- */}
+      {/* --- AMAZON BUY BUTTON --- */}
       {post.amazonLink && (
         <div className="bg-orange-50 border border-orange-100 p-6 rounded-2xl mb-12 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm">
           <div>
@@ -101,6 +100,7 @@ export default async function ReviewPage({
       )}
 
       {/* Review Content */}
+      {/* The 'prose' class handles the text formatting automatically */}
       <article className="prose prose-lg prose-green max-w-none mb-16 text-gray-700">
         <PortableText value={post.body} />
       </article>
