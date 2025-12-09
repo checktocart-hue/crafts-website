@@ -1,17 +1,15 @@
 import { client } from "@/app/lib/sanity";
-import { PortableText } from "next-sanity";
+import { PortableText, PortableTextComponents } from "next-sanity"; // Imported PortableTextComponents type
 import { urlFor } from "@/app/lib/sanity";
 import Link from "next/link";
 import ShareButtons from "@/app/components/ShareButtons"; 
 import AuthorBio from "@/app/components/AuthorBio"; 
 
-// Disable caching to ensure instant updates and no 404s on new content
 export const revalidate = 0; 
 
 async function getData(slug: string) {
   const query = `
     {
-      // Look for this slug in EITHER "post" OR "project" types
       "currentPost": *[(_type == "post" || _type == "project") && slug.current == $slug][0] {
           title,
           _createdAt,
@@ -42,6 +40,27 @@ export default async function BlogArticlePage({
   const data = await getData(slug);
   const post = data.currentPost;
 
+  // --- CRITICAL FIX: Define how to render images inside the body ---
+  const ptComponents: PortableTextComponents = {
+    types: {
+      image: ({ value }: any) => {
+        if (!value?.asset?._ref) {
+          return null;
+        }
+        return (
+          <div className="my-8 relative w-full h-auto rounded-xl overflow-hidden shadow-sm">
+            <img
+              src={urlFor(value).url()}
+              alt={value.alt || 'Article Image'}
+              className="w-full h-auto object-cover"
+              loading="lazy"
+            />
+          </div>
+        );
+      }
+    }
+  };
+
   if (!post) {
     return (
       <div className="max-w-3xl mx-auto px-4 py-20 text-center">
@@ -61,9 +80,6 @@ export default async function BlogArticlePage({
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-12">
-      
-      {/* --- HEADER WAS REMOVED FROM HERE TO FIX DUPLICATION --- */}
-
       {/* Breadcrumb */}
       <div className="mb-8">
         <Link href="/blog" className="text-sm font-bold text-gray-500 hover:text-green-700 transition-colors flex items-center gap-2">
@@ -71,7 +87,7 @@ export default async function BlogArticlePage({
         </Link>
       </div>
 
-      {/* Title Header */}
+      {/* Header */}
       <h1 className="text-3xl md:text-5xl font-bold mb-6 text-gray-900 leading-tight">
         {post.title}
       </h1>
@@ -93,11 +109,12 @@ export default async function BlogArticlePage({
       )}
 
       {/* Content Body */}
+      {/* Passed 'components={ptComponents}' to enable images inside text */}
       <article className="prose prose-lg prose-green max-w-none mb-10 text-gray-700">
-        <PortableText value={post.body} />
+        <PortableText value={post.body} components={ptComponents} />
       </article>
 
-      {/* --- SHARE BUTTONS SECTION --- */}
+      {/* --- SHARE BUTTONS --- */}
       <ShareButtons slug={post.slug} title={post.title} />
 
       {/* --- AUTHOR BIO --- */}
