@@ -2,9 +2,9 @@ import { client } from "@/app/lib/sanity";
 import { PortableText } from "next-sanity";
 import { urlFor } from "@/app/lib/sanity";
 import Link from "next/link";
-import { ShoppingCart, ExternalLink, ArrowLeft } from "lucide-react";
+import { ShoppingCart, ExternalLink, ArrowLeft, Info } from "lucide-react";
 
-// CRITICAL FIX: Forces the page to fetch fresh data (removing the old table)
+// Disable caching to see updates instantly
 export const revalidate = 0; 
 
 async function getData(slug: string) {
@@ -79,7 +79,15 @@ export default async function ReviewPage({
         </div>
       )}
 
-      {/* --- AMAZON BUY BUTTON --- */}
+      {/* --- AUTOMATIC AFFILIATE DISCLOSURE (Added Here) --- */}
+      <div className="bg-stone-50 border border-stone-200 rounded-lg p-4 mb-8 flex gap-3 text-sm text-gray-600 items-start">
+        <Info className="flex-shrink-0 text-green-700 mt-0.5" size={18} />
+        <p>
+          <span className="font-bold text-gray-900">Transparency Note:</span> This review contains affiliate links. If you buy through them, we may earn a commission. We only review kits we believe in.
+        </p>
+      </div>
+
+      {/* --- AMAZON BUY BUTTON (Only shows if link exists) --- */}
       {post.amazonLink && (
         <div className="bg-orange-50 border border-orange-100 p-6 rounded-2xl mb-12 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm">
           <div>
@@ -100,7 +108,6 @@ export default async function ReviewPage({
       )}
 
       {/* Review Content */}
-      {/* The 'prose' class handles the text formatting automatically */}
       <article className="prose prose-lg prose-green max-w-none mb-16 text-gray-700">
         <PortableText value={post.body} />
       </article>
