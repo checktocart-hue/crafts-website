@@ -5,19 +5,25 @@ import Link from "next/link";
 import ShareButtons from "@/app/components/ShareButtons"; 
 import AuthorBio from "@/app/components/AuthorBio"; 
 import TableOfContents from "@/app/components/TableOfContents";
-import { Info } from "lucide-react"; // Import Info icon
+import AdUnit from "@/app/components/AdUnit";         // <--- Ad Component
+import ReviewSchema from "@/app/components/ReviewSchema"; // <--- Schema Component
+import { Info } from "lucide-react"; 
 
 export const revalidate = 0; 
 
 async function getData(slug: string) {
   const query = `
     {
-      "currentPost": *[(_type == "post" || _type == "project") && slug.current == $slug][0] {
+      // UPDATED: Now looks for 'review' type and fetches rating/amazonLink
+      "currentPost": *[(_type == "post" || _type == "project" || _type == "review") && slug.current == $slug][0] {
           title,
           _createdAt,
           "slug": slug.current,
           "mainImage": mainImage,
           body,
+          "rating": rating,           // <--- Critical for Star Ratings
+          "amazonLink": amazonLink,   // <--- For future buttons
+          "excerpt": array::join(string::split((pt::text(body)), "")[0..150], "") + "...",
           "categoryId": categories[0]->_ref 
       },
       "relatedPosts": *[(_type == "post" || _type == "project") && slug.current != $slug] | order(_createdAt desc)[0...3] {
@@ -32,26 +38,22 @@ async function getData(slug: string) {
   return data;
 }
 
-// ... (Rest of your component setup and ptComponents remains the same)
-// I am keeping the logic brief here, but you should keep your existing ptComponents for images/tables!
 const ptComponents: PortableTextComponents = {
     types: {
       image: ({ value }: any) => {
         if (!value?.asset?._ref) return null;
         return (
           <div className="my-8 relative w-full h-auto rounded-xl overflow-hidden shadow-sm border border-stone-100">
-            <img src={urlFor(value).url()} alt={value.alt || 'Guide Image'} className="w-full h-auto object-cover" loading="lazy" />
+            <img 
+              src={urlFor(value).url()} 
+              alt={value.alt || 'Guide Image'} 
+              className="w-full h-auto object-cover" 
+              loading="lazy" 
+            />
           </div>
         );
       },
-      youtube: ({ value }: any) => {
-        // ... (Your youtube logic)
-        return null; 
-      },
-      comparisonTable: ({ value }: any) => {
-        // ... (Your table logic)
-        return null;
-      }
+      // Comparison Table logic can be re-added here later
     },
     block: {
       h2: ({ children }: any) => {
@@ -62,7 +64,6 @@ const ptComponents: PortableTextComponents = {
       normal: ({ children }: any) => <p className="mb-4 leading-relaxed text-gray-700">{children}</p>,
     },
 };
-// ...
 
 export default async function BlogArticlePage({ 
   params 
@@ -77,42 +78,90 @@ export default async function BlogArticlePage({
      return <div className="p-20 text-center">Article not found</div>;
   }
 
+  // --- LOGIC: CONTENT SPLITTING & SCHEMA CHECK ---
+  
+  // 1. Split body for safe Ad placement
+  const bodyContent = post.body || [];
+  const part1 = bodyContent.slice(0, 2); // First 2 paragraphs
+  const part2 = bodyContent.slice(2);    // Rest of article
+
+  // 2. Check if this is a review (does it have a rating?)
+  const isReview = typeof post.rating === 'number';
+
   return (
     <div className="max-w-3xl mx-auto px-4 py-12">
-      <div className="mb-8"><Link href="/blog" className="text-sm font-bold text-gray-500 hover:text-green-700">← Back to Blog</Link></div>
+      {/* 1. REVIEW SCHEMA INJECTION (Invisible to users, visible to Google) */}
+      {isReview && (
+        <ReviewSchema
+          productName={post.title.replace("Review", "").trim()}
+          description={post.excerpt || `Review of ${post.title}`}
+          imageUrl={post.mainImage ? urlFor(post.mainImage).url() : undefined}
+          authorName="CraftsAndKits Team"
+          publishedAt={post._createdAt}
+          ratingValue={post.rating}
+        />
+      )}
 
-      <h1 className="text-3xl md:text-5xl font-bold mb-6 text-gray-900 leading-tight">{post.title}</h1>
+      {/* Navigation */}
+      <div className="mb-8">
+        <Link href="/blog" className="text-sm font-bold text-gray-500 hover:text-green-700">
+          ← Back to Blog
+        </Link>
+      </div>
+
+      {/* Title */}
+      <h1 className="text-3xl md:text-5xl font-bold mb-6 text-gray-900 leading-tight">
+        {post.title}
+      </h1>
       
+      {/* Meta Data */}
       <div className="flex items-center gap-4 text-sm text-gray-500 mb-8 border-b border-gray-100 pb-8">
         <p>Published: {new Date(post._createdAt).toLocaleDateString()}</p>
         <span>•</span>
         <p>By CraftsAndKits Team</p>
       </div>
       
+      {/* Main Image */}
       {post.mainImage && (
         <div className="relative w-full h-64 md:h-[400px] mb-12 rounded-2xl overflow-hidden bg-gray-100 shadow-sm">
-          <img src={urlFor(post.mainImage).url()} alt={post.title} className="w-full h-full object-cover" />
+          <img 
+            src={urlFor(post.mainImage).url()} 
+            alt={post.title} 
+            className="w-full h-full object-cover" 
+          />
         </div>
       )}
 
-      {/* --- AUTOMATIC AFFILIATE DISCLOSURE (Added Here) --- */}
+      {/* Affiliate Disclosure */}
       <div className="bg-stone-50 border border-stone-200 rounded-lg p-4 mb-8 flex gap-3 text-sm text-gray-600 items-start">
         <Info className="flex-shrink-0 text-green-700 mt-0.5" size={18} />
         <p>
-          <span className="font-bold text-gray-900">Transparency Note:</span> This post may contain affiliate links. If you make a purchase through these links, we may earn a small commission at no extra cost to you. This helps us buy more kits to review!
+          <span className="font-bold text-gray-900">Transparency Note:</span> This post may contain affiliate links. If you make a purchase through these links, we may earn a small commission at no extra cost to you.
         </p>
       </div>
 
       <TableOfContents body={post.body} />
 
       <article className="prose prose-lg prose-green max-w-none mb-10 text-gray-700">
-        <PortableText value={post.body} components={ptComponents} />
+        
+        {/* RENDER PART 1 (Intro) */}
+        <PortableText value={part1} components={ptComponents} />
+
+        {/* AD UNIT (Placed safely between paragraphs) */}
+        <div className="my-8 w-full flex justify-center">
+           {/* Replace '123456789' with your real Slot ID once approved */}
+           <AdUnit slot="123456789" format="horizontal" />
+        </div>
+
+        {/* RENDER PART 2 (Rest of content) */}
+        <PortableText value={part2} components={ptComponents} />
+
       </article>
 
       <ShareButtons slug={post.slug} title={post.title} />
       <AuthorBio />
-
-      {/* Related Content Section... */}
+      
+      {/* Related posts logic can go here */}
     </div>
   );
 }
