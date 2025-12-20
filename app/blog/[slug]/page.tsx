@@ -1,3 +1,5 @@
+// Updated for AdSense and Schema
+import { client } from "@/app/lib/sanity";
 import { client } from "@/app/lib/sanity";
 import { PortableText, PortableTextComponents } from "next-sanity"; 
 import { urlFor } from "@/app/lib/sanity";
