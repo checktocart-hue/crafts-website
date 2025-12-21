@@ -1,5 +1,3 @@
-// Updated for AdSense and Schema
-import { client } from "@/app/lib/sanity";
 import { client } from "@/app/lib/sanity";
 import { PortableText, PortableTextComponents } from "next-sanity"; 
 import { urlFor } from "@/app/lib/sanity";
@@ -7,24 +5,25 @@ import Link from "next/link";
 import ShareButtons from "@/app/components/ShareButtons"; 
 import AuthorBio from "@/app/components/AuthorBio"; 
 import TableOfContents from "@/app/components/TableOfContents";
-import AdUnit from "@/app/components/AdUnit";         // <--- Ad Component
-import ReviewSchema from "@/app/components/ReviewSchema"; // <--- Schema Component
+import AdUnit from "@/app/components/AdUnit";
+import ReviewSchema from "@/app/components/ReviewSchema";
+import ComparisonTable from "@/app/components/ComparisonTable"; // <--- 1. IMPORT COMPONENT
 import { Info } from "lucide-react"; 
 
+// Force dynamic rendering so new posts appear instantly
 export const revalidate = 0; 
 
 async function getData(slug: string) {
   const query = `
     {
-      // UPDATED: Now looks for 'review' type and fetches rating/amazonLink
       "currentPost": *[(_type == "post" || _type == "project" || _type == "review") && slug.current == $slug][0] {
           title,
           _createdAt,
           "slug": slug.current,
           "mainImage": mainImage,
           body,
-          "rating": rating,           // <--- Critical for Star Ratings
-          "amazonLink": amazonLink,   // <--- For future buttons
+          "rating": rating,
+          "amazonLink": amazonLink,
           "excerpt": array::join(string::split((pt::text(body)), "")[0..150], "") + "...",
           "categoryId": categories[0]->_ref 
       },
@@ -55,7 +54,11 @@ const ptComponents: PortableTextComponents = {
           </div>
         );
       },
-      // Comparison Table logic can be re-added here later
+      // --- 2. ADD THIS NEW BLOCK FOR TABLES ---
+      comparisonTable: ({ value }: any) => {
+        return <ComparisonTable value={value} />;
+      },
+      // ----------------------------------------
     },
     block: {
       h2: ({ children }: any) => {
@@ -81,18 +84,14 @@ export default async function BlogArticlePage({
   }
 
   // --- LOGIC: CONTENT SPLITTING & SCHEMA CHECK ---
-  
-  // 1. Split body for safe Ad placement
   const bodyContent = post.body || [];
   const part1 = bodyContent.slice(0, 2); // First 2 paragraphs
   const part2 = bodyContent.slice(2);    // Rest of article
-
-  // 2. Check if this is a review (does it have a rating?)
   const isReview = typeof post.rating === 'number';
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-12">
-      {/* 1. REVIEW SCHEMA INJECTION (Invisible to users, visible to Google) */}
+      {/* REVIEW SCHEMA INJECTION */}
       {isReview && (
         <ReviewSchema
           productName={post.title.replace("Review", "").trim()}
@@ -146,24 +145,21 @@ export default async function BlogArticlePage({
 
       <article className="prose prose-lg prose-green max-w-none mb-10 text-gray-700">
         
-        {/* RENDER PART 1 (Intro) */}
+        {/* RENDER PART 1 */}
         <PortableText value={part1} components={ptComponents} />
 
-        {/* AD UNIT (Placed safely between paragraphs) */}
+        {/* AD UNIT */}
         <div className="my-8 w-full flex justify-center">
-           {/* Replace '123456789' with your real Slot ID once approved */}
            <AdUnit slot="123456789" format="horizontal" />
         </div>
 
-        {/* RENDER PART 2 (Rest of content) */}
+        {/* RENDER PART 2 */}
         <PortableText value={part2} components={ptComponents} />
 
       </article>
 
       <ShareButtons slug={post.slug} title={post.title} />
       <AuthorBio />
-      
-      {/* Related posts logic can go here */}
     </div>
   );
 }
