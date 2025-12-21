@@ -34,7 +34,7 @@ export default async function ProjectsPage() {
 
       <div className="max-w-7xl mx-auto px-4 py-12">
         {/* Ad Slot */}
-        <AdUnit format="horizontal" />
+        <AdUnit slot="8932479234" format="horizontal" />
 
         {/* 2. THE GRID */}
         <div className="grid md:grid-cols-3 gap-8 mt-12">
