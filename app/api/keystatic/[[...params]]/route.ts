@@ -1,7 +1,7 @@
 import { makeAPIRouteHandler } from '@keystatic/next/api';
 import { config, fields, collection } from '@keystatic/core';
 
-// 1. DEFINE CONFIG DIRECTLY HERE (Bypassing import issues)
+// --- CONFIGURATION ---
 const keystaticConfig = config({
   storage: {
     kind: 'local',
@@ -128,23 +128,13 @@ const keystaticConfig = config({
   },
 });
 
-// 2. CREATE HANDLER WITH EXPLICIT ERROR LOGGING
+// --- API HANDLERS ---
 const handlers = makeAPIRouteHandler({ config: keystaticConfig });
 
-export async function GET(req: Request) {
-  try {
-    return await handlers.GET(req);
-  } catch (error) {
-    console.error("Keystatic API GET Error:", error);
-    return new Response(JSON.stringify({ error: "Internal Server Error" }), { status: 500 });
-  }
+export function GET(req: Request) {
+  return handlers.GET(req);
 }
 
-export async function POST(req: Request) {
-  try {
-    return await handlers.POST(req);
-  } catch (error) {
-    console.error("Keystatic API POST Error:", error);
-    return new Response(JSON.stringify({ error: "Internal Server Error" }), { status: 500 });
-  }
+export function POST(req: Request) {
+  return handlers.POST(req);
 }
