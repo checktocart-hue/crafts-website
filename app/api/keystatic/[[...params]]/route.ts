@@ -1,7 +1,7 @@
 import { makeAPIRouteHandler } from '@keystatic/next/api';
 import { config, fields, collection } from '@keystatic/core';
 
-// --- CONFIGURATION ---
+// 1. CONFIGURATION (Hardcoded to prevent import errors)
 const keystaticConfig = config({
   storage: {
     kind: 'local',
@@ -128,13 +128,12 @@ const keystaticConfig = config({
   },
 });
 
-// --- API HANDLERS ---
-const handlers = makeAPIRouteHandler({ config: keystaticConfig });
+// 2. THE HANDLER (Using the correct function you have installed)
+const handler = makeAPIRouteHandler({
+  config: keystaticConfig,
+});
 
-export function GET(req: Request) {
-  return handlers.GET(req);
-}
-
-export function POST(req: Request) {
-  return handlers.POST(req);
-}
+// 3. EXPORT GET AND POST MANUALLY
+// This maps the single handler to the specific methods Next.js expects.
+export const GET = (req: Request) => handler(req);
+export const POST = (req: Request) => handler(req);
