@@ -1,6 +1,6 @@
 import { defineField, defineType } from 'sanity';
 
-// 1. CATEGORY TYPE (Used by both Posts and Reviews)
+// 1. CATEGORY TYPE
 const category = defineType({
   name: 'category',
   title: 'Category',
@@ -66,7 +66,7 @@ const post = defineType({
   ],
 });
 
-// 3. REVIEW TYPE (New: Matches your design's "Latest Reviews" section)
+// 3. REVIEW TYPE
 const review = defineType({
   name: 'review',
   title: 'Product Review',
@@ -124,5 +124,88 @@ const review = defineType({
   ],
 });
 
-// 4. EXPORT ALL TYPES
-export const schemaTypes = [post, review, category];
+// 4. PROJECT TYPE
+const project = defineType({
+  name: 'project',
+  title: 'Project',
+  type: 'document',
+  fields: [
+    defineField({
+      name: 'title',
+      title: 'Title',
+      type: 'string',
+    }),
+    defineField({
+      name: 'slug',
+      title: 'Slug',
+      type: 'slug',
+      options: { source: 'title' },
+    }),
+    defineField({
+      name: 'mainImage',
+      title: 'Main Image',
+      type: 'image',
+      options: { hotspot: true },
+    }),
+    defineField({
+      name: 'link',
+      title: 'Project Link',
+      type: 'url',
+    }),
+    defineField({
+      name: 'categories',
+      title: 'Categories',
+      type: 'array',
+      of: [{ type: 'reference', to: { type: 'category' } }],
+    }),
+    defineField({
+      name: 'body',
+      title: 'Body',
+      type: 'array',
+      of: [
+        { type: 'block' },
+        { type: 'image' },
+        { type: 'table' },
+      ],
+    }),
+  ],
+});
+
+// 5. TOOL / SHOP ITEM TYPE (New)
+const tool = defineType({
+  name: 'tool',
+  title: 'Tool / Shop Item',
+  type: 'document',
+  fields: [
+    defineField({
+      name: 'name',
+      title: 'Tool Name',
+      type: 'string',
+    }),
+    defineField({
+      name: 'slug',
+      title: 'Slug',
+      type: 'slug',
+      options: { source: 'name' },
+    }),
+    defineField({
+      name: 'image',
+      title: 'Tool Image',
+      type: 'image',
+      options: { hotspot: true },
+    }),
+    defineField({
+      name: 'affiliateLink',
+      title: 'Affiliate / Purchase Link',
+      type: 'url',
+    }),
+    defineField({
+      name: 'description',
+      title: 'Description',
+      type: 'text',
+    }),
+  ],
+});
+
+// 6. EXPORT ALL TYPES
+export const schemaTypes = [post, review, project, tool, category];
