@@ -1,6 +1,25 @@
 import { defineField, defineType } from 'sanity';
 
-// 1. Define the Post Type
+// 1. Define the Category Type
+const category = defineType({
+  name: 'category',
+  title: 'Category',
+  type: 'document',
+  fields: [
+    defineField({
+      name: 'title',
+      title: 'Title',
+      type: 'string',
+    }),
+    defineField({
+      name: 'description',
+      title: 'Description',
+      type: 'text',
+    }),
+  ],
+});
+
+// 2. Define the Post Type (Updated with Categories)
 const post = defineType({
   name: 'post',
   title: 'Post',
@@ -21,7 +40,14 @@ const post = defineType({
       name: 'mainImage',
       title: 'Main Image',
       type: 'image',
-      options: { hotspot: true }, // Enables cropping
+      options: { hotspot: true },
+    }),
+    // NEW: Link to Categories
+    defineField({
+      name: 'categories',
+      title: 'Categories',
+      type: 'array',
+      of: [{ type: 'reference', to: { type: 'category' } }],
     }),
     defineField({
       name: 'publishedAt',
@@ -33,13 +59,13 @@ const post = defineType({
       title: 'Body',
       type: 'array',
       of: [
-        { type: 'block' }, // Standard text
-        { type: 'image' }, // Images in text
-        { type: 'table' }, // <--- Tables in text
+        { type: 'block' }, 
+        { type: 'image' },
+        { type: 'table' },
       ],
     }),
   ],
 });
 
-// 2. Export it
-export const schemaTypes = [post];
+// 3. Export both types
+export const schemaTypes = [post, category];
