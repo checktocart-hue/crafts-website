@@ -13,13 +13,16 @@
     "@keystatic/next": "^5.0.4",
     "@next/third-parties": "^16.0.7",
     "@portabletext/react": "^5.0.0",
-    "@sanity/image-url": "^2.0.1",
+    "@sanity/image-url": "^2.0.3",
+    "@sanity/table": "^2.0.1",
     "clsx": "^2.1.1",
     "lucide-react": "^0.555.0",
     "next": "^16.0.7",
-    "next-sanity": "^11.6.10",
+    "next-sanity": "^11.6.12",
     "react": "^19.2.1",
-    "react-dom": "^19.2.1"
+    "react-dom": "^19.2.1",
+    "sanity": "^5.4.0",
+    "styled-components": "^6.3.8"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
