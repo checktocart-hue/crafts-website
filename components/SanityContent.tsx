@@ -1,6 +1,6 @@
 import { PortableText } from "@portabletext/react";
 import urlBuilder from "@sanity/image-url";
-import { client } from "../sanity/client";
+import { client } from "../sanity/sanityclient";
 
 // 1. Helper to get image URLs
 const builder = urlBuilder(client);

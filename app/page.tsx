@@ -1,4 +1,4 @@
-import { client } from "../sanity/client";
+import { client } from "../sanity/sanityclient";
 import SanityContent from "../components/SanityContent";
 import urlBuilder from "@sanity/image-url";
 
