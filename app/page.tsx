@@ -1,5 +1,5 @@
-import { client } from "@/sanity/client";
-import SanityContent from "@/components/SanityContent";
+import { client } from "../sanity/client";
+import SanityContent from "../components/SanityContent";
 import urlBuilder from "@sanity/image-url";
 
 // Helper to get image URLs for the main cover image
