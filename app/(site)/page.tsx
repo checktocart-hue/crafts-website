@@ -1,19 +1,15 @@
 import Link from "next/link";
-import { client } from "../../sanity/sanityclient"; // <--- FIXED IMPORT
-import imageUrlBuilder from "@sanity/image-url"; // <--- FIXED IMAGE HELPER
+import { client } from "@/app/lib/sanity"; // <--- FIXED IMPORT PATH
+import { urlFor } from "@/app/lib/sanity"; // <--- USE EXISTING HELPER
 import { 
   ArrowRight, Star, Mail, MessageSquare, BookOpen, 
   Library, Home as HomeIcon, Hammer, 
   GraduationCap, Scissors, Trophy, Wrench 
 } from "lucide-react";
 
+// Force new data every time
+export const dynamic = "force-dynamic";
 export const revalidate = 0; 
-
-// 1. Setup Image Builder (Connects to your new Project ID)
-const builder = imageUrlBuilder(client);
-function urlFor(source: any) {
-  return builder.image(source);
-}
 
 async function getData() {
   const query = `
@@ -34,9 +30,14 @@ async function getData() {
   `;
   try {
     const data = await client.fetch(query);
+    // Debugging: Log what we found to the terminal
+    console.log("Home Page Data:", { 
+        reviews: data?.latestReviews?.length, 
+        posts: data?.latestPosts?.length 
+    });
     return data;
   } catch (error) {
-    console.error("Error fetching data:", error);
+    console.error("Error fetching home data:", error);
     return { latestReviews: [], latestPosts: [] };
   }
 }
@@ -67,7 +68,7 @@ export default async function Home() {
           <span className="inline-block text-green-700 font-bold tracking-widest text-xs uppercase bg-white border border-stone-200 shadow-sm px-4 py-1.5 rounded-full mb-4">
             ✨ The Miniature Hobbyist's Guide
           </span>
-          <h1 className="text-6xl md:text-8xl font-bold text-gray-900 tracking-tight leading-[1.1] font-[family-name:var(--font-dancing)]">
+          <h1 className="text-6xl md:text-8xl font-bold text-gray-900 tracking-tight leading-[1.1]">
             Build Your Own <br /> <span className="text-green-700">Magical Worlds</span>
           </h1>
           <p className="text-xl md:text-2xl text-gray-600 max-w-2xl mx-auto leading-relaxed font-light">
@@ -109,53 +110,6 @@ export default async function Home() {
               </Link>
             ))}
           </div>
-        </div>
-      </section>
-
-      {/* --- NEW SECTION: ESSENTIAL TOOLS SHOP --- */}
-      <section className="bg-orange-50 border-y border-orange-100 py-16">
-        <div className="max-w-7xl mx-auto px-4 w-full grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
-          
-          {/* Text Content */}
-          <div className="space-y-6 order-2 md:order-1">
-            <span className="inline-block bg-orange-100 text-orange-800 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">
-              Beginner's Guide
-            </span>
-            <h2 className="text-4xl font-bold text-gray-900 font-[family-name:var(--font-dancing)]">
-              Stop Struggling with Cheap Tools
-            </h2>
-            <p className="text-lg text-gray-700 leading-relaxed">
-              Most kits say "Tools Included," but those cheap tweezers and dull knives will ruin your experience. We have curated the exact <strong>under-$20 toolkit</strong> that turns frustration into fun.
-            </p>
-            <ul className="space-y-3">
-              <li className="flex items-center gap-3 text-gray-600">
-                <div className="w-6 h-6 rounded-full bg-orange-200 flex items-center justify-center text-orange-700"><Wrench size={14} /></div>
-                Why you need precision tweezers (ESD-15)
-              </li>
-              <li className="flex items-center gap-3 text-gray-600">
-                <div className="w-6 h-6 rounded-full bg-orange-200 flex items-center justify-center text-orange-700"><Scissors size={14} /></div>
-                The only glue that actually works on wood
-              </li>
-            </ul>
-            <div className="pt-4">
-              <Link 
-                href="/tools" 
-                className="inline-flex bg-orange-600 text-white px-8 py-4 rounded-full font-bold hover:bg-orange-700 transition shadow-lg hover:shadow-orange-900/20 items-center gap-2"
-              >
-                Open Builder's Shop <ArrowRight size={18} />
-              </Link>
-            </div>
-          </div>
-
-          {/* Corrected Tool Image (New URL) */}
-          <div className="order-1 md:order-2 relative h-64 md:h-96 w-full rounded-3xl overflow-hidden shadow-xl border-4 border-white rotate-2 hover:rotate-0 transition-transform duration-500">
-             <img 
-               src="https://images.unsplash.com/photo-1452860606245-08befc0ff44b?auto=format&fit=crop&w=800&q=80" 
-               alt="Craft Tools and Cutting Mat"
-               className="w-full h-full object-cover"
-             />
-          </div>
-
         </div>
       </section>
 
@@ -239,10 +193,10 @@ export default async function Home() {
            <div className="absolute top-0 right-0 w-64 h-64 bg-white opacity-10 rounded-full blur-3xl translate-x-1/2 -translate-y-1/2"></div>
            <div className="relative z-10">
              <div className="bg-white/20 w-12 h-12 rounded-full flex items-center justify-center mb-6"><Mail size={24} /></div>
-             <h2 className="text-3xl font-bold mb-4 font-[family-name:var(--font-dancing)]">Join the Club</h2>
+             <h2 className="text-3xl font-bold mb-4">Join the Club</h2>
              <p className="text-green-100 mb-8 leading-relaxed">Get free building guides, discount codes for kits, and inspiration delivered to your inbox.</p>
              
-             <form action="https://formspree.io/f/YOUR_FORMSPREE_ID" method="POST" className="flex flex-col gap-3">
+             <form className="flex flex-col gap-3">
                  <input suppressHydrationWarning type="email" name="email" required placeholder="Your email address" className="w-full px-5 py-3 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-green-300" />
                  <button suppressHydrationWarning className="bg-green-900 text-white font-bold py-3 rounded-xl hover:bg-green-950 transition border border-green-600">Subscribe Free</button>
              </form>
@@ -250,10 +204,10 @@ export default async function Home() {
         </div>
         <div className="bg-gray-100 rounded-3xl p-8 md:p-12 text-gray-800 border border-gray-200">
            <div className="bg-white w-12 h-12 rounded-full flex items-center justify-center mb-6 shadow-sm"><MessageSquare size={24} className="text-green-700" /></div>
-           <h2 className="text-3xl font-bold mb-4 font-[family-name:var(--font-dancing)]">Have a Question?</h2>
+           <h2 className="text-3xl font-bold mb-4">Have a Question?</h2>
            <p className="text-gray-600 mb-8 leading-relaxed">Stuck on a build? Looking for a specific review? Send us a message.</p>
            
-           <form action="https://formspree.io/f/YOUR_FORMSPREE_ID" method="POST" className="flex flex-col gap-3">
+           <form className="flex flex-col gap-3">
               <div className="grid grid-cols-2 gap-3">
                   <input suppressHydrationWarning type="text" name="name" required placeholder="Name" className="w-full px-5 py-3 rounded-xl border border-gray-200 focus:outline-none focus:border-green-700 bg-white" />
                   <input suppressHydrationWarning type="email" name="email" required placeholder="Email" className="w-full px-5 py-3 rounded-xl border border-gray-200 focus:outline-none focus:border-green-700 bg-white" />
