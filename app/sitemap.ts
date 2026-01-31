@@ -1,52 +1,45 @@
 import { MetadataRoute } from 'next'
-import { client } from "@/app/lib/sanity"
+import { client } from './lib/sanity'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  // REPLACE this with your actual live domain
-  const baseUrl = 'https://www.craftsandkits.com' 
+  const baseUrl = 'https://www.craftsandkits.com' // Ensure this matches your live domain
 
-  // 1. Fetch Dynamic Data from Sanity
-  // We fetch slugs and update times for both Reviews and Blog Posts
-  const reviews = await client.fetch(`*[_type == "review"]{ "slug": slug.current, _updatedAt }`)
-  
-  // Note: We fetch both "post" and "project" to match your Blog page logic
-  const posts = await client.fetch(`*[(_type == "post" || _type == "project")]{ "slug": slug.current, _updatedAt }`)
+  // 1. Fetch all Blog Posts
+  const blogQuery = `*[_type == "post" || _type == "project"] { "slug": slug.current, _updatedAt }`
+  const blogPosts = await client.fetch(blogQuery)
 
-  // 2. Generate URLs for Reviews
-  const reviewUrls = reviews.map((review: any) => ({
-    url: `${baseUrl}/reviews/${review.slug}`,
-    lastModified: review._updatedAt,
-    changeFrequency: 'weekly',
-    priority: 0.8,
-  }))
-
-  // 3. Generate URLs for Blog Posts
-  const postUrls = posts.map((post: any) => ({
+  const blogUrls = blogPosts.map((post: any) => ({
     url: `${baseUrl}/blog/${post.slug}`,
-    lastModified: post._updatedAt,
+    lastModified: new Date(post._updatedAt),
     changeFrequency: 'weekly',
     priority: 0.8,
   }))
 
-  // 4. Define Static Pages
+  // 2. Fetch all Reviews (CRITICAL for your new content)
+  const reviewQuery = `*[_type == "review"] { "slug": slug.current, _updatedAt }`
+  const reviews = await client.fetch(reviewQuery)
+
+  const reviewUrls = reviews.map((post: any) => ({
+    url: `${baseUrl}/reviews/${post.slug}`,
+    lastModified: new Date(post._updatedAt),
+    changeFrequency: 'weekly',
+    priority: 0.9, // Higher priority for reviews
+  }))
+
+  // 3. Define Static Pages
   const staticRoutes = [
-    '',             // Homepage
-    '/reviews',     // Reviews Index
-    '/blog',        // Blog Index
+    '',
     '/about',
     '/contact',
-    '/privacy',
-    '/terms',
-    '/disclaimer',
-    '/cookies',
-    '/submit-review',
+    '/blog',
+    '/reviews',
+    '/tools',
   ].map((route) => ({
     url: `${baseUrl}${route}`,
-    lastModified: new Date().toISOString(),
+    lastModified: new Date(),
     changeFrequency: 'daily',
-    priority: route === '' ? 1 : 0.6, // Homepage is priority 1
+    priority: 1.0,
   }))
 
-  // 5. Combine everything
-  return [...staticRoutes, ...reviewUrls, ...postUrls]
+  return [...staticRoutes, ...blogUrls, ...reviewUrls]
 }
