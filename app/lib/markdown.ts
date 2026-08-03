@@ -2,22 +2,32 @@ import fs from 'fs';
 import path from 'path';
 import matter from 'gray-matter';
 
-// This tells Next.js to look for a folder called "content" in the root of your project
+// 1. We tell TypeScript EXACTLY what to expect from our markdown files
+export interface PostMeta {
+  title: string;
+  date: string;
+  description?: string;
+  image?: string;
+  category?: string;
+  author?: string;
+  slug: string;
+  [key: string]: any; // This allows any other random frontmatter fields without breaking
+}
+
 const rootDirectory = path.join(process.cwd(), 'content');
 
-export const getPostBySlug = (type: 'blog' | 'reviews', slug: string) => {
+// 2. We apply the type to the function return
+export const getPostBySlug = (type: 'blog' | 'reviews', slug: string): { meta: PostMeta; content: string } | null => {
   try {
     const realSlug = slug.replace(/\.mdx$/, '');
     const filePath = path.join(rootDirectory, type, `${realSlug}.mdx`);
     
-    // Read the markdown file as a string
     const fileContent = fs.readFileSync(filePath, 'utf8');
-    
-    // Use gray-matter to parse the post metadata section
     const { data, content } = matter(fileContent);
     
     return { 
-      meta: { ...data, slug: realSlug }, 
+      // 3. We force the data into our strict PostMeta shape
+      meta: { ...(data as any), slug: realSlug } as PostMeta, 
       content 
     };
   } catch (error) {
@@ -26,11 +36,10 @@ export const getPostBySlug = (type: 'blog' | 'reviews', slug: string) => {
   }
 };
 
-export const getAllPosts = (type: 'blog' | 'reviews') => {
+export const getAllPosts = (type: 'blog' | 'reviews'): { meta: PostMeta; content: string }[] => {
   try {
     const dirPath = path.join(rootDirectory, type);
     
-    // If the directory doesn't exist yet, return an empty array
     if (!fs.existsSync(dirPath)) {
       return [];
     }
@@ -40,11 +49,11 @@ export const getAllPosts = (type: 'blog' | 'reviews') => {
     const posts = files
       .filter((file) => file.endsWith('.mdx'))
       .map((file) => getPostBySlug(type, file))
-      .filter((post) => post !== null)
+      // 4. We ensure TypeScript knows we filtered out the nulls
+      .filter((post): post is { meta: PostMeta; content: string } => post !== null)
       .sort((a, b) => {
-        // Sort posts by date (newest first)
-        if (new Date(a!.meta.date) < new Date(b!.meta.date)) return 1;
-        if (new Date(a!.meta.date) > new Date(b!.meta.date)) return -1;
+        if (new Date(a.meta.date) < new Date(b.meta.date)) return 1;
+        if (new Date(a.meta.date) > new Date(b.meta.date)) return -1;
         return 0;
       });
 
