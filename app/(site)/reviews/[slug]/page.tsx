@@ -1,148 +1,180 @@
-import { client } from "@/app/lib/sanity";
-import { PortableText } from "next-sanity";
-import { urlFor } from "@/app/lib/sanity";
+import { getPostBySlug } from "@/app/lib/markdown";
+import { MDXRemote } from 'next-mdx-remote/rsc';
+import remarkGfm from 'remark-gfm';
 import Link from "next/link";
-import { ShoppingCart, ExternalLink, ArrowLeft, Info } from "lucide-react";
+import ShareButtons from "@/app/components/ShareButtons";
+import AuthorBio from "@/app/components/AuthorBio";
+import { Info, Star, ExternalLink } from "lucide-react";
 
-// Disable caching to see updates instantly
-export const revalidate = 0; 
+const mdxComponents = {
+  h2: (props: any) => (
+    <h2 className="text-2xl font-bold mt-12 mb-4 text-gray-900 border-b border-gray-100 pb-3 scroll-mt-24" {...props} />
+  ),
+  h3: (props: any) => (
+    <h3 className="text-xl font-bold mt-8 mb-3 text-gray-800" {...props} />
+  ),
+  p: (props: any) => (
+    <p className="mb-5 leading-relaxed text-gray-700 text-base md:text-lg" {...props} />
+  ),
+  ul: (props: any) => (
+    <ul className="list-disc pl-6 mb-6 text-gray-700 space-y-2 text-base md:text-lg" {...props} />
+  ),
+  ol: (props: any) => (
+    <ol className="list-decimal pl-6 mb-6 text-gray-700 space-y-2 text-base md:text-lg" {...props} />
+  ),
+  li: (props: any) => <li className="leading-relaxed" {...props} />,
+  strong: (props: any) => <strong className="font-bold text-gray-900" {...props} />,
+  
+  // 🔗 AFFILIATE & STANDARD LINKS
+  a: (props: any) => {
+    const text = props.children?.toString() || '';
+    const isAffiliate = text.toLowerCase().includes('shop') || props.href?.includes('amazon');
 
-async function getData(slug: string) {
-  const query = `
-    {
-      "currentPost": *[_type == "review" && slug.current == $slug][0] {
-          title,
-          _createdAt,
-          "slug": slug.current,
-          "mainImage": mainImage,
-          body,
-          amazonLink, 
-          "categoryId": categories[0]->_ref 
-      },
-      "relatedPosts": *[_type == "review" && slug.current != $slug] | order(_createdAt desc)[0...3] {
-          title,
-          "slug": slug.current,
-          "mainImage": mainImage,
-          _createdAt
-      }
+    if (isAffiliate) {
+      return (
+        <a
+          className="inline-flex items-center gap-2 my-3 px-6 py-3 bg-amber-500 hover:bg-amber-600 text-white font-bold text-base rounded-xl shadow-sm hover:shadow-md transition-all no-underline cursor-pointer"
+          target="_blank"
+          rel="noopener noreferrer"
+          {...props}
+        >
+          {props.children}
+          <ExternalLink size={18} />
+        </a>
+      );
     }
-  `;
-  const data = await client.fetch(query, { slug });
-  return data;
-}
 
-export default async function ReviewPage({ 
-  params 
-}: { 
-  params: Promise<{ slug: string }> 
+    return (
+      <a
+        className="text-green-700 hover:text-green-800 underline font-semibold transition-colors"
+        target="_blank"
+        rel="noopener noreferrer"
+        {...props}
+      />
+    );
+  },
+
+ // 🖼️ ENHANCED IN-ARTICLE IMAGES WITH CAPTIONS (Hydration Safe!)
+  img: (props: any) => (
+    <span className="block my-10">
+      <span className="block overflow-hidden rounded-2xl border border-gray-200/80 shadow-md bg-stone-50">
+        <img className="w-full h-auto object-cover max-h-[500px] block" loading="lazy" {...props} />
+      </span>
+      {props.alt && (
+        <span className="block mt-3 text-center text-xs md:text-sm text-gray-500 italic">
+          {props.alt}
+        </span>
+      )}
+    </span>
+  ),
+
+  // 📊 MODERN PREMIUM TABLE DESIGN
+  table: (props: any) => (
+    <div className="my-10 overflow-hidden border border-gray-200/80 rounded-2xl shadow-sm bg-white">
+      <div className="overflow-x-auto">
+        <table className="w-full text-left border-collapse text-sm md:text-base" {...props} />
+      </div>
+    </div>
+  ),
+  thead: (props: any) => (
+    <thead className="bg-slate-900 text-white border-b border-slate-800" {...props} />
+  ),
+  th: (props: any) => (
+    <th className="px-5 py-4 font-semibold tracking-wider text-xs md:text-sm uppercase text-slate-200 whitespace-nowrap" {...props} />
+  ),
+  tbody: (props: any) => <tbody className="divide-y divide-gray-100 bg-white" {...props} />,
+  tr: (props: any) => (
+    <tr className="hover:bg-amber-50/50 transition-colors even:bg-slate-50/60" {...props} />
+  ),
+  td: (props: any) => (
+    <td className="px-5 py-4 text-gray-700 align-middle leading-snug" {...props} />
+  ),
+  
+  // 💡 CALLOUT / BLOCKQUOTE STYLING
+  blockquote: (props: any) => (
+    <blockquote className="border-l-4 border-amber-500 bg-amber-50/60 p-5 rounded-r-xl my-8 text-gray-800 italic" {...props} />
+  ),
+};
+
+export default async function ReviewArticlePage({
+  params
+}: {
+  params: Promise<{ slug: string }>
 }) {
   const { slug } = await params;
-  const data = await getData(slug);
-  const post = data.currentPost;
-
+  const post = getPostBySlug('reviews', slug);
+  
   if (!post) {
     return (
       <div className="max-w-3xl mx-auto px-4 py-20 text-center">
-        <h1 className="text-2xl font-bold">Review not found</h1>
-        <Link href="/reviews" className="text-blue-600 underline mt-4 block">
-          Back to all reviews
-        </Link>
+        <h1 className="text-3xl font-bold text-gray-900 mb-4">Review not found</h1>
+        <Link href="/reviews" className="text-green-700 hover:underline">Return to Reviews</Link>
       </div>
     );
   }
 
+  const safeContent = post.content
+    .replace(/<!--[\s\S]*?-->/g, '') 
+    .replace(/<br\s*\/?>/gi, '<br />') 
+    .replace(/<hr\s*\/?>/gi, '<hr />') 
+    .replace(/\{/g, '&#123;') 
+    .replace(/\}/g, '&#125;') 
+    .replace(/<(?!br|hr|\/|img|a|strong|em|p|h[1-6]|ul|li|ol|span|div|table|th|tr|td|tbody|thead|blockquote)/gi, '&lt;'); 
+
   return (
-    <div className="max-w-3xl mx-auto px-4 py-12">
-      {/* Back Link */}
+    <div suppressHydrationWarning className="max-w-3xl mx-auto px-4 py-12">
       <div className="mb-8">
-        <Link href="/reviews" className="text-sm font-bold text-gray-500 hover:text-green-700 transition-colors flex items-center gap-2">
-          <ArrowLeft size={16} /> Back to Reviews
+        <Link href="/reviews" className="text-sm font-bold text-gray-500 hover:text-green-700">
+          ← Back to Reviews
         </Link>
       </div>
 
-      {/* Title & Date */}
+      <div className="mb-6 flex items-center gap-2 text-yellow-500">
+        <Star size={20} fill="currentColor" /> 
+        <Star size={20} fill="currentColor" /> 
+        <Star size={20} fill="currentColor" /> 
+        <Star size={20} fill="currentColor" /> 
+        <Star size={20} fill="currentColor" />
+        <span className="text-sm text-gray-600 ml-2 font-bold bg-yellow-50 px-2.5 py-1 rounded-lg">5.0 Editor's Choice</span>
+      </div>
+
       <h1 className="text-3xl md:text-5xl font-bold mb-6 text-gray-900 leading-tight">
-        {post.title}
+        {post.meta.title}
       </h1>
-      <p className="text-gray-500 mb-8 border-b border-gray-100 pb-8">
-        Published: {new Date(post._createdAt).toLocaleDateString()}
-      </p>
       
-      {/* Main Image */}
-      {post.mainImage && (
-        <div className="relative w-full h-64 md:h-[400px] mb-10 rounded-2xl overflow-hidden bg-gray-100 shadow-sm">
-          <img
-            src={urlFor(post.mainImage).url()}
-            alt={post.title}
-            className="w-full h-full object-cover"
-          />
+      <div className="flex items-center gap-4 text-sm text-gray-500 mb-8 border-b border-gray-100 pb-8">
+        <p suppressHydrationWarning>Published: {new Date(post.meta.date).toLocaleDateString()}</p>
+        <span>•</span>
+        <p className="font-bold text-gray-700">{post.meta.category || "Review"}</p>
+      </div>
+      
+      {post.meta.image && (
+        <div className="relative w-full h-64 md:h-[400px] mb-12 rounded-2xl overflow-hidden bg-gray-100 shadow-sm border border-gray-100">
+          <img src={post.meta.image} alt={post.meta.title} className="w-full h-full object-cover" />
         </div>
       )}
 
-      {/* --- AUTOMATIC AFFILIATE DISCLOSURE (Added Here) --- */}
-      <div className="bg-stone-50 border border-stone-200 rounded-lg p-4 mb-8 flex gap-3 text-sm text-gray-600 items-start">
+      <div className="bg-stone-50 border border-stone-200 rounded-xl p-4 mb-8 flex gap-3 text-sm text-gray-600 items-start">
         <Info className="flex-shrink-0 text-green-700 mt-0.5" size={18} />
         <p>
-          <span className="font-bold text-gray-900">Transparency Note:</span> This review contains affiliate links. If you buy through them, we may earn a commission. We only review kits we believe in.
+          <span className="font-bold text-gray-900">Transparency Note:</span> This review may contain affiliate links. If you make a purchase through these links, we may earn a small commission at no extra cost to you.
         </p>
       </div>
 
-      {/* --- AMAZON BUY BUTTON (Only shows if link exists) --- */}
-      {post.amazonLink && (
-        <div className="bg-orange-50 border border-orange-100 p-6 rounded-2xl mb-12 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm">
-          <div>
-            <h3 className="font-bold text-gray-900 text-lg">Interested in this Kit?</h3>
-            <p className="text-sm text-gray-600">Check price and availability directly on Amazon.</p>
-          </div>
-          <a 
-            href={post.amazonLink} 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="bg-[#FF9900] hover:bg-[#ff8c00] text-white px-8 py-4 rounded-full font-bold flex items-center gap-2 transition-transform hover:scale-105 shadow-md whitespace-nowrap"
-          >
-            <ShoppingCart size={20} />
-            Check Price
-            <ExternalLink size={16} className="opacity-70" />
-          </a>
-        </div>
-      )}
-
-      {/* Review Content */}
-      <article className="prose prose-lg prose-green max-w-none mb-16 text-gray-700">
-        <PortableText value={post.body} />
+      <article className="prose prose-lg prose-green max-w-none mb-10 text-gray-700">
+        <MDXRemote 
+          source={safeContent} 
+          components={mdxComponents} 
+          options={{
+            mdxOptions: {
+              remarkPlugins: [remarkGfm],
+            },
+          }}
+        />
       </article>
 
-      {/* Similar Reviews */}
-      <hr className="border-gray-200 my-12" />
-      <div>
-        <h3 className="text-2xl font-bold mb-6 text-gray-900">You might also like</h3>
-        {data.relatedPosts?.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {data.relatedPosts.map((related: any) => (
-              <Link 
-                href={`/reviews/${related.slug}`} 
-                key={related.slug} 
-                className="group bg-white border border-gray-100 rounded-xl overflow-hidden hover:shadow-lg transition-all"
-              >
-                {related.mainImage && (
-                  <div className="relative h-40 w-full bg-gray-100">
-                    <img
-                      src={urlFor(related.mainImage).url()}
-                      alt={related.title}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    />
-                  </div>
-                )}
-                <div className="p-4">
-                  <h4 className="font-bold text-md mb-2 text-gray-900 line-clamp-2 group-hover:text-green-700 transition-colors">
-                    {related.title}
-                  </h4>
-                </div>
-              </Link>
-            ))}
-          </div>
-        ) : <p className="text-gray-500 italic">No similar reviews found.</p>}
-      </div>
+      <ShareButtons slug={post.meta.slug} title={post.meta.title} />
+      <AuthorBio />
     </div>
   );
 }

@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Search, Menu, ShoppingBag, ChevronDown, X } from 'lucide-react';
+import { Search, Menu, ShoppingBag, ChevronDown, X, ExternalLink } from 'lucide-react';
 
 export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -46,7 +46,7 @@ export default function Header() {
             </button>
           </div>
 
-          {/* CENTER: TEXT LOGO (Restored) */}
+          {/* CENTER: TEXT LOGO */}
           <div className={`flex-grow flex justify-center min-w-0 transition-opacity duration-200 ${isSearchOpen ? 'opacity-0 pointer-events-none md:opacity-100 md:pointer-events-auto' : 'opacity-100'}`}>
             <Link href="/" className="flex flex-col items-center group">
               {/* Main Script Text */}
@@ -61,7 +61,7 @@ export default function Header() {
           </div>
 
           {/* RIGHT: Actions & Search */}
-          <div className="flex items-center gap-3 flex-shrink-0 z-20">
+          <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0 z-20">
             
             {/* SEARCH BAR OVERLAY (Desktop & Mobile) */}
             <div className={`absolute right-0 top-1/2 -translate-y-1/2 bg-white flex items-center transition-all duration-300 ease-in-out shadow-lg rounded-full ${isSearchOpen ? 'w-full max-w-[300px] opacity-100 visible p-1' : 'w-0 opacity-0 invisible overflow-hidden'}`}>
@@ -89,10 +89,25 @@ export default function Header() {
               <Search size={22} />
             </button>
 
-            <Link href="/reviews" className="hidden sm:flex bg-green-700 text-white px-5 py-2 rounded-full text-xs font-bold hover:bg-green-800 transition shadow-sm items-center gap-2">
-              <ShoppingBag size={14} /> 
-              <span className="hidden lg:inline">TOP KITS</span>
+            {/* TOP KITS -> Internal Reviews Link */}
+            <Link 
+              href="/reviews" 
+              className="hidden sm:flex bg-stone-100 text-stone-800 hover:bg-stone-200 px-4 py-2 rounded-full text-xs font-bold transition shadow-sm items-center gap-1.5"
+            >
+              <span>TOP KITS</span>
             </Link>
+
+            {/* SHOP -> External Amazon Storefront Link */}
+            <a 
+              href="https://www.amazon.com/shop/craftsandkits" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="hidden sm:flex bg-amber-500 hover:bg-amber-600 text-white px-5 py-2 rounded-full text-xs font-bold transition shadow-sm items-center gap-1.5"
+            >
+              <ShoppingBag size={14} /> 
+              <span>SHOP</span>
+              <ExternalLink size={12} />
+            </a>
           </div>
         </div>
       </div>
@@ -153,7 +168,16 @@ export default function Header() {
             </form>
 
             <Link href="/" onClick={() => setIsMobileMenuOpen(false)} className="border-b border-gray-100 pb-4">Home</Link>
-            <Link href="/reviews" onClick={() => setIsMobileMenuOpen(false)} className="border-b border-gray-100 pb-4">Reviews</Link>
+            <Link href="/reviews" onClick={() => setIsMobileMenuOpen(false)} className="border-b border-gray-100 pb-4">Top Kits & Reviews</Link>
+            <a 
+              href="https://www.amazon.com/shop/craftsandkits" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              onClick={() => setIsMobileMenuOpen(false)} 
+              className="border-b border-gray-100 pb-4 text-amber-600 flex items-center justify-center gap-2"
+            >
+              <ShoppingBag size={18} /> Official Amazon Storefront <ExternalLink size={14} />
+            </a>
             <Link href="/blog" onClick={() => setIsMobileMenuOpen(false)} className="border-b border-gray-100 pb-4">Blog</Link>
             <Link href="/about" onClick={() => setIsMobileMenuOpen(false)} className="border-b border-gray-100 pb-4">About Us</Link>
             <Link href="/contact" onClick={() => setIsMobileMenuOpen(false)} className="pb-4">Contact</Link>
