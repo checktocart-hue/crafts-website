@@ -15,6 +15,12 @@ const dancingScript = Dancing_Script({
 export const metadata: Metadata = {
   title: "CraftsAndKits | Miniature Guides & Reviews",
   description: "Your ultimate guide to book nooks, dollhouses, and metal models.",
+  // Pinterest Verification Tag
+  verification: {
+    other: {
+      "p:domain_verify": "0e878223f7ef0a774f624a557bf8bb9d",
+    },
+  },
 };
 
 export default function RootLayout({
