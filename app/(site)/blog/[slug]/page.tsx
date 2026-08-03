@@ -5,7 +5,6 @@ import ShareButtons from "@/app/components/ShareButtons";
 import AuthorBio from "@/app/components/AuthorBio";
 import { Info } from "lucide-react";
 
-// This allows us to style standard markdown tags with Tailwind
 const mdxComponents = {
   h2: (props: any) => <h2 className="text-2xl font-bold mt-10 mb-4 text-gray-900 scroll-mt-24" {...props} />,
   h3: (props: any) => <h3 className="text-xl font-bold mt-8 mb-3 text-gray-800" {...props} />,
@@ -25,7 +24,6 @@ export default async function BlogArticlePage({
 }) {
   const { slug } = await params;
   
-  // Fetch from LOCAL markdown files
   const post = getPostBySlug('blog', slug);
   
   if (!post) {
@@ -36,6 +34,12 @@ export default async function BlogArticlePage({
       </div>
     );
   }
+
+ // 🚨 AUTO-SANITIZER: Fixes unclosed HTML tags and HTML comments left over from Sanity
+  const safeContent = post.content
+    .replace(/<br>/gi, '<br />')
+    .replace(/<hr>/gi, '<hr />')
+    .replace(/<!--[\s\S]*?-->/g, ''); // This line deletes all <!-- comments --> automatically
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-12">
@@ -61,7 +65,6 @@ export default async function BlogArticlePage({
         </div>
       )}
 
-      {/* AUTOMATIC AFFILIATE DISCLOSURE */}
       <div className="bg-stone-50 border border-stone-200 rounded-lg p-4 mb-8 flex gap-3 text-sm text-gray-600 items-start">
         <Info className="flex-shrink-0 text-green-700 mt-0.5" size={18} />
         <p>
@@ -69,9 +72,9 @@ export default async function BlogArticlePage({
         </p>
       </div>
 
-      {/* THE ACTUAL MARKDOWN CONTENT RENDERED HERE */}
       <article className="prose prose-lg prose-green max-w-none mb-10 text-gray-700">
-        <MDXRemote source={post.content} components={mdxComponents} />
+        {/* Pass the safeContent instead of raw post.content */}
+        <MDXRemote source={safeContent} components={mdxComponents} />
       </article>
 
       <ShareButtons slug={post.meta.slug} title={post.meta.title} />
