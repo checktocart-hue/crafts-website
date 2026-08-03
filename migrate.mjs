@@ -19,8 +19,8 @@ async function runMigration() {
   const directories = ['content/blog', 'content/reviews', 'public/images/migrated'];
   directories.forEach(dir => fs.mkdirSync(path.join(process.cwd(), dir), { recursive: true }));
 
-  // 3. Query all posts, reviews, and projects
-  const query = `*[_type in ["post", "review", "project"]] {
+  // 3. Query specifically for the missing categories
+  const query = `*[_type == "post" && ("Tools & Supplies" in categories[]->title || "Buying Guides" in categories[]->title)] {
     _type,
     title,
     "slug": slug.current,
@@ -55,7 +55,7 @@ async function runMigration() {
       });
     }
 
-    // NEW: Scrub the body content to remove broken/empty image blocks before converting
+    // Scrub the body content to remove broken/empty image blocks before converting
     let cleanBody = [];
     if (doc.body && Array.isArray(doc.body)) {
       cleanBody = doc.body.filter(block => {
@@ -109,7 +109,7 @@ async function runMigration() {
     // 7. Build the MDX File layout
     const mdxTemplate = `---
 title: "${doc.title ? doc.title.replace(/"/g, '\\"') : 'Untitled'}"
-date: "${doc._createdAt ? new Date(doc._createdAt).toISOString().split('T')[0] : '2026-08-02'}"
+date: "${doc._createdAt ? new Date(doc._createdAt).toISOString().split('T')[0] : '2026-08-03'}"
 image: "${imagePath}"
 category: "${doc.category || 'General'}"
 ---

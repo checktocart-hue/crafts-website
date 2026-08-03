@@ -3,6 +3,9 @@ import { getAllPosts } from "@/app/lib/markdown";
 
 export const revalidate = 0;
 
+// Bulletproof normalizer: strips spaces and symbols so "Tools & Supplies" matches "tools-supplies"
+const normalize = (text: string) => text.toLowerCase().replace(/[^a-z0-9]/g, '');
+
 export default async function BlogIndexPage({
   searchParams,
 }: {
@@ -14,9 +17,9 @@ export default async function BlogIndexPage({
   // Fetch from LOCAL markdown files
   const allPosts = getAllPosts('blog');
 
-  // Filter by category if selected
+  // Filter by category if selected using the normalizer
   const posts = selectedCat
-    ? allPosts.filter((post) => post?.meta.category?.toLowerCase() === selectedCat.toLowerCase())
+    ? allPosts.filter((post) => post?.meta.category && normalize(post.meta.category) === normalize(selectedCat))
     : allPosts;
 
   const categories = [
