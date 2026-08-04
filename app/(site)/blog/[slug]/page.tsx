@@ -1,33 +1,61 @@
-import { getPostBySlug } from "../../lib/api";
-import ReactMarkdown from "react-markdown";
-import { notFound } from "next/navigation";
+import { doc, getDoc } from "firebase/firestore";
+import { db } from "@/app/lib/firebase";
+import { MDXRemote } from 'next-mdx-remote/rsc';
+import remarkGfm from 'remark-gfm';
+import Link from "next/link";
 
-export default async function BlogArticlePage({ params }: { params: { slug: string } }) {
-  // 1. Fetch the data from our separated API file
-  const post = await getPostBySlug(params.slug);
+export default async function BlogPostPage({ 
+  params 
+}: { 
+  params: Promise<{ slug: string }> 
+}) {
+  const resolvedParams = await params;
+  const { slug } = resolvedParams;
 
-  // 2. If the post doesn't exist in Firebase, show a 404 page
-  if (!post) {
-    notFound();
+  const docRef = doc(db, "posts", slug);
+  const docSnap = await getDoc(docRef);
+
+  if (!docSnap.exists()) {
+    return (
+      <div className="max-w-3xl mx-auto py-20 text-center">
+        <h1 className="text-3xl font-bold text-gray-900 mb-4">Article not found</h1>
+        <Link href="/blog" className="text-green-700 font-bold hover:underline">
+          &larr; Back to Blog
+        </Link>
+      </div>
+    );
   }
 
-  // 3. Render the UI
-  return (
-    <article className="max-w-3xl mx-auto px-4 py-20">
-      {/* Header Section */}
-      <header className="mb-10 text-center">
-        <h1 className="text-4xl font-bold text-gray-900 mb-4">{post.title}</h1>
-        <p className="text-gray-500 text-sm">Published on {post.date}</p>
-        <span className="inline-block mt-4 px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-semibold">
-          {post.category}
-        </span>
-      </header>
+  const post = docSnap.data();
 
-      {/* Main Content Section */}
-      <div className="prose prose-lg max-w-none text-gray-800">
-        <ReactMarkdown>
-          {post.content}
-        </ReactMarkdown>
+  return (
+    <article className="max-w-3xl mx-auto px-4 py-12 md:py-20">
+      <Link href="/blog" className="text-green-700 font-bold text-sm mb-8 inline-block hover:underline">
+        &larr; Back to Blog
+      </Link>
+      
+      {post.image && (
+        <div className="w-full h-64 md:h-96 rounded-3xl overflow-hidden mb-10 shadow-sm border border-stone-200">
+          <img src={post.image} alt={post.title} className="w-full h-full object-cover" />
+        </div>
+      )}
+      
+      <div className="mb-10 border-b border-stone-200 pb-10">
+        {post.category && (
+          <span className="inline-block bg-stone-100 text-stone-700 font-bold px-3 py-1 rounded-full text-xs uppercase tracking-wider mb-4">
+            {post.category}
+          </span>
+        )}
+        <h1 className="text-4xl md:text-5xl font-bold text-gray-900 leading-tight mb-4">{post.title}</h1>
+        {post.createdAt && (
+          <p className="text-sm font-bold text-gray-400 uppercase tracking-wider">
+            {new Date(post.createdAt).toLocaleDateString()}
+          </p>
+        )}
+      </div>
+      
+      <div className="prose prose-lg prose-green max-w-none text-gray-700">
+        <MDXRemote source={post.content || ""} options={{ mdxOptions: { remarkPlugins: [remarkGfm] } }} />
       </div>
     </article>
   );
