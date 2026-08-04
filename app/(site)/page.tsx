@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { client } from "@/app/lib/sanity";
-import { urlFor } from "@/app/lib/sanity";
+import { collection, getDocs, query, orderBy, limit } from "firebase/firestore";
+import { db } from "@/app/lib/firebase";
 import { 
   ArrowRight, Star, Mail, MessageSquare, BookOpen, 
   Library, Home as HomeIcon, Hammer, 
@@ -10,11 +10,18 @@ import {
 export const revalidate = 0; 
 
 async function getData() {
-  const query = '{ "latestReviews": *[_type == "review"] | order(_createdAt desc)[0...4] { title, "slug": slug.current, "mainImage": mainImage, "category": categories[0]->title }, "latestPosts": *[_type == "post" || _type == "project"] | order(_createdAt desc)[0...4] { title, "slug": slug.current, "mainImage": mainImage, _createdAt } }';
-  
   try {
-    const data = await client.fetch(query);
-    return data;
+    // Fetch the 4 most recent posts
+    const postsQuery = query(collection(db, "posts"), orderBy("createdAt", "desc"), limit(4));
+    const postsSnap = await getDocs(postsQuery);
+    const latestPosts = postsSnap.docs.map(doc => ({ slug: doc.id, ...doc.data() }));
+
+    // Fetch the 4 most recent reviews
+    const reviewsQuery = query(collection(db, "reviews"), orderBy("createdAt", "desc"), limit(4));
+    const reviewsSnap = await getDocs(reviewsQuery);
+    const latestReviews = reviewsSnap.docs.map(doc => ({ slug: doc.id, ...doc.data() }));
+
+    return { latestPosts, latestReviews };
   } catch (error) {
     console.error("Error fetching data:", error);
     return { latestReviews: [], latestPosts: [] };
@@ -155,13 +162,13 @@ export default async function Home() {
               {latestPosts.map((post: any) => (
                 <Link href={`/blog/${post.slug}`} key={post.slug} className="group flex flex-col bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all hover:-translate-y-1">
                   <div className="relative w-full h-40 bg-gray-100 overflow-hidden">
-                    {post.mainImage ? (
-                      <img src={urlFor(post.mainImage).url()} alt={post.title} loading="lazy" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                    {post.image ? (
+                      <img src={post.image} alt={post.title} loading="lazy" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                     ) : <div className="w-full h-full bg-gray-200" />}
                   </div>
                   <div className="p-5 flex flex-col flex-grow">
                     <div suppressHydrationWarning className="text-[10px] text-gray-400 mb-2 font-bold uppercase tracking-wider">
-                      {post._createdAt ? new Date(post._createdAt).toLocaleDateString() : 'Recent'}
+                      {post.createdAt ? new Date(post.createdAt).toLocaleDateString() : 'Recent'}
                     </div>
                     <h3 className="text-sm font-bold text-gray-900 group-hover:text-green-700 transition-colors line-clamp-2 leading-snug mb-3">
                       {post.title}
@@ -189,8 +196,8 @@ export default async function Home() {
             {latestReviews.map((post: any) => (
               <Link href={`/reviews/${post.slug}`} key={post.slug} className="group block">
                 <div className="relative w-full h-64 rounded-2xl overflow-hidden mb-4 bg-gray-100 shadow-sm border border-gray-100">
-                  {post.mainImage ? (
-                    <img src={urlFor(post.mainImage).url()} alt={post.title} loading="lazy" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                  {post.image ? (
+                    <img src={post.image} alt={post.title} loading="lazy" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                   ) : (
                     <div className="flex items-center justify-center h-full text-gray-400">No Image</div>
                   )}

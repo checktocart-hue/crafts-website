@@ -1,85 +1,34 @@
-import { getPostBySlug } from "@/app/lib/markdown";
-import { MDXRemote } from 'next-mdx-remote/rsc';
-import Link from "next/link";
-import ShareButtons from "@/app/components/ShareButtons";
-import AuthorBio from "@/app/components/AuthorBio";
-import { Info } from "lucide-react";
+import { getPostBySlug } from "../../lib/api";
+import ReactMarkdown from "react-markdown";
+import { notFound } from "next/navigation";
 
-const mdxComponents = {
-  h2: (props: any) => <h2 className="text-2xl font-bold mt-10 mb-4 text-gray-900 scroll-mt-24" {...props} />,
-  h3: (props: any) => <h3 className="text-xl font-bold mt-8 mb-3 text-gray-800" {...props} />,
-  p: (props: any) => <p className="mb-4 leading-relaxed text-gray-700" {...props} />,
-  ul: (props: any) => <ul className="list-disc pl-6 mb-4 text-gray-700 space-y-2" {...props} />,
-  li: (props: any) => <li className="leading-relaxed" {...props} />,
-  strong: (props: any) => <strong className="font-bold text-gray-900" {...props} />,
-  img: (props: any) => (
-    <img className="w-full h-auto object-cover rounded-xl my-6 shadow-sm border border-gray-100" loading="lazy" {...props} />
-  ),
-};
+export default async function BlogArticlePage({ params }: { params: { slug: string } }) {
+  // 1. Fetch the data from our separated API file
+  const post = await getPostBySlug(params.slug);
 
-export default async function BlogArticlePage({
-  params
-}: {
-  params: Promise<{ slug: string }>
-}) {
-  const { slug } = await params;
-  
-  const post = getPostBySlug('blog', slug);
-  
+  // 2. If the post doesn't exist in Firebase, show a 404 page
   if (!post) {
-    return (
-      <div className="max-w-3xl mx-auto px-4 py-20 text-center">
-        <h1 className="text-3xl font-bold text-gray-900 mb-4">Article not found</h1>
-        <Link href="/blog" className="text-green-700 hover:underline">Return to Blog</Link>
-      </div>
-    );
+    notFound();
   }
 
- // 🚨 AUTO-SANITIZER: Fixes unclosed HTML tags and HTML comments left over from Sanity
-  const safeContent = post.content
-    .replace(/<br>/gi, '<br />')
-    .replace(/<hr>/gi, '<hr />')
-    .replace(/<!--[\s\S]*?-->/g, ''); // This line deletes all <!-- comments --> automatically
-
+  // 3. Render the UI
   return (
-    <div className="max-w-3xl mx-auto px-4 py-12">
-      <div className="mb-8">
-        <Link href="/blog" className="text-sm font-bold text-gray-500 hover:text-green-700">
-          ← Back to Blog
-        </Link>
+    <article className="max-w-3xl mx-auto px-4 py-20">
+      {/* Header Section */}
+      <header className="mb-10 text-center">
+        <h1 className="text-4xl font-bold text-gray-900 mb-4">{post.title}</h1>
+        <p className="text-gray-500 text-sm">Published on {post.date}</p>
+        <span className="inline-block mt-4 px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-semibold">
+          {post.category}
+        </span>
+      </header>
+
+      {/* Main Content Section */}
+      <div className="prose prose-lg max-w-none text-gray-800">
+        <ReactMarkdown>
+          {post.content}
+        </ReactMarkdown>
       </div>
-
-      <h1 className="text-3xl md:text-5xl font-bold mb-6 text-gray-900 leading-tight">
-        {post.meta.title}
-      </h1>
-      
-      <div className="flex items-center gap-4 text-sm text-gray-500 mb-8 border-b border-gray-100 pb-8">
-        <p suppressHydrationWarning>Published: {new Date(post.meta.date).toLocaleDateString()}</p>
-        <span>•</span>
-        <p>By CraftsAndKits Team</p>
-      </div>
-      
-      {post.meta.image && (
-        <div className="relative w-full h-64 md:h-[400px] mb-12 rounded-2xl overflow-hidden bg-gray-100 shadow-sm border border-gray-100">
-          <img src={post.meta.image} alt={post.meta.title} className="w-full h-full object-cover" />
-        </div>
-      )}
-
-      <div className="bg-stone-50 border border-stone-200 rounded-lg p-4 mb-8 flex gap-3 text-sm text-gray-600 items-start">
-        <Info className="flex-shrink-0 text-green-700 mt-0.5" size={18} />
-        <p>
-          <span className="font-bold text-gray-900">Transparency Note:</span> This post may contain affiliate links. If you make a purchase through these links, we may earn a small commission at no extra cost to you.
-        </p>
-      </div>
-
-      <article className="prose prose-lg prose-green max-w-none mb-10 text-gray-700">
-        {/* Pass the safeContent instead of raw post.content */}
-        <MDXRemote source={safeContent} components={mdxComponents} />
-      </article>
-
-      <ShareButtons slug={post.meta.slug} title={post.meta.title} />
-      <AuthorBio />
-      
-    </div>
+    </article>
   );
 }

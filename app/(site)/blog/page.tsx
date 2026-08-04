@@ -1,6 +1,5 @@
 import Link from "next/link";
-import { getAllPosts } from "@/app/lib/markdown";
-
+import { getAllPosts } from "@/app/lib/api";
 export const revalidate = 0;
 
 // Bulletproof normalizer: strips spaces and symbols so "Tools & Supplies" matches "tools-supplies"
@@ -14,12 +13,12 @@ export default async function BlogIndexPage({
   const resolvedParams = await searchParams;
   const selectedCat = resolvedParams?.cat;
 
-  // Fetch from LOCAL markdown files
-  const allPosts = getAllPosts('blog');
+  // Fetch from Firebase database (Note the added 'await')
+  const allPosts = await getAllPosts();
 
-  // Filter by category if selected using the normalizer
+  // Filter by category if selected using the normalizer (Removed '.meta')
   const posts = selectedCat
-    ? allPosts.filter((post) => post?.meta.category && normalize(post.meta.category) === normalize(selectedCat))
+    ? allPosts.filter((post) => post?.category && normalize(post.category) === normalize(selectedCat))
     : allPosts;
 
   const categories = [
@@ -49,22 +48,22 @@ export default async function BlogIndexPage({
       {posts.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {posts.map((post) => (
-            <Link href={`/blog/${post.meta.slug}`} key={post.meta.slug} className="group block">
+            <Link href={`/blog/${post.slug}`} key={post.slug} className="group block">
               <div className="relative w-full h-48 bg-gray-100 rounded-2xl overflow-hidden mb-4 border border-gray-200">
-                 {post.meta.image ? (
-                   <img src={post.meta.image} alt={post.meta.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                 {post.image ? (
+                   <img src={post.image} alt={post.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                  ) : (
                    <div className="w-full h-full flex items-center justify-center text-gray-400 text-sm">No image</div>
                  )}
               </div>
-              <h2 className="text-xl font-bold text-gray-900 group-hover:text-green-700 mb-2 transition-colors leading-tight">{post.meta.title}</h2>
-              <p className="text-sm text-gray-500 line-clamp-2">{post.meta.excerpt || "Read this article..."}</p>
+              <h2 className="text-xl font-bold text-gray-900 group-hover:text-green-700 mb-2 transition-colors leading-tight">{post.title}</h2>
+              <p className="text-sm text-gray-500 line-clamp-2">{post.excerpt || "Read this article..."}</p>
             </Link>
           ))}
         </div>
       ) : (
         <div className="text-center py-20 text-gray-500 bg-gray-50 rounded-2xl border border-dashed border-gray-200">
-           <p>No blog posts found. Check your content folder!</p>
+           <p>No blog posts found. Check your database!</p>
         </div>
       )}
     </div>
