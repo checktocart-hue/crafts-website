@@ -198,10 +198,10 @@ function WriteForm() {
 <div className="bg-white rounded-lg shadow-sm border border-gray-300 overflow-hidden">
         <Editor
           tinymceScriptSrc="https://cdnjs.cloudflare.com/ajax/libs/tinymce/7.2.1/tinymce.min.js"
+          licenseKey="gpl" /* <-- MOVED HERE AND CHANGED TO camelCase */
           value={content}
           onEditorChange={(newContent) => setContent(newContent)}
           init={{
-            license_key: 'gpl', /* This tells TinyMCE you are using the free open-source version! */
             height: 600,
             menubar: true,
             plugins: [
@@ -213,7 +213,34 @@ function WriteForm() {
               'bold italic underline forecolor | alignleft aligncenter ' +
               'alignright alignjustify | bullist numlist outdent indent | ' +
               'table link image | removeformat | code',
-            content_style: 'body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; font-size: 16px }'
+            content_style: 'body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; font-size: 16px }',
+            
+            /* --- NEW AUTOMATIC IMAGE UPLOADER --- */
+            paste_data_images: true, 
+            images_upload_handler: async (blobInfo) => {
+              return new Promise(async (resolve, reject) => {
+                const IMGBB_API_KEY = "YOUR_IMGBB_API_KEY_HERE"; // <-- Ensure your key is here!
+                const formData = new FormData();
+                formData.append("image", blobInfo.blob(), blobInfo.filename());
+
+                try {
+                  const response = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
+                    method: "POST",
+                    body: formData,
+                  });
+                  const data = await response.json();
+
+                  if (data.success) {
+                    resolve(data.data.url);
+                  } else {
+                    reject("ImgBB Upload Failed");
+                  }
+                } catch (error) {
+                  reject("Upload failed. Check your internet connection.");
+                }
+              });
+            }
+            /* ------------------------------------ */
           }}
         />
       </div>
