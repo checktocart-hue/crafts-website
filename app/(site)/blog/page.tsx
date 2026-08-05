@@ -3,9 +3,13 @@
 import { fetchGraphQL } from "@/app/lib/wp";
 import Link from "next/link";
 
+// ADD THIS LINE HERE:
+export const dynamic = 'force-dynamic'; 
+
 const GET_LATEST_POSTS = `
   query GetLatestPosts {
     posts(first: 10, where: { orderby: { field: DATE, order: DESC } }) {
+// ... rest of your code stays exactly the same
       nodes {
         id
         title
