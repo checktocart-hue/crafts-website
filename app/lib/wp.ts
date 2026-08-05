@@ -1,6 +1,7 @@
 // app/lib/wp.ts
 
-const API_URL = process.env.NEXT_PUBLIC_WORDPRESS_API_URL || 'https://api.craftsandkits.com/graphql';
+// Bypass environment variables and force the exact working URL
+const API_URL = 'https://api.craftsandkits.com/graphql'; 'https://api.craftsandkits.com/graphql';
 
 export async function fetchGraphQL(query: string, variables?: any) {
   try {
