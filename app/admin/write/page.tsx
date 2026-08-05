@@ -217,7 +217,7 @@ function WriteForm() {
             
             /* --- NEW AUTOMATIC IMAGE UPLOADER --- */
             paste_data_images: true, 
-            images_upload_handler: async (blobInfo) => {
+           images_upload_handler: async (blobInfo: any) => {
               return new Promise(async (resolve, reject) => {
                 const IMGBB_API_KEY = "YOUR_IMGBB_API_KEY_HERE"; // <-- Ensure your key is here!
                 const formData = new FormData();
