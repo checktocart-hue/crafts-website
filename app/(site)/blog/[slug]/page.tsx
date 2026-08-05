@@ -1,12 +1,17 @@
 import { fetchGraphQL } from "@/app/lib/wp";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 
-// 1. The GraphQL query to ask WordPress for a post by its slug
+// Force Next.js to fetch the freshest version of the post
+export const revalidate = 0;
+
+// The GraphQL query to fetch a single post by its exact slug
 const GET_POST_BY_SLUG = `
   query GetPostBySlug($id: ID!) {
     post(id: $id, idType: SLUG) {
       title
       content
+      date
       featuredImage {
         node {
           sourceUrl
@@ -16,37 +21,46 @@ const GET_POST_BY_SLUG = `
   }
 `;
 
-export default async function BlogPost({ params }: { params: Promise<{ slug: string }> }) {
-  // 1. Next.js 16 Requirement: You must await the params Promise!
-  const resolvedParams = await params;
-  
-  // 2. Now we can safely pass the resolved slug to WordPress
-  const data = await fetchGraphQL(GET_POST_BY_SLUG, { id: resolvedParams.slug });
+export default async function BlogPost({ params }: { params: { slug: string } }) {
+  // 1. Fetch the data from WordPress using the slug from the URL
+  const data = await fetchGraphQL(GET_POST_BY_SLUG, { id: params.slug });
   const post = data?.post;
 
-  // 3. If WordPress can't find the post, show Next.js's built-in 404 page
+  // 2. If WordPress can't find a post with this slug, automatically show a 404 page
   if (!post) {
-    notFound();
+    return notFound();
   }
 
-  // 4. Render the page using your existing Tailwind styling!
+  // 3. Render the full article
   return (
-    <article className="max-w-4xl mx-auto px-4 py-12">
-      <h1 className="text-4xl font-bold text-gray-900 mb-6">{post.title}</h1>
+    <main className="max-w-4xl mx-auto px-4 py-12">
+      <Link href="/blog" className="text-green-700 font-bold hover:text-green-800 mb-8 inline-block transition-colors">
+        ← Back to all articles
+      </Link>
       
-      {post.featuredImage?.node?.sourceUrl && (
-        <img 
-          src={post.featuredImage.node.sourceUrl} 
-          alt={post.title} 
-          className="w-full h-auto rounded-lg mb-8 object-cover max-h-[500px]" 
+      <article className="bg-white p-8 rounded-xl shadow-sm border border-gray-200">
+        
+        {/* Render the Featured Image if it exists */}
+        {post.featuredImage?.node?.sourceUrl && (
+          <img 
+            src={post.featuredImage.node.sourceUrl} 
+            alt={post.title} 
+            className="w-full h-auto max-h-[500px] object-cover rounded-lg mb-8"
+          />
+        )}
+        
+        {/* Post Title */}
+        <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+          {post.title}
+        </h1>
+        
+        {/* Post Content (Notice we use post.content here, not post.excerpt!) */}
+        <div 
+          className="prose prose-lg max-w-none text-gray-800"
+          dangerouslySetInnerHTML={{ __html: post.content || "" }} 
         />
-      )}
-
-      {/* WordPress handles all the rich text and tables perfectly here */}
-      <div 
-        className="prose prose-lg prose-green max-w-none text-gray-700"
-        dangerouslySetInnerHTML={{ __html: post.content }}
-      />
-    </article>
+        
+      </article>
+    </main>
   );
 }
