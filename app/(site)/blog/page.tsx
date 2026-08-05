@@ -1,15 +1,15 @@
-// app/blog/page.tsx (or wherever this file lives)
-
 import { fetchGraphQL } from "@/app/lib/wp";
 import Link from "next/link";
 
-// ADD THIS LINE HERE:
-export const dynamic = 'force-dynamic'; 
+// 1. Force true Server-Side Rendering
+export const dynamic = 'force-dynamic';
+
+// 2. ABSOLUTE CACHE BUSTING: Tell Next.js to never cache fetch requests on this page
+export const revalidate = 0; 
 
 const GET_LATEST_POSTS = `
   query GetLatestPosts {
     posts(first: 10, where: { orderby: { field: DATE, order: DESC } }) {
-// ... rest of your code stays exactly the same
       nodes {
         id
         title
@@ -33,11 +33,18 @@ export default async function BlogIndex() {
     <div className="max-w-6xl mx-auto px-4 py-12">
       <h1 className="text-4xl font-bold text-gray-900 mb-8">Latest Articles</h1>
       
+      {/* --- TEMPORARY DIAGNOSTIC DUMP --- */}
+      {/* This forces the raw server data to print on your screen so we stop guessing */}
+      <div className="bg-gray-900 text-green-400 p-4 mb-8 rounded overflow-auto text-xs font-mono">
+        <strong>Server Data Output:</strong>
+        <pre>{JSON.stringify(data, null, 2)}</pre>
+      </div>
+      {/* --------------------------------- */}
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {posts.map((post: any) => (
           <div key={post.id} className="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
             
-            {/* Safely check for the Cover Image */}
             {post.featuredImage?.node?.sourceUrl ? (
               <img 
                 src={post.featuredImage.node.sourceUrl} 
@@ -51,18 +58,15 @@ export default async function BlogIndex() {
             )}
             
             <div className="p-6">
-              {/* Added a fallback just in case the title is ever missing */}
               <h2 className="text-xl font-bold text-gray-900 mb-3 line-clamp-2">
                 {post.title || "Untitled Post"}
               </h2>
               
-              {/* THE FIX: Added || "" to prevent React from crashing on null excerpts */}
               <div 
                 className="text-gray-600 mb-4 line-clamp-3 text-sm" 
                 dangerouslySetInnerHTML={{ __html: post.excerpt || "" }} 
               />
               
-              {/* Only render the Read More link if a slug actually exists */}
               {post.slug && (
                 <Link 
                   href={`/blog/${post.slug}`} 
@@ -72,7 +76,6 @@ export default async function BlogIndex() {
                 </Link>
               )}
             </div>
-            
           </div>
         ))}
       </div>
