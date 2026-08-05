@@ -1,7 +1,8 @@
+// app/blog/page.tsx (or wherever this file lives)
+
 import { fetchGraphQL } from "@/app/lib/wp";
 import Link from "next/link";
 
-// 1. The GraphQL query to fetch the 10 most recent posts
 const GET_LATEST_POSTS = `
   query GetLatestPosts {
     posts(first: 10, where: { orderby: { field: DATE, order: DESC } }) {
@@ -21,10 +22,7 @@ const GET_LATEST_POSTS = `
 `;
 
 export default async function BlogIndex() {
-  // 2. Fetch the data
   const data = await fetchGraphQL(GET_LATEST_POSTS);
-  
-  // 3. Extract the array of posts (default to an empty array if none exist)
   const posts = data?.posts?.nodes || [];
 
   return (
@@ -35,11 +33,11 @@ export default async function BlogIndex() {
         {posts.map((post: any) => (
           <div key={post.id} className="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
             
-            {/* Display the Cover Image if it exists */}
+            {/* Safely check for the Cover Image */}
             {post.featuredImage?.node?.sourceUrl ? (
               <img 
                 src={post.featuredImage.node.sourceUrl} 
-                alt={post.title} 
+                alt={post.title || "Blog Post"} 
                 className="w-full h-48 object-cover" 
               />
             ) : (
@@ -49,22 +47,26 @@ export default async function BlogIndex() {
             )}
             
             <div className="p-6">
+              {/* Added a fallback just in case the title is ever missing */}
               <h2 className="text-xl font-bold text-gray-900 mb-3 line-clamp-2">
-                {post.title}
+                {post.title || "Untitled Post"}
               </h2>
               
-              {/* WordPress automatically generates an excerpt from your content! */}
+              {/* THE FIX: Added || "" to prevent React from crashing on null excerpts */}
               <div 
                 className="text-gray-600 mb-4 line-clamp-3 text-sm" 
-                dangerouslySetInnerHTML={{ __html: post.excerpt }} 
+                dangerouslySetInnerHTML={{ __html: post.excerpt || "" }} 
               />
               
-              <Link 
-                href={`/blog/${post.slug}`} 
-                className="inline-block text-green-700 font-bold hover:text-green-800 transition-colors"
-              >
-                Read More →
-              </Link>
+              {/* Only render the Read More link if a slug actually exists */}
+              {post.slug && (
+                <Link 
+                  href={`/blog/${post.slug}`} 
+                  className="inline-block text-green-700 font-bold hover:text-green-800 transition-colors"
+                >
+                  Read More →
+                </Link>
+              )}
             </div>
             
           </div>
