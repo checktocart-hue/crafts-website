@@ -19,13 +19,18 @@ const GET_POST_BY_SLUG = `
   }
 `;
 
-export default async function BlogPost({ params }: { params: { slug: string } }) {
-  // 1. Fetch the data
-  const data = await fetchGraphQL(GET_POST_BY_SLUG, { id: params.slug });
+// Updated to safely handle modern Next.js Promise-based params
+export default async function BlogPost(props: { params: Promise<{ slug: string }> | { slug: string } }) {
+  
+  // 1. SAFELY UNWRAP PARAMS: This ensures the slug is read correctly 
+  const params = await props.params;
+  const slug = params?.slug;
+
+  // 2. Fetch the data using the unwrapped slug
+  const data = await fetchGraphQL(GET_POST_BY_SLUG, { id: slug });
   const post = data?.post;
 
-  // 2. THE FIX: If WordPress fails to send the post, DO NOT show a 404 page. 
-  // Instead, print exactly what went wrong on the screen so we can see it.
+  // 3. Diagnostic Catch
   if (!post) {
     return (
       <main className="max-w-4xl mx-auto px-4 py-12">
@@ -34,7 +39,8 @@ export default async function BlogPost({ params }: { params: { slug: string } })
         </Link>
         <div className="bg-red-50 border border-red-200 p-8 rounded-xl text-red-900">
           <h1 className="text-2xl font-bold mb-4">Post Data Missing</h1>
-          <p className="mb-4">WordPress did not return the data for the slug: <strong>{params.slug}</strong></p>
+          {/* Now we will see the slug or a warning if the folder is named incorrectly */}
+          <p className="mb-4">WordPress did not return the data for the slug: <strong>{slug || "UNDEFINED - Check your folder name!"}</strong></p>
           <div className="bg-gray-900 text-green-400 p-4 rounded overflow-auto text-xs font-mono">
             <strong>Raw WordPress Response:</strong>
             <pre>{JSON.stringify(data, null, 2)}</pre>
@@ -44,7 +50,7 @@ export default async function BlogPost({ params }: { params: { slug: string } })
     );
   }
 
-  // 3. If the post exists, render it perfectly
+  // 4. Render the successful post!
   return (
     <main className="max-w-4xl mx-auto px-4 py-12">
       <Link href="/blog" className="text-green-700 font-bold hover:text-green-800 mb-8 inline-block transition-colors">
