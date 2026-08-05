@@ -28,35 +28,24 @@ export default async function BlogPostPage({
 
   const post = docSnap.data();
 
-  return (
-    <article className="max-w-3xl mx-auto px-4 py-12 md:py-20">
-      <Link href="/blog" className="text-green-700 font-bold text-sm mb-8 inline-block hover:underline">
-        &larr; Back to Blog
-      </Link>
+ return (
+    <article className="max-w-4xl mx-auto px-4 py-12">
+      <h1 className="text-4xl font-bold text-gray-900 mb-6">{post.title}</h1>
       
       {post.image && (
-        <div className="w-full h-64 md:h-96 rounded-3xl overflow-hidden mb-10 shadow-sm border border-stone-200">
-          <img src={post.image} alt={post.title} className="w-full h-full object-cover" />
-        </div>
+        <img 
+          src={post.image} 
+          alt={post.title} 
+          className="w-full h-auto rounded-lg mb-8 object-cover max-h-[500px]" 
+        />
       )}
+
+      {/* This is the new TinyMCE HTML reader */}
+      <div 
+        className="prose prose-lg prose-green max-w-none text-gray-700"
+        dangerouslySetInnerHTML={{ __html: post.content || "" }}
+      />
       
-      <div className="mb-10 border-b border-stone-200 pb-10">
-        {post.category && (
-          <span className="inline-block bg-stone-100 text-stone-700 font-bold px-3 py-1 rounded-full text-xs uppercase tracking-wider mb-4">
-            {post.category}
-          </span>
-        )}
-        <h1 className="text-4xl md:text-5xl font-bold text-gray-900 leading-tight mb-4">{post.title}</h1>
-        {post.createdAt && (
-          <p className="text-sm font-bold text-gray-400 uppercase tracking-wider">
-            {new Date(post.createdAt).toLocaleDateString()}
-          </p>
-        )}
-      </div>
-      
-      <div className="prose prose-lg prose-green max-w-none text-gray-700">
-        <MDXRemote source={post.content || ""} options={{ mdxOptions: { remarkPlugins: [remarkGfm] } }} />
-      </div>
     </article>
   );
-}
+} // <--- THIS IS THE MISSING BRACE! ADD THIS!
