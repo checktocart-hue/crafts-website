@@ -33,15 +33,7 @@ export default async function BlogIndex() {
     <div className="max-w-6xl mx-auto px-4 py-12">
       <h1 className="text-4xl font-bold text-gray-900 mb-8">Latest Articles</h1>
       
-      {/* --- TEMPORARY DIAGNOSTIC DUMP --- */}
-      {/* This forces the raw server data to print on your screen so we stop guessing */}
-      <div className="bg-gray-900 text-green-400 p-4 mb-8 rounded overflow-auto text-xs font-mono">
-        <strong>Server Data Output:</strong>
-        <pre>{JSON.stringify(data, null, 2)}</pre>
-      </div>
-      {/* --------------------------------- */}
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {posts.map((post: any) => (
           <div key={post.id} className="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
             
