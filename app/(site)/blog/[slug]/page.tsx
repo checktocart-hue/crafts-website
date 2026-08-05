@@ -1,51 +1,52 @@
-import { doc, getDoc } from "firebase/firestore";
-import { db } from "@/app/lib/firebase";
-import { MDXRemote } from 'next-mdx-remote/rsc';
-import remarkGfm from 'remark-gfm';
-import Link from "next/link";
+import { fetchGraphQL } from "@/app/lib/wp";
+import { notFound } from "next/navigation";
 
-export default async function BlogPostPage({ 
-  params 
-}: { 
-  params: Promise<{ slug: string }> 
-}) {
+// 1. The GraphQL query to ask WordPress for a post by its slug
+const GET_POST_BY_SLUG = `
+  query GetPostBySlug($id: ID!) {
+    post(id: $id, idType: SLUG) {
+      title
+      content
+      featuredImage {
+        node {
+          sourceUrl
+        }
+      }
+    }
+  }
+`;
+
+export default async function BlogPost({ params }: { params: Promise<{ slug: string }> }) {
+  // 1. Next.js 16 Requirement: You must await the params Promise!
   const resolvedParams = await params;
-  const { slug } = resolvedParams;
+  
+  // 2. Now we can safely pass the resolved slug to WordPress
+  const data = await fetchGraphQL(GET_POST_BY_SLUG, { id: resolvedParams.slug });
+  const post = data?.post;
 
-  const docRef = doc(db, "posts", slug);
-  const docSnap = await getDoc(docRef);
-
-  if (!docSnap.exists()) {
-    return (
-      <div className="max-w-3xl mx-auto py-20 text-center">
-        <h1 className="text-3xl font-bold text-gray-900 mb-4">Article not found</h1>
-        <Link href="/blog" className="text-green-700 font-bold hover:underline">
-          &larr; Back to Blog
-        </Link>
-      </div>
-    );
+  // 3. If WordPress can't find the post, show Next.js's built-in 404 page
+  if (!post) {
+    notFound();
   }
 
-  const post = docSnap.data();
-
- return (
+  // 4. Render the page using your existing Tailwind styling!
+  return (
     <article className="max-w-4xl mx-auto px-4 py-12">
       <h1 className="text-4xl font-bold text-gray-900 mb-6">{post.title}</h1>
       
-      {post.image && (
+      {post.featuredImage?.node?.sourceUrl && (
         <img 
-          src={post.image} 
+          src={post.featuredImage.node.sourceUrl} 
           alt={post.title} 
           className="w-full h-auto rounded-lg mb-8 object-cover max-h-[500px]" 
         />
       )}
 
-      {/* This is the new TinyMCE HTML reader */}
+      {/* WordPress handles all the rich text and tables perfectly here */}
       <div 
         className="prose prose-lg prose-green max-w-none text-gray-700"
-        dangerouslySetInnerHTML={{ __html: post.content || "" }}
+        dangerouslySetInnerHTML={{ __html: post.content }}
       />
-      
     </article>
   );
-} // <--- THIS IS THE MISSING BRACE! ADD THIS!
+}
