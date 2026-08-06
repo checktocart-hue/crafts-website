@@ -5,6 +5,15 @@ import Link from "next/link";
 
 export const revalidate = 0;
 
+// NEW: We define the exact shape of your blog post data so TypeScript is happy
+type BlogPost = {
+  slug: string;
+  title: string;
+  category: string;
+  image: string | null;
+  excerpt: string;
+};
+
 export default async function BlogIndexPage({
   searchParams,
 }: {
@@ -15,7 +24,9 @@ export default async function BlogIndexPage({
   const categoryFilter = resolvedSearchParams.cat;
 
   const blogDir = path.join(process.cwd(), "content", "blog");
-  let posts = [];
+  
+  // NEW: We explicitly tell TypeScript that this array will hold 'BlogPost' objects
+  let posts: BlogPost[] = [];
 
   if (fs.existsSync(blogDir)) {
     const files = fs.readdirSync(blogDir).filter((file: string) => file.endsWith('.mdx') || file.endsWith('.md'));
@@ -33,7 +44,7 @@ export default async function BlogIndexPage({
     });
   }
 
-  // 2. THE FIX: Filter the posts if a category parameter exists in the URL
+  // 2. Filter the posts if a category parameter exists in the URL
   if (categoryFilter) {
     posts = posts.filter(post => {
       // This turns "Tools & Supplies" into "tools-supplies" to match your URL
