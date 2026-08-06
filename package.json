@@ -23,6 +23,7 @@
     "firebase": "^12.17.0",
     "gray-matter": "^4.0.3",
     "lucide-react": "^0.555.0",
+    "marked": "^18.0.9",
     "next": "^16.0.7",
     "next-mdx-remote": "^6.0.0",
     "next-sanity": "^11.6.12",
