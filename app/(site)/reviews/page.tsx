@@ -1,10 +1,9 @@
 import Link from "next/link";
-import { collection, getDocs, query, orderBy } from "firebase/firestore";
-import { db } from "@/app/lib/firebase"; // Adjust this path if your firebase.ts is elsewhere
+import { collection, getDocs, query } from "firebase/firestore";
+import { db } from "@/app/lib/firebase"; 
 
 export const revalidate = 60;
 
-// Helper to format the URL parameter into a clean title
 const categoryTitles: Record<string, string> = {
   "book-nooks": "Book Nooks",
   "dollhouses": "Dollhouses",
@@ -12,7 +11,6 @@ const categoryTitles: Record<string, string> = {
 };
 
 export default async function ReviewsPage(props: { searchParams: Promise<{ [key: string]: string | undefined }> }) {
-  // Await the searchParams (Next.js 15+ requirement)
   const searchParams = await props.searchParams;
   const categoryParam = searchParams?.cat;
   
@@ -20,27 +18,35 @@ export default async function ReviewsPage(props: { searchParams: Promise<{ [key:
     ? `${categoryTitles[categoryParam]} Reviews`
     : "All Kit Reviews";
 
-  // Fetch all published posts
-  const postsQuery = query(collection(db, "blog"), orderBy("createdAt", "desc"));
+  // Fetch all posts
+  const postsQuery = query(collection(db, "blog"));
   const postsSnap = await getDocs(postsQuery);
   
-  let posts = postsSnap.docs
-    .map(doc => ({ id: doc.id, ...doc.data() as any }))
-    .filter(post => post.status === "published");
+  let posts = postsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() as any }));
 
-  // Filter in memory if a category was selected
-  if (categoryParam) {
-    posts = posts.filter(post => {
-      // Matches "Book Nooks" to "book-nooks"
-      const formattedPostCat = post.category?.toLowerCase().replace(/\s+/g, '-');
-      return formattedPostCat === categoryParam || post.categorySlug === categoryParam;
-    });
-  }
+  // STRICT CATEGORY FILTERING
+  posts = posts.filter(post => {
+    const postCat = post.category || "";
+
+    // If a specific tab is clicked (e.g. ?cat=metal-models)
+    if (categoryParam) {
+      return postCat === categoryTitles[categoryParam];
+    }
+    
+    // If "View All Reviews" is clicked, show ONLY these three specific review categories
+    return postCat === "Book Nooks" || postCat === "Dollhouses" || postCat === "Metal Models";
+  });
+
+  // Sort by date (newest first)
+  posts.sort((a, b) => {
+    const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+    const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+    return dateB - dateA; 
+  });
 
   return (
     <div className="max-w-[1200px] mx-auto px-4 py-12 md:py-16 font-sans">
       
-      {/* Page Header */}
       <div className="border-b-[3px] border-gray-900 pb-6 mb-10 text-center md:text-left">
         <h1 className="text-4xl md:text-5xl font-serif font-bold text-gray-900 tracking-tight mb-4">
           {pageTitle}
@@ -52,12 +58,11 @@ export default async function ReviewsPage(props: { searchParams: Promise<{ [key:
         </p>
       </div>
 
-      {/* Reviews Grid */}
       {posts.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-12">
           {posts.map((post) => (
             <article key={post.id} className="group flex flex-col">
-              <Link href={`/blog/${post.slug}`} className="block overflow-hidden bg-gray-100 aspect-[4/3] mb-4">
+              <Link href={`/blog/${post.slug || post.id}`} className="block overflow-hidden bg-gray-100 aspect-[4/3] mb-4">
                 {post.coverImage ? (
                   <img 
                     src={post.coverImage} 
@@ -75,9 +80,9 @@ export default async function ReviewsPage(props: { searchParams: Promise<{ [key:
                 <p className="text-[11px] font-bold text-blue-700 uppercase tracking-widest mb-2">
                   {post.category || "Review"}
                 </p>
-                <Link href={`/blog/${post.slug}`}>
+                <Link href={`/blog/${post.slug || post.id}`}>
                   <h2 className="text-xl font-bold text-gray-900 leading-snug group-hover:text-blue-700 transition duration-150 mb-2">
-                    {post.title}
+                    {post.title || "Untitled Post"}
                   </h2>
                 </Link>
                 {post.excerpt && (
@@ -85,9 +90,6 @@ export default async function ReviewsPage(props: { searchParams: Promise<{ [key:
                     {post.excerpt}
                   </p>
                 )}
-                <div className="mt-auto text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                  By Admin
-                </div>
               </div>
             </article>
           ))}
@@ -96,11 +98,8 @@ export default async function ReviewsPage(props: { searchParams: Promise<{ [key:
         <div className="bg-gray-50 border border-dashed border-gray-300 rounded-lg p-12 text-center">
           <h3 className="text-xl font-bold text-gray-900 mb-2">No reviews found</h3>
           <p className="text-gray-500">
-            We haven't published any reviews in this category yet. Check back soon!
+            We haven't categorized any reviews here yet. Check back soon!
           </p>
-          <Link href="/reviews" className="inline-block mt-6 bg-gray-900 text-white font-bold px-6 py-2 rounded-sm hover:bg-black transition">
-            View All Reviews
-          </Link>
         </div>
       )}
 

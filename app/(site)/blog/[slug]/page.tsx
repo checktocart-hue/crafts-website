@@ -1,55 +1,47 @@
-import { doc, getDoc } from "firebase/firestore";
-import { db } from "@/app/lib/firebase"; // Ensure this matches your path
-import Link from "next/link";
+import { collection, getDocs, query, where, limit } from "firebase/firestore";
+import { db } from "@/app/lib/firebase";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
-// This tells Next.js to check Firebase for updates every 60 seconds
-export const revalidate = 60; 
+export const revalidate = 60;
 
-export default async function BlogPostPage({ 
-  params 
-}: { 
-  params: Promise<{ slug: string }> 
-}) {
-  const resolvedParams = await params;
-  const { slug } = resolvedParams;
-
-  // 1. Fetch directly from Firebase instead of local folders
-  const docRef = doc(db, "blog", slug);
-  const docSnap = await getDoc(docRef);
-
-  // 2. If it doesn't exist, or if it's marked as a draft, show the 404
-  if (!docSnap.exists() || docSnap.data().status === "draft") {
-    return (
-      <div className="max-w-3xl mx-auto py-20 text-center">
-        <h1 className="text-3xl font-bold text-gray-900 mb-4">Post not found (or still a draft)</h1>
-        <Link href="/blog" className="text-green-700 font-bold hover:underline">
-          &larr; Back to Blog
-        </Link>
-      </div>
-    );
+export default async function BlogPostPage(props: { params: Promise<{ slug: string }> }) {
+  const params = await props.params;
+  
+  // Fetch the specific post
+  const q = query(collection(db, "blog"), where("slug", "==", params.slug), limit(1));
+  const snap = await getDocs(q);
+  
+  if (snap.empty) {
+    return <div className="max-w-3xl mx-auto py-20 text-center font-bold text-2xl">Post not found</div>;
   }
 
-  const data = docSnap.data();
-  // Handle older MDX posts that used "image" vs new CKEditor posts that use "coverImage"
-  const displayImage = data.coverImage || data.image; 
+  const post = snap.docs[0].data() as any;
 
   return (
-    <article className="max-w-4xl mx-auto px-4 py-12">
-      <h1 className="text-4xl font-bold text-gray-900 mb-6">{data.title}</h1>
-      
-      {displayImage && (
-        <img 
-          src={displayImage} 
-          alt={data.title || "Blog image"} 
-          className="w-full h-auto rounded-lg mb-8 object-cover max-h-[500px]" 
-        />
-      )}
+    <article className="max-w-3xl mx-auto px-4 py-16 font-sans">
+      <header className="mb-10 text-center">
+        <p className="text-sm font-bold text-blue-700 uppercase tracking-widest mb-4">
+          {post.category || "Review"}
+        </p>
+        <h1 className="text-4xl md:text-5xl font-serif font-bold text-gray-900 mb-6 leading-tight">
+          {post.title}
+        </h1>
+        {post.coverImage && (
+          <img 
+            src={post.coverImage} 
+            alt={post.title} 
+            className="w-full aspect-[16/9] object-cover rounded-lg shadow-sm mt-8"
+          />
+        )}
+      </header>
 
-      {/* 3. CKEditor outputs HTML, so we render it safely inside the prose container */}
-      <div 
-        className="prose prose-lg prose-green max-w-none text-gray-700"
-        dangerouslySetInnerHTML={{ __html: data.content }} 
-      />
+      {/* This component parses the raw MDX string into styled HTML */}
+      <div className="prose prose-lg prose-stone max-w-none prose-headings:font-serif prose-a:text-blue-700">
+        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+          {post.content}
+        </ReactMarkdown>
+      </div>
     </article>
   );
 }
