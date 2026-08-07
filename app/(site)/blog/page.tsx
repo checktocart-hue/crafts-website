@@ -3,6 +3,7 @@ import path from "path";
 import matter from "gray-matter";
 import Link from "next/link";
 
+export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
 // NEW: We define the exact shape of your blog post data so TypeScript is happy
