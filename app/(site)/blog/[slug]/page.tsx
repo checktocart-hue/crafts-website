@@ -2,21 +2,27 @@ import { collection, getDocs, query, where, limit } from "firebase/firestore";
 import { db } from "@/app/lib/firebase";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import rehypeRaw from "rehype-raw";
 
 export const revalidate = 60;
 
 export default async function BlogPostPage(props: { params: Promise<{ slug: string }> }) {
   const params = await props.params;
   
-  // Fetch the specific post
-  const q = query(collection(db, "blog"), where("slug", "==", params.slug), limit(1));
-  const snap = await getDocs(q);
+  let q = query(collection(db, "blog"), where("slug", "==", params.slug), limit(1));
+  let snap = await getDocs(q);
   
+  if (snap.empty) {
+    q = query(collection(db, "reviews"), where("slug", "==", params.slug), limit(1));
+    snap = await getDocs(q);
+  }
+
   if (snap.empty) {
     return <div className="max-w-3xl mx-auto py-20 text-center font-bold text-2xl">Post not found</div>;
   }
 
   const post = snap.docs[0].data() as any;
+  const contentToRender = post.content || post.body || ""; 
 
   return (
     <article className="max-w-3xl mx-auto px-4 py-16 font-sans">
@@ -36,10 +42,10 @@ export default async function BlogPostPage(props: { params: Promise<{ slug: stri
         )}
       </header>
 
-      {/* This component parses the raw MDX string into styled HTML */}
-      <div className="prose prose-lg prose-stone max-w-none prose-headings:font-serif prose-a:text-blue-700">
-        <ReactMarkdown remarkPlugins={[remarkGfm]}>
-          {post.content}
+      <div className="prose prose-lg prose-stone max-w-none prose-headings:font-serif prose-a:text-blue-700 prose-img:rounded-md prose-img:mx-auto">
+        {/* rehypeRaw is the magic key that allows your legacy HTML images to render! */}
+        <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>
+          {contentToRender}
         </ReactMarkdown>
       </div>
     </article>

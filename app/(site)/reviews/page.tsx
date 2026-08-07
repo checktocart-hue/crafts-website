@@ -18,14 +18,18 @@ export default async function ReviewsPage(props: { searchParams: Promise<{ [key:
     ? `${categoryTitles[categoryParam]} Reviews`
     : "All Kit Reviews";
 
-  // Fetch all posts
-  const postsQuery = query(collection(db, "blog"));
-  const postsSnap = await getDocs(postsQuery);
+  // DUAL-FETCH: Pull from both possible Firebase collections
+  const blogSnap = await getDocs(query(collection(db, "blog")));
+  const reviewsSnap = await getDocs(query(collection(db, "reviews")));
   
-  let posts = postsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() as any }));
+  // Merge all documents together
+  let allPosts = [
+    ...blogSnap.docs.map(doc => ({ id: doc.id, ...doc.data() as any })),
+    ...reviewsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() as any }))
+  ];
 
   // STRICT CATEGORY FILTERING
-  posts = posts.filter(post => {
+  let posts = allPosts.filter(post => {
     const postCat = post.category || "";
 
     // If a specific tab is clicked (e.g. ?cat=metal-models)

@@ -1,93 +1,111 @@
-import fs from "fs";
-import path from "path";
-import matter from "gray-matter";
 import Link from "next/link";
+import { collection, getDocs, query } from "firebase/firestore";
+import { db } from "@/app/lib/firebase";
 
-export const dynamic = 'force-dynamic';
-export const revalidate = 0;
+export const revalidate = 60;
 
-// NEW: We define the exact shape of your blog post data so TypeScript is happy
-type BlogPost = {
-  slug: string;
-  title: string;
-  category: string;
-  image: string | null;
-  excerpt: string;
-};
+export default async function BlogPage(props: { searchParams: Promise<{ [key: string]: string | undefined }> }) {
+  const searchParams = await props.searchParams;
+  const currentTab = searchParams?.cat || "all";
 
-export default async function BlogIndexPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ cat?: string }>;
-}) {
-  // 1. Read the URL to see if a category was clicked
-  const resolvedSearchParams = await searchParams;
-  const categoryFilter = resolvedSearchParams.cat;
-
-  const blogDir = path.join(process.cwd(), "content", "blog");
+  // DUAL-FETCH: Pull from both possible Firebase collections
+  const blogSnap = await getDocs(query(collection(db, "blog")));
+  const reviewsSnap = await getDocs(query(collection(db, "reviews")));
   
-  // NEW: We explicitly tell TypeScript that this array will hold 'BlogPost' objects
-  let posts: BlogPost[] = [];
+  let allPosts = [
+    ...blogSnap.docs.map(doc => ({ id: doc.id, ...doc.data() as any })),
+    ...reviewsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() as any }))
+  ];
 
-  if (fs.existsSync(blogDir)) {
-    const files = fs.readdirSync(blogDir).filter((file: string) => file.endsWith('.mdx') || file.endsWith('.md'));
-    
-    posts = files.map((filename: string) => {
-      const fileContent = fs.readFileSync(path.join(blogDir, filename), "utf-8");
-      const { data } = matter(fileContent);
-      return {
-        slug: filename.replace(/\.mdx?$/, ""),
-        title: data.title || "Untitled",
-        category: data.category || "Blog",
-        image: data.image || data.imageUrl || data.coverImage || null,
-        excerpt: data.excerpt || "Read full post...",
-      };
-    });
+  // STRICT FILTER: Only keep the Blog categories (Guides, Tutorials, Tools)
+  let posts = allPosts.filter(post => {
+    const postCat = post.category || "";
+    return postCat === "Guides" || postCat === "Tutorials" || postCat === "Tools";
+  });
+
+  // FILTER BY TAB
+  if (currentTab !== "all") {
+    const targetCat = currentTab === "guides" ? "Guides" : 
+                      currentTab === "tutorials" ? "Tutorials" : 
+                      currentTab === "tools" ? "Tools" : "";
+    posts = posts.filter(post => post.category === targetCat);
   }
 
-  // 2. Filter the posts if a category parameter exists in the URL
-  if (categoryFilter) {
-    posts = posts.filter(post => {
-      // This turns "Tools & Supplies" into "tools-supplies" to match your URL
-      const formattedCategory = post.category.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
-      return formattedCategory === categoryFilter;
-    });
-  }
+  // Sort newest first
+  posts.sort((a, b) => {
+    const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+    const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+    return dateB - dateA;
+  });
+
+  const tabs = [
+    { id: "all", label: "All Articles", url: "/blog" },
+    { id: "guides", label: "Buying Guides", url: "/blog?cat=guides" },
+    { id: "tutorials", label: "Tutorials", url: "/blog?cat=tutorials" },
+    { id: "tools", label: "Tools", url: "/blog?cat=tools" }
+  ];
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-12">
-      <div className="text-center mb-16">
-        <h1 className="text-4xl font-bold mb-4 text-gray-900">
-          {categoryFilter ? `Blog: ${categoryFilter.replace(/-/g, ' ').toUpperCase()}` : 'All Blog Posts'}
-        </h1>
-        {categoryFilter && (
-          <Link href="/blog" className="text-green-700 hover:underline text-sm font-bold">
-            &larr; Clear Filter
-          </Link>
-        )}
-      </div>
+    <div className="max-w-[1200px] mx-auto px-4 py-12 md:py-16 font-sans">
       
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {posts.length > 0 ? (
-          posts.map((post) => (
-            <Link href={`/blog/${post.slug}`} key={post.slug} className="group block">
-              <div className="relative w-full h-64 bg-gray-100 rounded-2xl overflow-hidden mb-4 border border-gray-200">
-                 {post.image ? (
-                   <img src={post.image} alt={post.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                 ) : (
-                   <div className="w-full h-full flex items-center justify-center text-gray-400 text-sm">No image</div>
-                 )}
-              </div>
-              <h2 className="text-xl font-bold text-gray-900 group-hover:text-green-700 mb-2">{post.title}</h2>
-              <p className="text-sm text-gray-500 line-clamp-2">{post.excerpt}</p>
-            </Link>
-          ))
-        ) : (
-          <div className="col-span-full text-center py-12 text-gray-500">
-            No posts found in this category.
-          </div>
-        )}
+      <div className="text-center mb-10">
+        <h1 className="text-4xl md:text-5xl font-serif font-bold text-gray-900 tracking-tight mb-4">
+          The Builder's Blog
+        </h1>
+        <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+          Expert buying guides, step-by-step tutorials, and tool recommendations for the miniature crafting community.
+        </p>
       </div>
+
+      {/* CATEGORY TABS */}
+      <div className="flex flex-wrap justify-center gap-2 md:gap-4 mb-12 border-b border-gray-200 pb-4">
+        {tabs.map((tab) => (
+          <Link 
+            key={tab.id} 
+            href={tab.url}
+            className={`px-4 py-2 rounded-full text-sm font-bold transition ${
+              currentTab === tab.id 
+                ? "bg-gray-900 text-white" 
+                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+            }`}
+          >
+            {tab.label}
+          </Link>
+        ))}
+      </div>
+
+      {/* POSTS GRID */}
+      {posts.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-12">
+          {posts.map((post) => (
+            <article key={post.id} className="group flex flex-col">
+              <Link href={`/blog/${post.slug || post.id}`} className="block overflow-hidden bg-gray-100 aspect-[4/3] mb-4">
+                {post.coverImage ? (
+                  <img src={post.coverImage} alt={post.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-gray-400 border border-gray-200">No Image</div>
+                )}
+              </Link>
+              <div className="flex flex-col flex-grow">
+                <p className="text-[11px] font-bold text-blue-700 uppercase tracking-widest mb-2">
+                  {post.category || "Article"}
+                </p>
+                <Link href={`/blog/${post.slug || post.id}`}>
+                  <h2 className="text-xl font-bold text-gray-900 leading-snug group-hover:text-blue-700 transition duration-150 mb-2">
+                    {post.title || "Untitled Post"}
+                  </h2>
+                </Link>
+                {post.excerpt && <p className="text-gray-600 text-sm line-clamp-2 mb-4">{post.excerpt}</p>}
+              </div>
+            </article>
+          ))}
+        </div>
+      ) : (
+        <div className="bg-gray-50 border border-dashed border-gray-300 rounded-lg p-12 text-center">
+          <h3 className="text-xl font-bold text-gray-900 mb-2">No articles found</h3>
+          <p className="text-gray-500">We don't have any posts in this category right now.</p>
+        </div>
+      )}
     </div>
   );
 }
