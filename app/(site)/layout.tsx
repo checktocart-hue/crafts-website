@@ -1,32 +1,48 @@
-import Script from "next/script";
+import type { Metadata } from "next";
+import { Inter, Playfair_Display } from "next/font/google";
+import "../globals.css";
+
+// Now using the exact paths matching your folder structure
 import Header from "../components/Header"; 
-import Footer from "../components/Footer"; 
+import Footer from "../components/Footer";
 
-export default function SiteLayout({
+const inter = Inter({ 
+  subsets: ["latin"], 
+  variable: "--font-inter",
+  display: 'swap',
+});
+
+const playfair = Playfair_Display({ 
+  subsets: ["latin"], 
+  variable: "--font-playfair",
+  display: 'swap',
+});
+
+export const metadata: Metadata = {
+  title: "Crafts & Kits | Expert Reviews",
+  description: "In-depth tutorials and recommendations for book nooks, metal models, and miniature kits.",
+};
+
+export default function RootLayout({
   children,
-}: {
+}: Readonly<{
   children: React.ReactNode;
-}) {
+}>) {
   return (
-    <div className="flex flex-col min-h-screen">
-      {/* GOOGLE ADSENSE */}
-      <Script
-        id="adsbygoogle-init"
-        strategy="afterInteractive"
-        crossOrigin="anonymous"
-        src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5152146437122143"
-      />
+    <html lang="en" className={`${inter.variable} ${playfair.variable}`}>
+      <body className="font-sans antialiased bg-white text-gray-900" suppressHydrationWarning>
+        
+        {/* Your custom Header */}
+        <Header />
+        
+        <main>
+          {children}
+        </main>
 
-      {/* Header */}
-      <Header />
-
-      {/* Main Content */}
-      <main className="flex-grow">
-        {children}
-      </main>
-
-      {/* Footer */}
-      <Footer />
-    </div>
+        {/* Your custom Footer */}
+        <Footer />
+        
+      </body>
+    </html>
   );
 }

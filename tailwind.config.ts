@@ -8,22 +8,16 @@ const config: Config = {
   ],
   theme: {
     extend: {
-      colors: {
-        // Nature Palette
-        primary: "#4F772D",   // Fern Green (Main buttons/links)
-        secondary: "#A36628", // Terracotta (Accents)
-        cream: "#FDFCF8",     // Warm Background (Not harsh white)
-        stone: "#F2F0E9",     // Light Beige (Cards/Sections)
-        charcoal: "#2C3333",  // Soft Black (Text)
-      },
       fontFamily: {
-        serif: ['var(--font-playfair)'], // For Headings
-        sans: ['var(--font-lato)'],      // For Body text
+        // Maps the 'font-sans' class to our Inter font
+        sans: ['var(--font-inter)', 'sans-serif'],
+        // Maps the 'font-serif' class to our Playfair font
+        serif: ['var(--font-playfair)', 'serif'],
       },
     },
   },
   plugins: [
-    require('@tailwindcss/typography'), // Ensure this is installed!
+    require('@tailwindcss/typography'),
   ],
 };
 export default config;

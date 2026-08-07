@@ -23,6 +23,10 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
             <Link href="/admin/manage" className="text-sm font-medium text-gray-300 hover:text-white transition">
               Manage Content
             </Link>
+            {/* NEW LINK ADDED HERE */}
+            <Link href="/admin/tools" className="text-sm font-medium text-gray-300 hover:text-white transition">
+              Manage Tools
+            </Link>
           </div>
         </div>
         
