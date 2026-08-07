@@ -1,257 +1,304 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
-import { doc, setDoc, getDoc } from "firebase/firestore";
-import { db } from "@/app/lib/firebase";
-import { useSearchParams } from "next/navigation";
-import { Editor } from '@tinymce/tinymce-react';
+import { marked } from "marked";
+import { useState, useEffect, Suspense, useRef } from "react";
+import dynamic from "next/dynamic";
+import { useSearchParams, useRouter } from "next/navigation";
+import { doc, getDoc, setDoc, collection } from "firebase/firestore";
+import { db } from "@/app/lib/firebase"; 
 
-function WriteForm() {
+const CustomEditor = dynamic(() => import("@/components/CustomEditor"), { 
+  ssr: false,
+  loading: () => <div className="min-h-[400px] flex items-center justify-center bg-gray-50 border border-gray-200 rounded-lg animate-pulse">Loading Editor...</div>
+});
+
+function EditorForm() {
   const searchParams = useSearchParams();
-  const editSlug = searchParams.get("edit");
-  const editType = searchParams.get("type");
+  const router = useRouter();
+  
+  const editId = searchParams.get("edit");
+  const editCol = searchParams.get("col") || "reviews";
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Form States
   const [title, setTitle] = useState("");
   const [slug, setSlug] = useState("");
-  const [category, setCategory] = useState("tutorials");
-  const [image, setImage] = useState("");
-  const [docType, setDocType] = useState("posts");
-  const [content, setContent] = useState<string>("");
+  const [type, setType] = useState("Product Review");
+  const [category, setCategory] = useState("Book Nooks");
+  const [coverImage, setCoverImage] = useState("");
+  const [content, setContent] = useState("");
+  const [seoTitle, setSeoTitle] = useState("");
+  const [metaDescription, setMetaDescription] = useState("");
   
-  const [isPublishing, setIsPublishing] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
-  const [message, setMessage] = useState("");
-  const [isEditing, setIsEditing] = useState(false);
+  const [isFetching, setIsFetching] = useState(!!editId);
+  const [isSaving, setIsSaving] = useState(false);
+  const [status, setStatus] = useState("draft"); // Tracks publication status
 
   useEffect(() => {
-    if (editSlug && editType) {
-      setIsEditing(true);
-      setDocType(editType);
-      
-      const fetchExistingPost = async () => {
-        try {
-          const docRef = doc(db, editType, editSlug);
-          const docSnap = await getDoc(docRef);
+    async function fetchPost() {
+      if (!editId) return;
+      try {
+        const docRef = doc(db, editCol, editId);
+        const docSnap = await getDoc(docRef);
+        
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          setTitle(data.title || "");
+          setSlug(data.slug || "");
+          setType(data.type || "Product Review");
+          setCategory(data.category || "Book Nooks");
+          setCoverImage(data.coverImage || "");
+          setSeoTitle(data.seoTitle || "");
+          setMetaDescription(data.metaDescription || "");
+          setStatus(data.status || "draft");
           
-          if (docSnap.exists()) {
-            const data = docSnap.data();
-            setTitle(data.title || "");
-            setSlug(data.slug || editSlug);
-            setCategory(data.category || "tutorials");
-            setImage(data.image || "");
-            setContent(data.content || "");
-          }
-        } catch (error) {
-          setMessage("❌ Failed to load existing article.");
+          const rawContent = data.content || "";
+          const formattedContent = await marked.parse(rawContent);
+          setContent(formattedContent as string); 
         }
-      };
-      
-      fetchExistingPost();
+      } catch (error) {
+        console.error("Error fetching document:", error);
+      } finally {
+        setIsFetching(false);
+      }
     }
-  }, [editSlug, editType]);
+    fetchPost();
+  }, [editId, editCol]);
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setTitle(e.target.value);
-    if (!isEditing) {
-      setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, ''));
+    const newTitle = e.target.value;
+    setTitle(newTitle);
+    if (!editId) {
+      setSlug(newTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, ''));
     }
   };
 
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    setIsUploading(true);
-    setMessage("⏳ Uploading to ImgBB...");
-
-    const IMGBB_API_KEY = "YOUR_IMGBB_API_KEY_HERE"; 
     const formData = new FormData();
-    formData.append("image", file);
+    formData.append("file", file);
 
     try {
-      const response = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
-        method: "POST",
-        body: formData,
-      });
+      const response = await fetch("/api/upload", { method: "POST", body: formData });
       const data = await response.json();
-
-      if (data.success) {
-        setImage(data.data.url);
-        setMessage("✅ Image uploaded successfully!");
-      } else {
-        throw new Error("ImgBB error");
-      }
+      if (data.url) setCoverImage(data.url);
+      else alert("Upload failed.");
     } catch (error) {
-      setMessage("❌ Image upload failed.");
+      console.error("Upload error:", error);
     }
-    setIsUploading(false);
   };
 
-  const handlePublish = async () => {
+  // Unified Save Function (Handles both Drafts and Live Publishing)
+  const executeSave = async (targetStatus: "draft" | "published") => {
     if (!title || !slug || !content) {
-      setMessage("❌ Title, Slug, and Content are required.");
+      alert("Please provide at least a title, slug, and content.");
       return;
     }
 
-    setIsPublishing(true);
-    setMessage("");
-
+    setIsSaving(true);
     try {
-      const postData: any = {
+      const targetCollection = editId ? editCol : (type === "Blog Post" ? "blog" : "reviews");
+      const docRef = editId 
+        ? doc(db, targetCollection, editId) 
+        : doc(collection(db, targetCollection));
+
+      await setDoc(docRef, {
         title,
         slug,
+        type,
         category,
-        image,
+        coverImage,
+        seoTitle,
+        metaDescription,
         content,
+        status: targetStatus, // Saves either "draft" or "published"
         updatedAt: new Date().toISOString(),
-      };
+        ...(editId ? {} : { createdAt: new Date().toISOString() })
+      }, { merge: true });
 
-      if (!isEditing) {
-        postData.createdAt = new Date().toISOString();
-      }
-
-      await setDoc(doc(db, docType, slug), postData, { merge: true });
-      setMessage(`✅ ${isEditing ? 'Updated' : 'Published'} successfully to ${docType}!`);
-      
-      if (!isEditing) {
-        setTimeout(() => {
-          setTitle("");
-          setSlug("");
-          setImage("");
-          setContent("");
-          setMessage("");
-        }, 3000);
-      }
+      alert(targetStatus === "published" ? "Successfully published to site!" : "Draft saved successfully!");
+      router.push("/admin/manage");
     } catch (error) {
-      console.error("FIREBASE ERROR:", error); // <-- Add this line!
-      setMessage("❌ Failed to save article.");
+      console.error("Error saving document:", error);
+      alert("Failed to save post.");
+    } finally {
+      setIsSaving(false);
     }
-    setIsPublishing(false);
   };
 
+  // Opens a local preview route (Make sure you have a preview page set up or viewable layout)
+  const handlePreview = () => {
+    if (!slug) {
+      alert("Please enter a slug first to preview.");
+      return;
+    }
+    // Opens a preview query window
+    window.open(`/preview?slug=${slug}&col=${editCol || (type === "Blog Post" ? "blog" : "reviews")}`, "_blank");
+  };
+
+  if (isFetching) {
+    return (
+      <div className="max-w-5xl mx-auto py-12 px-4 min-h-screen flex items-center justify-center">
+        <p className="text-gray-500 font-medium animate-pulse">Loading post data...</p>
+      </div>
+    );
+  }
+
   return (
-    <div className="max-w-5xl mx-auto px-4 py-12">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">
-          {isEditing ? "Edit Content" : "Draft New Content"}
-        </h1>
-        <button 
-          onClick={handlePublish}
-          disabled={isPublishing}
-          className="bg-green-700 text-white px-6 py-2 rounded-lg font-bold hover:bg-green-800 disabled:opacity-50"
-        >
-          {isPublishing ? "Saving..." : (isEditing ? "Update Site" : "Publish to Site")}
-        </button>
+    <div className="max-w-5xl mx-auto py-12 px-4 min-h-screen">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 border-b border-gray-200 pb-4 gap-4">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">
+            {editId ? "Edit Content" : "Draft New Content"}
+          </h1>
+          <p className="text-xs text-gray-500 mt-1 uppercase tracking-wider font-semibold">
+            Status: <span className={status === "published" ? "text-green-600" : "text-amber-600"}>{status}</span>
+          </p>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex items-center gap-3">
+          <button 
+            onClick={handlePreview}
+            className="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg font-bold hover:bg-gray-300 transition text-sm shadow-sm"
+          >
+            Preview
+          </button>
+          <button 
+            onClick={() => executeSave("draft")}
+            disabled={isSaving}
+            className="bg-amber-600 text-white px-4 py-2 rounded-lg font-bold hover:bg-amber-700 transition text-sm shadow-sm disabled:opacity-50"
+          >
+            Save Draft
+          </button>
+          <button 
+            onClick={() => executeSave("published")}
+            disabled={isSaving}
+            className="bg-green-700 text-white px-5 py-2 rounded-lg font-bold hover:bg-green-800 transition text-sm shadow-sm disabled:opacity-50"
+          >
+            {isSaving ? "Saving..." : "Publish Live"}
+          </button>
+        </div>
       </div>
 
-      {message && (
-        <div className={`p-4 mb-6 rounded-lg font-bold ${message.includes("✅") ? "bg-green-100 text-green-800" : message.includes("⏳") ? "bg-blue-100 text-blue-800" : "bg-red-100 text-red-800"}`}>
-          {message}
-        </div>
-      )}
+      <div className="space-y-6">
+        {/* Settings Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1">Title</label>
+              <input 
+                type="text" 
+                value={title}
+                onChange={handleTitleChange}
+                className="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-green-700 outline-none text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1">URL Slug</label>
+              <input 
+                type="text" 
+                value={slug}
+                onChange={(e) => setSlug(e.target.value)}
+                className="w-full border border-gray-300 rounded-lg p-2.5 bg-gray-50 text-gray-600 outline-none text-sm font-mono"
+              />
+            </div>
+          </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
-        <div className="md:col-span-2 space-y-4">
-          <div>
-            <label className="block text-sm font-bold text-gray-700 mb-1">Title</label>
-            <input type="text" value={title} onChange={handleTitleChange} className="w-full p-3 border border-gray-300 rounded-lg outline-none" />
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1">Content Type</label>
+              <select 
+                value={type}
+                onChange={(e) => setType(e.target.value)}
+                className="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-green-700 outline-none text-sm bg-white"
+              >
+                <option value="Product Review">Product Review</option>
+                <option value="Blog Post">Blog Post</option>
+                <option value="Tutorial">Tutorial</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1">Category</label>
+              <select 
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+                className="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-green-700 outline-none text-sm bg-white"
+              >
+                <option value="Book Nooks">Book Nooks</option>
+                <option value="Dollhouses">Dollhouses</option>
+                <option value="Metal Models">Metal Models</option>
+                <option value="Miniature Kits">Miniature Kits</option>
+              </select>
+            </div>
           </div>
-          <div>
-            <label className="block text-sm font-bold text-gray-700 mb-1">URL Slug</label>
-            <input type="text" value={slug} disabled={isEditing} onChange={(e) => setSlug(e.target.value)} className="w-full p-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-500 disabled:opacity-60" />
-          </div>
-        </div>
 
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-bold text-gray-700 mb-1">Content Type</label>
-            <select value={docType} onChange={(e) => setDocType(e.target.value)} disabled={isEditing} className="w-full p-3 border border-gray-300 rounded-lg bg-stone-100 font-bold">
-              <option value="posts">Blog Post</option>
-              <option value="reviews">Product Review</option>
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-bold text-gray-700 mb-1">Category</label>
-            <select value={category} onChange={(e) => setCategory(e.target.value)} className="w-full p-3 border border-gray-300 rounded-lg">
-              <option value="book-nooks">Book Nooks</option>
-              <option value="dollhouses">Dollhouses</option>
-              <option value="metal-models">Metal Models</option>
-              <option value="tutorials">Tutorials</option>
-            </select>
-          </div>
-        </div>
-
-        <div className="md:col-span-1 space-y-4">
-           <div>
-            <label className="block text-sm font-bold text-gray-700 mb-1">Cover Image</label>
-            <div className="flex flex-col gap-2">
-              <input type="text" value={image} onChange={(e) => setImage(e.target.value)} className="w-full p-3 border border-gray-300 rounded-lg text-sm" placeholder="Image URL..." />
-              <label className="w-full bg-stone-100 border border-stone-300 py-2 rounded-lg text-center cursor-pointer text-sm font-bold">
-                {isUploading ? "Uploading..." : "Upload from Computer"}
-                <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
-              </label>
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1">Cover Image</label>
+              <input 
+                type="text" 
+                value={coverImage}
+                onChange={(e) => setCoverImage(e.target.value)}
+                placeholder="Image URL..."
+                className="w-full border border-gray-300 rounded-lg p-2.5 outline-none text-sm mb-2"
+              />
+              <input 
+                type="file" 
+                accept="image/*"
+                ref={fileInputRef}
+                onChange={handleCoverUpload}
+                className="hidden" 
+              />
+              <button 
+                onClick={() => fileInputRef.current?.click()}
+                className="w-full bg-white border border-gray-300 text-gray-700 py-2 rounded-lg text-sm font-semibold hover:bg-gray-50 transition"
+              >
+                Upload from Computer
+              </button>
             </div>
           </div>
         </div>
-      </div>
 
-<div className="bg-white rounded-lg shadow-sm border border-gray-300 overflow-hidden">
-        <Editor
-          tinymceScriptSrc="https://cdnjs.cloudflare.com/ajax/libs/tinymce/7.2.1/tinymce.min.js"
-          licenseKey="gpl" /* <-- MOVED HERE AND CHANGED TO camelCase */
-          value={content}
-          onEditorChange={(newContent) => setContent(newContent)}
-          init={{
-            height: 600,
-            menubar: true,
-            plugins: [
-              'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
-              'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
-              'insertdatetime', 'media', 'table', 'help', 'wordcount'
-            ],
-            toolbar: 'undo redo | blocks | ' +
-              'bold italic underline forecolor | alignleft aligncenter ' +
-              'alignright alignjustify | bullist numlist outdent indent | ' +
-              'table link image | removeformat | code',
-            content_style: 'body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; font-size: 16px }',
-            
-            /* --- NEW AUTOMATIC IMAGE UPLOADER --- */
-            paste_data_images: true, 
-           images_upload_handler: async (blobInfo: any) => {
-              return new Promise(async (resolve, reject) => {
-                const IMGBB_API_KEY = "YOUR_IMGBB_API_KEY_HERE"; // <-- Ensure your key is here!
-                const formData = new FormData();
-                formData.append("image", blobInfo.blob(), blobInfo.filename());
+        {/* SEO Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-gray-50 p-4 rounded-lg border border-gray-200">
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-1">SEO Title (Optional)</label>
+            <input 
+              type="text" 
+              value={seoTitle}
+              onChange={(e) => setSeoTitle(e.target.value)}
+              placeholder="Leave blank to use main title..."
+              className="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-green-700 outline-none text-sm bg-white"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-1">Meta Description</label>
+            <textarea 
+              value={metaDescription}
+              onChange={(e) => setMetaDescription(e.target.value)}
+              placeholder="Brief summary for Google search results..."
+              rows={2}
+              className="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-green-700 outline-none text-sm bg-white resize-none"
+            />
+          </div>
+        </div>
 
-                try {
-                  const response = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
-                    method: "POST",
-                    body: formData,
-                  });
-                  const data = await response.json();
-
-                  if (data.success) {
-                    resolve(data.data.url);
-                  } else {
-                    reject("ImgBB Upload Failed");
-                  }
-                } catch (error) {
-                  reject("Upload failed. Check your internet connection.");
-                }
-              });
-            }
-            /* ------------------------------------ */
-          }}
-        />
+        {/* Editor Box */}
+        <div className="border border-gray-300 rounded-lg overflow-hidden shadow-sm mt-8">
+          <CustomEditor value={content} onChange={setContent} />
+        </div>
       </div>
     </div>
   );
 }
 
-export default function AdminWritePage() {
+export default function AdminEditorPage() {
   return (
-    <Suspense fallback={<div className="p-12 text-center font-bold">Loading Editor...</div>}>
-      <WriteForm />
+    <Suspense fallback={<div className="p-12 text-center text-gray-500">Loading workspace...</div>}>
+      <EditorForm />
     </Suspense>
   );
 }
