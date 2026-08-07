@@ -12,6 +12,10 @@ const CustomEditor = dynamic(() => import("@/components/CustomEditor"), {
   loading: () => <div className="min-h-[400px] flex items-center justify-center bg-gray-50 border border-gray-200 rounded-lg animate-pulse">Loading Editor...</div>
 });
 
+// Define our strict category lists
+const BLOG_CATEGORIES = ["Buying Guides", "Tutorials", "Tools"];
+const REVIEW_CATEGORIES = ["Book Nooks", "Dollhouses", "Metal Models"];
+
 function EditorForm() {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -24,7 +28,7 @@ function EditorForm() {
   const [title, setTitle] = useState("");
   const [slug, setSlug] = useState("");
   const [type, setType] = useState("Product Review");
-  const [category, setCategory] = useState("Book Nooks");
+  const [category, setCategory] = useState(REVIEW_CATEGORIES[0]);
   const [coverImage, setCoverImage] = useState("");
   const [content, setContent] = useState("");
   const [seoTitle, setSeoTitle] = useState("");
@@ -32,7 +36,7 @@ function EditorForm() {
   
   const [isFetching, setIsFetching] = useState(!!editId);
   const [isSaving, setIsSaving] = useState(false);
-  const [status, setStatus] = useState("draft"); // Tracks publication status
+  const [status, setStatus] = useState("draft");
 
   useEffect(() => {
     async function fetchPost() {
@@ -46,7 +50,7 @@ function EditorForm() {
           setTitle(data.title || "");
           setSlug(data.slug || "");
           setType(data.type || "Product Review");
-          setCategory(data.category || "Book Nooks");
+          setCategory(data.category || REVIEW_CATEGORIES[0]);
           setCoverImage(data.coverImage || "");
           setSeoTitle(data.seoTitle || "");
           setMetaDescription(data.metaDescription || "");
@@ -73,6 +77,13 @@ function EditorForm() {
     }
   };
 
+  // Dynamically switch categories when Content Type changes
+  const handleTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newType = e.target.value;
+    setType(newType);
+    setCategory(newType === "Blog Post" ? BLOG_CATEGORIES[0] : REVIEW_CATEGORIES[0]);
+  };
+
   const handleCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -90,7 +101,6 @@ function EditorForm() {
     }
   };
 
-  // Unified Save Function (Handles both Drafts and Live Publishing)
   const executeSave = async (targetStatus: "draft" | "published") => {
     if (!title || !slug || !content) {
       alert("Please provide at least a title, slug, and content.");
@@ -113,7 +123,7 @@ function EditorForm() {
         seoTitle,
         metaDescription,
         content,
-        status: targetStatus, // Saves either "draft" or "published"
+        status: targetStatus,
         updatedAt: new Date().toISOString(),
         ...(editId ? {} : { createdAt: new Date().toISOString() })
       }, { merge: true });
@@ -128,13 +138,11 @@ function EditorForm() {
     }
   };
 
-  // Opens a local preview route (Make sure you have a preview page set up or viewable layout)
   const handlePreview = () => {
     if (!slug) {
       alert("Please enter a slug first to preview.");
       return;
     }
-    // Opens a preview query window
     window.open(`/preview?slug=${slug}&col=${editCol || (type === "Blog Post" ? "blog" : "reviews")}`, "_blank");
   };
 
@@ -158,7 +166,6 @@ function EditorForm() {
           </p>
         </div>
 
-        {/* Action Buttons */}
         <div className="flex items-center gap-3">
           <button 
             onClick={handlePreview}
@@ -184,7 +191,6 @@ function EditorForm() {
       </div>
 
       <div className="space-y-6">
-        {/* Settings Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="space-y-4">
             <div>
@@ -212,12 +218,11 @@ function EditorForm() {
               <label className="block text-sm font-semibold text-gray-700 mb-1">Content Type</label>
               <select 
                 value={type}
-                onChange={(e) => setType(e.target.value)}
+                onChange={handleTypeChange}
                 className="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-green-700 outline-none text-sm bg-white"
               >
                 <option value="Product Review">Product Review</option>
                 <option value="Blog Post">Blog Post</option>
-                <option value="Tutorial">Tutorial</option>
               </select>
             </div>
             <div>
@@ -227,10 +232,10 @@ function EditorForm() {
                 onChange={(e) => setCategory(e.target.value)}
                 className="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-green-700 outline-none text-sm bg-white"
               >
-                <option value="Book Nooks">Book Nooks</option>
-                <option value="Dollhouses">Dollhouses</option>
-                <option value="Metal Models">Metal Models</option>
-                <option value="Miniature Kits">Miniature Kits</option>
+                {type === "Blog Post" 
+                  ? BLOG_CATEGORIES.map(cat => <option key={cat} value={cat}>{cat}</option>)
+                  : REVIEW_CATEGORIES.map(cat => <option key={cat} value={cat}>{cat}</option>)
+                }
               </select>
             </div>
           </div>
@@ -253,7 +258,7 @@ function EditorForm() {
                 className="hidden" 
               />
               <button 
-                onClick={() => fileInputRef.current?.click()}
+                onClick={(e) => { e.preventDefault(); fileInputRef.current?.click(); }}
                 className="w-full bg-white border border-gray-300 text-gray-700 py-2 rounded-lg text-sm font-semibold hover:bg-gray-50 transition"
               >
                 Upload from Computer
@@ -262,7 +267,6 @@ function EditorForm() {
           </div>
         </div>
 
-        {/* SEO Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-gray-50 p-4 rounded-lg border border-gray-200">
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-1">SEO Title (Optional)</label>
@@ -286,7 +290,6 @@ function EditorForm() {
           </div>
         </div>
 
-        {/* Editor Box */}
         <div className="border border-gray-300 rounded-lg overflow-hidden shadow-sm mt-8">
           <CustomEditor value={content} onChange={setContent} />
         </div>

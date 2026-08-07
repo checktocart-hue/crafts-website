@@ -17,18 +17,24 @@ export default async function BlogPage(props: { searchParams: Promise<{ [key: st
     ...reviewsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() as any }))
   ];
 
-  // STRICT FILTER: Only keep the Blog categories (Guides, Tutorials, Tools)
-  let posts = allPosts.filter(post => {
+  // EXCLUDE REVIEWS: We only want blog posts here (filter out Book Nooks, Dollhouses, Metal Models)
+  const reviewCategories = ["Book Nooks", "Dollhouses", "Metal Models"];
+  let blogPosts = allPosts.filter(post => {
     const postCat = post.category || "";
-    return postCat === "Guides" || postCat === "Tutorials" || postCat === "Tools";
+    // If it's a review category, keep it off the general blog page
+    return !reviewCategories.includes(postCat);
   });
 
-  // FILTER BY TAB
+  // Dynamically extract all unique blog categories present in the database
+  const uniqueCategories = Array.from(new Set(blogPosts.map(p => p.category).filter(Boolean))) as string[];
+
+  // FILTER BY TAB (slugified matching)
+  let posts = blogPosts;
   if (currentTab !== "all") {
-    const targetCat = currentTab === "guides" ? "Guides" : 
-                      currentTab === "tutorials" ? "Tutorials" : 
-                      currentTab === "tools" ? "Tools" : "";
-    posts = posts.filter(post => post.category === targetCat);
+    posts = blogPosts.filter(post => {
+      const catSlug = (post.category || "").toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+      return catSlug === currentTab;
+    });
   }
 
   // Sort newest first
@@ -38,11 +44,14 @@ export default async function BlogPage(props: { searchParams: Promise<{ [key: st
     return dateB - dateA;
   });
 
+  // Build dynamic tabs based on database categories
   const tabs = [
     { id: "all", label: "All Articles", url: "/blog" },
-    { id: "guides", label: "Buying Guides", url: "/blog?cat=guides" },
-    { id: "tutorials", label: "Tutorials", url: "/blog?cat=tutorials" },
-    { id: "tools", label: "Tools", url: "/blog?cat=tools" }
+    ...uniqueCategories.map(cat => ({
+      id: cat.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, ''),
+      label: cat,
+      url: `/blog?cat=${cat.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '')}`
+    }))
   ];
 
   return (
@@ -57,7 +66,7 @@ export default async function BlogPage(props: { searchParams: Promise<{ [key: st
         </p>
       </div>
 
-      {/* CATEGORY TABS */}
+      {/* DYNAMIC CATEGORY TABS */}
       <div className="flex flex-wrap justify-center gap-2 md:gap-4 mb-12 border-b border-gray-200 pb-4">
         {tabs.map((tab) => (
           <Link 
