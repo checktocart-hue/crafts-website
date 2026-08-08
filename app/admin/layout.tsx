@@ -13,7 +13,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
           </span>
           
           {/* Page Links */}
-          <div className="hidden sm:flex gap-6">
+          <div className="hidden sm:flex gap-6 items-center">
             <Link href="/admin" className="text-sm font-medium text-gray-300 hover:text-white transition">
               Dashboard
             </Link>
@@ -23,9 +23,12 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
             <Link href="/admin/manage" className="text-sm font-medium text-gray-300 hover:text-white transition">
               Manage Content
             </Link>
-            {/* NEW LINK ADDED HERE */}
             <Link href="/admin/tools" className="text-sm font-medium text-gray-300 hover:text-white transition">
               Manage Tools
+            </Link>
+            {/* NEW SUBSCRIBERS LINK ADDED HERE */}
+            <Link href="/admin/subscribers" className="text-sm font-medium text-gray-300 hover:text-white transition">
+              Subscribers
             </Link>
           </div>
         </div>

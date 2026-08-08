@@ -69,12 +69,9 @@ export default async function HomePage() {
         
         {/* LEFT COLUMN */}
         <div className="lg:col-span-3 order-2 lg:order-1 flex flex-col gap-10">
-          <div className="bg-gray-100 p-6 rounded-lg text-center shadow-sm">
-             <h3 className="font-bold text-lg mb-2">Join the Newsletter</h3>
-             <p className="text-sm text-gray-600 mb-4">Get the latest reviews and build guides.</p>
-             <input type="email" placeholder="Your email..." className="w-full p-2 mb-2 border border-gray-300 rounded text-sm outline-none focus:border-gray-900"/>
-             <button className="w-full bg-gray-900 text-white font-bold py-2.5 rounded text-sm hover:bg-black transition">Subscribe</button>
-          </div>
+          
+          {/* YOUR WORKING FIREBASE NEWSLETTER FORM */}
+          <NewsletterForm />
 
           <div>
             <h2 className="text-2xl font-serif font-bold text-gray-900 border-b-[3px] border-gray-900 pb-2 mb-5 tracking-tight">
@@ -120,8 +117,6 @@ export default async function HomePage() {
                 </h1>
               </Link>
               
-              {/* DISPLAYING THE SNIPPET WITH MORE CONTENT SHOWING */}
-              {/* Increased line-clamp from 5 to 10 for desktop to show much more text */}
               <div className="text-gray-600 text-lg leading-relaxed mb-6 line-clamp-6 md:line-clamp-[10] overflow-hidden">
                 {heroPost.excerpt ? (
                   <p>{heroPost.excerpt}</p>
@@ -130,13 +125,10 @@ export default async function HomePage() {
                     remarkPlugins={[remarkGfm]} 
                     rehypePlugins={[rehypeRaw]}
                     components={{
-                      // Hide images from the preview snippet so they don't break the layout
                       img: () => null,
-                      // Convert big headings to regular bold paragraphs in the preview
                       h1: ({node, ...props}) => <p className="font-bold mb-4" {...props} />,
                       h2: ({node, ...props}) => <p className="font-bold mb-4" {...props} />,
                       h3: ({node, ...props}) => <p className="font-bold mb-4" {...props} />,
-                      // Ensure paragraphs have bottom spacing
                       p: ({node, ...props}) => <p className="mb-4" {...props} />
                     }}
                   >
@@ -220,7 +212,7 @@ export default async function HomePage() {
         </div>
       )}
       
-      {/* EXPLORE BY CATEGORY GRID (Reviews) */}
+      {/* UPGRADED SVG ICON TABS (No Broken Images!) */}
       <div className="mb-10">
         <div className="flex items-center justify-between border-b-2 border-gray-900 pb-2 mb-8">
           <h2 className="text-2xl font-serif font-bold text-gray-900 tracking-tight">
@@ -231,30 +223,47 @@ export default async function HomePage() {
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          <Link href="/reviews?cat=book-nooks" className="group relative h-48 rounded-sm overflow-hidden bg-stone-800 flex items-center justify-center shadow-sm">
-            <img src="https://images.unsplash.com/photo-1481627834876-b7833e8f5570?auto=format&fit=crop&q=80&w=800" alt="Book Nooks" className="absolute inset-0 w-full h-full object-cover opacity-80 group-hover:scale-110 transition-transform duration-700 ease-out" />
-            <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition duration-300 z-10"></div>
-            <h3 className="relative z-20 text-white font-sans font-bold text-xl tracking-widest uppercase drop-shadow-lg group-hover:scale-105 transition-transform duration-300">Book Nooks</h3>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+          
+          <Link href="/reviews?cat=book-nooks" className="group flex flex-col items-center justify-center p-8 bg-white border border-gray-100 rounded-lg shadow-sm hover:shadow-md hover:border-gray-200 transition-all duration-300">
+            <div className="w-16 h-16 rounded-full bg-stone-100 text-stone-600 flex items-center justify-center mb-4 group-hover:bg-gray-900 group-hover:text-white transition-colors duration-300">
+              <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/>
+              </svg>
+            </div>
+            <h3 className="font-sans font-bold text-[15px] sm:text-lg text-gray-900 tracking-wide uppercase text-center">Book Nooks</h3>
           </Link>
 
-          <Link href="/reviews?cat=dollhouses" className="group relative h-48 rounded-sm overflow-hidden bg-stone-800 flex items-center justify-center shadow-sm">
-            <img src="https://images.unsplash.com/photo-1596460111978-75176bd801a6?auto=format&fit=crop&q=80&w=800" alt="Dollhouses" className="absolute inset-0 w-full h-full object-cover opacity-80 group-hover:scale-110 transition-transform duration-700 ease-out" />
-            <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition duration-300 z-10"></div>
-            <h3 className="relative z-20 text-white font-sans font-bold text-xl tracking-widest uppercase drop-shadow-lg group-hover:scale-105 transition-transform duration-300">Dollhouses</h3>
+          <Link href="/reviews?cat=dollhouses" className="group flex flex-col items-center justify-center p-8 bg-white border border-gray-100 rounded-lg shadow-sm hover:shadow-md hover:border-gray-200 transition-all duration-300">
+            <div className="w-16 h-16 rounded-full bg-stone-100 text-stone-600 flex items-center justify-center mb-4 group-hover:bg-gray-900 group-hover:text-white transition-colors duration-300">
+              <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                <polyline points="9 22 9 12 15 12 15 22"/>
+              </svg>
+            </div>
+            <h3 className="font-sans font-bold text-[15px] sm:text-lg text-gray-900 tracking-wide uppercase text-center">Dollhouses</h3>
           </Link>
 
-          <Link href="/reviews?cat=metal-models" className="group relative h-48 rounded-sm overflow-hidden bg-stone-800 flex items-center justify-center shadow-sm">
-            <img src="https://images.unsplash.com/photo-1584905891334-b22c7ccbf4e6?auto=format&fit=crop&q=80&w=800" alt="Metal Models" className="absolute inset-0 w-full h-full object-cover opacity-80 group-hover:scale-110 transition-transform duration-700 ease-out" />
-            <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition duration-300 z-10"></div>
-            <h3 className="relative z-20 text-white font-sans font-bold text-xl tracking-widest uppercase drop-shadow-lg group-hover:scale-105 transition-transform duration-300">Metal Models</h3>
+          <Link href="/reviews?cat=metal-models" className="group flex flex-col items-center justify-center p-8 bg-white border border-gray-100 rounded-lg shadow-sm hover:shadow-md hover:border-gray-200 transition-all duration-300">
+            <div className="w-16 h-16 rounded-full bg-stone-100 text-stone-600 flex items-center justify-center mb-4 group-hover:bg-gray-900 group-hover:text-white transition-colors duration-300">
+              <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
+                <line x1="12" y1="22.08" x2="12" y2="12"/>
+              </svg>
+            </div>
+            <h3 className="font-sans font-bold text-[15px] sm:text-lg text-gray-900 tracking-wide uppercase text-center">Metal Models</h3>
           </Link>
 
-          <Link href="/tools" className="group relative h-48 rounded-sm overflow-hidden bg-stone-800 flex items-center justify-center shadow-sm">
-            <img src="https://images.unsplash.com/photo-1537248384218-c01d4a004495?auto=format&fit=crop&q=80&w=800" alt="Building Tools" className="absolute inset-0 w-full h-full object-cover opacity-80 group-hover:scale-110 transition-transform duration-700 ease-out" />
-            <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition duration-300 z-10"></div>
-            <h3 className="relative z-20 text-white font-sans font-bold text-xl tracking-widest uppercase drop-shadow-lg group-hover:scale-105 transition-transform duration-300">Building Tools</h3>
+          <Link href="/tools" className="group flex flex-col items-center justify-center p-8 bg-white border border-gray-100 rounded-lg shadow-sm hover:shadow-md hover:border-gray-200 transition-all duration-300">
+            <div className="w-16 h-16 rounded-full bg-stone-100 text-stone-600 flex items-center justify-center mb-4 group-hover:bg-gray-900 group-hover:text-white transition-colors duration-300">
+              <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+              </svg>
+            </div>
+            <h3 className="font-sans font-bold text-[15px] sm:text-lg text-gray-900 tracking-wide uppercase text-center">Building Tools</h3>
           </Link>
+
         </div>
       </div>
 
