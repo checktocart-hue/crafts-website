@@ -29,20 +29,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${inter.variable} ${playfair.variable}`}>
-      <body className="font-sans antialiased bg-white text-gray-900" suppressHydrationWarning>
-        
-        {/* Your custom Header */}
-        <Header />
-        
-        <main>
-          {children}
-        </main>
-
-        {/* Your custom Footer */}
-        <Footer />
-        
-      </body>
-    </html>
+    // We move the font variables and body classes to a standard wrapper div
+    <div className={`${inter.variable} ${playfair.variable} font-sans antialiased bg-white text-gray-900`}>
+      {/* Your custom Header */}
+      <Header />
+      {children}
+      <Footer />
+    </div>
   );
 }

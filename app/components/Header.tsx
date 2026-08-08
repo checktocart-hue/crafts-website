@@ -137,9 +137,22 @@ export default function Header() {
               </div>
             </div>
 
-            <Link href="/blog" className="hover:text-green-200 transition border-b-2 border-transparent hover:border-green-200">
-              BLOG & GUIDES
-            </Link>
+            {/* BLOG DROPDOWN */}
+            <div className="relative group cursor-pointer border-b-2 border-transparent hover:border-green-200">
+              <Link href="/blog" className="group-hover:text-green-200 transition flex items-center gap-1">
+                BLOG & GUIDES <ChevronDown size={12}/>
+              </Link>
+              <div className="absolute top-full left-1/2 -translate-x-1/2 w-56 bg-white shadow-xl rounded-b-xl border-x border-b border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform translate-y-2 group-hover:translate-y-0 overflow-hidden z-50">
+                <div className="py-2 flex flex-col text-left">
+                  <div className="px-5 py-2 text-[10px] text-gray-400 uppercase tracking-widest border-b border-gray-50 bg-gray-50">Content Type</div>
+                  <Link href="/blog?cat=buying-guides" className="px-5 py-3 hover:bg-green-50 hover:text-green-700 text-gray-600 border-b border-gray-50 font-normal tracking-normal text-sm">📝 Buying Guides</Link>
+                  <Link href="/blog?cat=tutorials" className="px-5 py-3 hover:bg-green-50 hover:text-green-700 text-gray-600 border-b border-gray-50 font-normal tracking-normal text-sm">🛠️ Tutorials</Link>
+                  <Link href="/blog?cat=tools" className="px-5 py-3 hover:bg-green-50 hover:text-green-700 text-gray-600 border-b border-gray-50 font-normal tracking-normal text-sm">🔧 Tools</Link>
+                  <Link href="/blog" className="px-5 py-3 text-center text-green-700 font-bold hover:bg-green-50 text-xs uppercase tracking-widest">View All Posts</Link>
+                </div>
+              </div>
+            </div>
+
             <Link href="/about" className="hover:text-green-200 transition border-b-2 border-transparent hover:border-green-200">
               OUR STORY
             </Link>
@@ -178,7 +191,7 @@ export default function Header() {
             >
               <ShoppingBag size={18} /> Official Amazon Storefront <ExternalLink size={14} />
             </a>
-            <Link href="/blog" onClick={() => setIsMobileMenuOpen(false)} className="border-b border-gray-100 pb-4">Blog</Link>
+            <Link href="/blog" onClick={() => setIsMobileMenuOpen(false)} className="border-b border-gray-100 pb-4">Blog & Guides</Link>
             <Link href="/about" onClick={() => setIsMobileMenuOpen(false)} className="border-b border-gray-100 pb-4">About Us</Link>
             <Link href="/contact" onClick={() => setIsMobileMenuOpen(false)} className="pb-4">Contact</Link>
           </div>
