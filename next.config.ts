@@ -12,8 +12,12 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       {
-        source: '/projects/piececool-vs-metal-earth-review',
-        destination: '/blog/piececool-vs-metal-earth-review',
+        // The :slug* acts as a wildcard, catching ANY post after /projects/
+        source: '/projects/:slug*',
+        
+        // And automatically applies that same post name after /blog/
+        destination: '/blog/:slug*',
+        
         permanent: true, // 301 redirect for SEO
       },
     ];
