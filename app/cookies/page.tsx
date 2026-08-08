@@ -16,6 +16,7 @@ export default function CookiePage() {
         <ul>
             <li><strong>Email newsletters related cookies:</strong> This site offers newsletter or email subscription services and cookies may be used to remember if you are already registered.</li>
             <li><strong>Site preferences cookies:</strong> In order to provide you with a great experience on this site we provide the functionality to set your preferences for how this site runs when you use it.</li>
+            <li><strong>Advertising cookies:</strong> We use third-party advertising companies, including Google, to serve ads when you visit our website. These companies may use cookies to serve ads based on your prior visits to this website or other websites on the internet. For more information on how Google uses this data, please review our Privacy Policy.</li>
         </ul>
       </div>
     </div>

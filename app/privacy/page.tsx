@@ -13,8 +13,12 @@ export default function PrivacyPage() {
         <h3>Cookies and Web Beacons</h3>
         <p>Like any other website, CraftsAndKits uses "cookies". These cookies are used to store information including visitors' preferences, and the pages on the website that the visitor accessed or visited. The information is used to optimize the users' experience by customizing our web page content based on visitors' browser type and/or other information.</p>
         
-        <h3>Google DoubleClick DART Cookie</h3>
-        <p>Google is one of a third-party vendor on our site. It also uses cookies, known as DART cookies, to serve ads to our site visitors based upon their visit to our site and other sites on the internet.</p>
+        <h3>Google and Third-Party Advertising Cookies</h3>
+        <p>Google, as a third-party vendor, uses cookies to serve ads on CraftsAndKits. Google's use of advertising cookies enables it and its partners to serve ads to our site visitors based upon their visit to our site and other sites on the Internet.
+
+Users may opt out of personalized advertising by visiting Google Ads Settings.
+
+Furthermore, CraftsAndKits may use other third-party ad networks to serve advertisements. You can opt out of some third-party vendors' uses of cookies for personalized advertising by visiting www.aboutads.info.</p>
 
         <h3>Third Party Privacy Policies</h3>
         <p>CraftsAndKits's Privacy Policy does not apply to other advertisers or websites. Thus, we are advising you to consult the respective Privacy Policies of these third-party ad servers for more detailed information. It may include their practices and instructions about how to opt-out of certain options.</p>

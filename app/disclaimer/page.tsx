@@ -13,7 +13,7 @@ export default function DisclaimerPage() {
       <div className="prose prose-lg prose-gray max-w-none mt-8">
         <p>
           <strong>Amazon Associate Program</strong><br/>
-          CraftsAndKits is a participant in the Amazon Services LLC Associates Program, an affiliate advertising program designed to provide a means for sites to earn advertising fees by advertising and linking to Amazon.com.
+          CraftsAndKits is a participant in the Amazon Services LLC Associates Program, an affiliate advertising program designed to provide a means for sites to earn advertising fees by advertising and linking to Amazon.com. As an Amazon Associate, CraftsAndKits earns from qualifying purchases.
         </p>
         <p>
           <strong>How this affects you</strong><br/>
