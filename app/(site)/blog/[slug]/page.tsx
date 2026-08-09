@@ -3,6 +3,7 @@ import { db } from "@/app/lib/firebase";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
+import TableOfContents from "@/components/TableOfContents"; // <-- Imported here
 
 export const revalidate = 60;
 
@@ -41,6 +42,9 @@ export default async function BlogPostPage(props: { params: Promise<{ slug: stri
           />
         )}
       </header>
+
+      {/* AUTOMATIC TABLE OF CONTENTS */}
+      <TableOfContents />
 
       <div className="prose prose-lg prose-stone max-w-none prose-headings:font-serif prose-a:text-blue-700 prose-img:rounded-md prose-img:mx-auto">
         {/* rehypeRaw is the magic key that allows your legacy HTML images to render! */}
