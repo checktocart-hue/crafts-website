@@ -34,6 +34,8 @@ function EditorForm() {
   const [seoTitle, setSeoTitle] = useState("");
   const [metaDescription, setMetaDescription] = useState("");
   
+  // Social Media State
+    
   const [isFetching, setIsFetching] = useState(!!editId);
   const [isSaving, setIsSaving] = useState(false);
   const [status, setStatus] = useState("draft");
@@ -77,7 +79,6 @@ function EditorForm() {
     }
   };
 
-  // Dynamically switch categories when Content Type changes
   const handleTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newType = e.target.value;
     setType(newType);
@@ -114,6 +115,7 @@ function EditorForm() {
         ? doc(db, targetCollection, editId) 
         : doc(collection(db, targetCollection));
 
+      // 1. Save to Firebase
       await setDoc(docRef, {
         title,
         slug,
@@ -127,6 +129,26 @@ function EditorForm() {
         updatedAt: new Date().toISOString(),
         ...(editId ? {} : { createdAt: new Date().toISOString() })
       }, { merge: true });
+
+      // 2. Trigger Social Share if Published and Toggle is checked
+      if (targetStatus === "published" && postToSocials) {
+        try {
+          // Adjust this URL path based on how your frontend routing is set up
+          const postLink = `https://www.craftsandkits.com/blog/${slug}`;
+          
+          await fetch('/api/social-share', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              title: title,
+              link: postLink,
+              imageUrl: coverImage
+            }),
+          });
+        } catch (socialError) {
+          console.error("Social share failed, but post was saved:", socialError);
+        }
+      }
 
       alert(targetStatus === "published" ? "Successfully published to site!" : "Draft saved successfully!");
       router.push("/admin/manage");
@@ -167,6 +189,7 @@ function EditorForm() {
         </div>
 
         <div className="flex items-center gap-3">
+          
           <button 
             onClick={handlePreview}
             className="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg font-bold hover:bg-gray-300 transition text-sm shadow-sm"
