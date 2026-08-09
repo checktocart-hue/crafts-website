@@ -130,27 +130,7 @@ function EditorForm() {
         ...(editId ? {} : { createdAt: new Date().toISOString() })
       }, { merge: true });
 
-      // 2. Trigger Social Share if Published and Toggle is checked
-      if (targetStatus === "published" && postToSocials) {
-        try {
-          // Adjust this URL path based on how your frontend routing is set up
-          const postLink = `https://www.craftsandkits.com/blog/${slug}`;
-          
-          await fetch('/api/social-share', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              title: title,
-              link: postLink,
-              imageUrl: coverImage
-            }),
-          });
-        } catch (socialError) {
-          console.error("Social share failed, but post was saved:", socialError);
-        }
-      }
-
-      alert(targetStatus === "published" ? "Successfully published to site!" : "Draft saved successfully!");
+           alert(targetStatus === "published" ? "Successfully published to site!" : "Draft saved successfully!");
       router.push("/admin/manage");
     } catch (error) {
       console.error("Error saving document:", error);
