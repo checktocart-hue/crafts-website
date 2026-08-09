@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter, Dancing_Script } from "next/font/google";
+import Script from "next/script"; // <-- 1. Added the Script import
 import "./globals.css"; // Ensure this points to your css file
 
 const inter = Inter({
@@ -30,6 +31,15 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        {/* 2. Added the AdSense Script block */}
+        <Script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5152146437122143"
+          crossOrigin="anonymous"
+          strategy="afterInteractive"
+        />
+      </head>
       <body className={`${inter.variable} ${dancingScript.variable} font-sans antialiased text-gray-800 bg-white`}>
         {children}
       </body>

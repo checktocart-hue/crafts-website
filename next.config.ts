@@ -11,14 +11,17 @@ const nextConfig: NextConfig = {
   },
   async redirects() {
     return [
+      // 1. SPECIFIC REDIRECT (Put this FIRST so it protects your Piececool post immediately)
       {
-        // The :slug* acts as a wildcard, catching ANY post after /projects/
-        source: '/projects/:slug*',
-        
-        // And automatically applies that same post name after /blog/
-        destination: '/blog/:slug*',
-        
-        permanent: true, // 301 redirect for SEO
+        source: '/projects/piececool-vs-metal-earth-review',
+        destination: '/blog/piececool-vs-metal-earth-review',
+        permanent: true, 
+      },
+      // 2. WILDCARD CATCH-ALL (Catches Cutebee and any other old Sanity URLs)
+      {
+        source: '/projects/:path*',
+        destination: '/blog/:path*',
+        permanent: true, 
       },
     ];
   },
