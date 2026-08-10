@@ -100,7 +100,7 @@ export default async function BlogPostPage(props: { params: Promise<{ slug: stri
                   </span>
                 );
               }
-            }}
+            } as any} // <--- Added "as any" right here to fix the TypeScript Build Error!
           >
             {contentToRender}
           </ReactMarkdown>
