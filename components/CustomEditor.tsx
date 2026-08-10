@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from 'react';
 import { CKEditor } from '@ckeditor/ckeditor5-react';
 import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
 
@@ -29,7 +30,6 @@ class CloudinaryUploadAdapter {
           .then((response) => response.json())
           .then((data) => {
             if (data.url) {
-              // CKEditor expects the URL in a 'default' property
               resolve({ default: data.url });
             } else {
               reject(data.error);
@@ -43,12 +43,9 @@ class CloudinaryUploadAdapter {
     });
   }
 
-  abort() {
-    // Optional: Add logic to cancel the upload if needed
-  }
+  abort() {}
 }
 
-// 2. The Plugin Function that injects the adapter into CKEditor
 function CustomUploadAdapterPlugin(editor: any) {
   editor.plugins.get("FileRepository").createUploadAdapter = (loader: any) => {
     return new CloudinaryUploadAdapter(loader);
@@ -57,34 +54,128 @@ function CustomUploadAdapterPlugin(editor: any) {
 
 // 3. The Main Editor Component
 export default function CustomEditor({ value, onChange }: EditorProps) {
+  const [editorInstance, setEditorInstance] = useState<any>(null);
+  const [showBuilder, setShowBuilder] = useState(false);
+  const [cardData, setCardData] = useState({
+    title: '',
+    badge: 'Top Pick',
+    image: '',
+    link: ''
+  });
+
+  const handleInsertCard = () => {
+    if (!editorInstance || !cardData.title || !cardData.link) return;
+
+    // Creates a safe shortcode string that CKEditor won't strip or break
+    const shortcode = `[AMAZON_CARD || ${cardData.title} || ${cardData.badge} || ${cardData.image} || ${cardData.link}]\n`;
+
+    // Injects the shortcode exactly where the cursor is blinking
+    editorInstance.model.change((writer: any) => {
+      const insertPosition = editorInstance.model.document.selection.getFirstPosition();
+      writer.insertText(shortcode, insertPosition);
+    });
+
+    // Reset the form and close the builder
+    setCardData({ title: '', badge: 'Top Pick', image: '', link: '' });
+    setShowBuilder(false);
+  };
+
   return (
-    <div className="prose max-w-none w-full bg-white text-gray-800">
-      <CKEditor
-        editor={ClassicEditor}
-        data={value}
-        onChange={(event, editor) => {
-          const data = editor.getData();
-          onChange(data);
-        }}
-        config={{
-          extraPlugins: [CustomUploadAdapterPlugin], // Connects the upload logic
-          toolbar: [
-            'heading', '|',
-            'bold', 'italic', 'link', 'bulletedList', 'numberedList', '|',
-            'uploadImage', 'insertTable', 'blockQuote', 'undo', 'redo'
-          ],
-          table: {
-            contentToolbar: [
-              'tableColumn', 'tableRow', 'mergeTableCells'
-            ]
-          },
-          image: {
+    <div className="w-full">
+      
+      {/* AFFILIATE TOOLS PANEL */}
+      <div className="mb-4 rounded-xl border border-gray-200 bg-gray-50 overflow-hidden shadow-sm">
+        <div className="p-3 bg-gray-100 border-b border-gray-200 flex items-center justify-between">
+          <span className="font-bold text-sm text-gray-700">🛠 Content Tools</span>
+          <button
+            onClick={() => setShowBuilder(!showBuilder)}
+            className="bg-amber-500 hover:bg-amber-400 text-gray-950 font-bold text-xs px-4 py-2 rounded-lg transition-colors shadow-sm"
+          >
+            {showBuilder ? "Close Builder" : "📦 Insert Amazon Card"}
+          </button>
+        </div>
+
+        {showBuilder && (
+          <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4 bg-white">
+            <div className="space-y-1">
+              <label className="text-xs font-bold text-gray-600">Product Title</label>
+              <input 
+                type="text" 
+                value={cardData.title} 
+                onChange={e => setCardData({...cardData, title: e.target.value})} 
+                className="w-full border border-gray-300 p-2 rounded-lg text-sm focus:outline-none focus:border-amber-500" 
+                placeholder="e.g. Piececool 3D Metal Puzzle" 
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="text-xs font-bold text-gray-600">Badge (Optional)</label>
+              <input 
+                type="text" 
+                value={cardData.badge} 
+                onChange={e => setCardData({...cardData, badge: e.target.value})} 
+                className="w-full border border-gray-300 p-2 rounded-lg text-sm focus:outline-none focus:border-amber-500" 
+                placeholder="e.g. Best for Beginners" 
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="text-xs font-bold text-gray-600">Image URL</label>
+              <input 
+                type="text" 
+                value={cardData.image} 
+                onChange={e => setCardData({...cardData, image: e.target.value})} 
+                className="w-full border border-gray-300 p-2 rounded-lg text-sm focus:outline-none focus:border-amber-500" 
+                placeholder="https://m.media-amazon.com/..." 
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="text-xs font-bold text-gray-600">Amazon Affiliate Link</label>
+              <input 
+                type="text" 
+                value={cardData.link} 
+                onChange={e => setCardData({...cardData, link: e.target.value})} 
+                className="w-full border border-gray-300 p-2 rounded-lg text-sm focus:outline-none focus:border-amber-500" 
+                placeholder="https://www.amazon.com/dp/..." 
+              />
+            </div>
+            <div className="md:col-span-2 pt-2">
+              <button 
+                onClick={handleInsertCard} 
+                className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2.5 rounded-lg transition-colors shadow-sm"
+              >
+                Insert Card at Cursor
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      <p className="text-xs text-gray-500 mb-3 italic">
+        * <strong>Need a comparison table?</strong> Just click the standard Table icon inside the CKEditor toolbar below. The site will style it automatically!
+      </p>
+
+      {/* CKEDITOR */}
+      <div className="prose max-w-none w-full bg-white text-gray-800 border border-gray-200 rounded-lg overflow-hidden">
+        <CKEditor
+          editor={ClassicEditor}
+          data={value}
+          onReady={(editor) => setEditorInstance(editor)}
+          onChange={(event, editor) => {
+            const data = editor.getData();
+            onChange(data);
+          }}
+          config={{
+            extraPlugins: [CustomUploadAdapterPlugin],
             toolbar: [
-              'imageTextAlternative', 'toggleImageCaption', 'imageStyle:inline', 'imageStyle:block', 'imageStyle:side'
-            ]
-          }
-        }}
-      />
+              'heading', '|',
+              'bold', 'italic', 'link', 'bulletedList', 'numberedList', '|',
+              'uploadImage', 'insertTable', 'blockQuote', 'undo', 'redo'
+            ],
+            table: {
+              contentToolbar: ['tableColumn', 'tableRow', 'mergeTableCells']
+            }
+          }}
+        />
+      </div>
     </div>
   );
 }

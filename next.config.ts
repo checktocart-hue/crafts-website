@@ -6,6 +6,18 @@ const nextConfig: NextConfig = {
       {
         protocol: 'https',
         hostname: 'cdn.sanity.io',
+      },
+      {
+        protocol: 'https',
+        hostname: 'res.cloudinary.com', 
+      },
+      {
+        protocol: 'https',
+        hostname: 'firebasestorage.googleapis.com', 
+      },
+      {
+        protocol: 'https',
+        hostname: 'm.media-amazon.com', 
       }
     ]
   },

@@ -4,6 +4,8 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
 import TableOfContents from "@/components/TableOfContents"; 
+import AmazonProductCard from "@/components/AmazonProductCard"; 
+import Image from "next/image"; // <-- Imported Next.js Image component
 
 export const revalidate = 60;
 
@@ -23,7 +25,15 @@ export default async function BlogPostPage(props: { params: Promise<{ slug: stri
   }
 
   const post = snap.docs[0].data() as any;
-  const contentToRender = post.content || post.body || ""; 
+  const rawContent = post.content || post.body || ""; 
+  
+  const contentToRender = rawContent.replace(
+    /\[AMAZON_CARD\s*\|\|\s*([\s\S]*?)\s*\|\|\s*([\s\S]*?)\s*\|\|\s*([\s\S]*?)\s*\|\|\s*([\s\S]*?)\]/g,
+    (match: any, title: string, badge: string, image: string, link: string) => {
+      const stripHTML = (str: string) => str.replace(/(<([^>]+)>)/gi, "").trim();
+      return `<amazon-card title="${stripHTML(title)}" badge="${stripHTML(badge)}" imageurl="${stripHTML(image)}" amazonurl="${stripHTML(link)}"></amazon-card>`;
+    }
+  ); 
 
   return (
     <article className="max-w-6xl mx-auto px-4 py-16 font-sans relative">
@@ -35,33 +45,66 @@ export default async function BlogPostPage(props: { params: Promise<{ slug: stri
           {post.title}
         </h1>
 
-        {/* STRATEGY 1: FTC Affiliate Disclosure */}
         <div className="bg-gray-50 border border-gray-200 text-gray-600 text-xs px-4 py-3 rounded-lg inline-block shadow-sm mb-4">
           <span className="font-bold">Transparency:</span> As an Amazon Associate, we earn from qualifying purchases through links in this guide at no extra cost to you.
         </div>
 
+        {/* OPTIMIZED COVER IMAGE */}
         {post.coverImage && (
-          <img 
-            src={post.coverImage} 
-            alt={post.title} 
-            className="w-full aspect-[16/9] object-cover rounded-lg shadow-sm mt-4"
-          />
+          <div className="relative w-full aspect-[16/9] mt-4 overflow-hidden rounded-lg shadow-sm">
+            <Image 
+              src={post.coverImage} 
+              alt={post.title}
+              fill
+              priority // Loads immediately for a faster visually complete page
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 800px"
+              className="object-cover"
+            />
+          </div>
         )}
       </header>
 
-      {/* Grid Layout for Sticky Sidebar */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start mt-12">
         
-        {/* Sticky Table of Contents (Left Column) */}
         <aside className="lg:col-span-4 sticky top-8">
           <TableOfContents />
         </aside>
 
-        {/* STRATEGY 2: Main Article & Optimized Link Styling (Right Column) */}
         <div className="lg:col-span-8 prose prose-lg prose-stone max-w-none prose-headings:font-serif prose-a:text-amber-600 prose-a:font-extrabold prose-a:underline hover:prose-a:text-amber-700 prose-img:rounded-md prose-img:mx-auto">
-          <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>
+          
+          <ReactMarkdown 
+            remarkPlugins={[remarkGfm]} 
+            rehypePlugins={[rehypeRaw]}
+            components={{
+              "amazon-card": ({node, ...props}: any) => (
+                <AmazonProductCard 
+                  title={props.title}
+                  badge={props.badge}
+                  imageUrl={props.imageurl}
+                  amazonUrl={props.amazonurl}
+                />
+              ),
+              // OPTIMIZED MARKDOWN IMAGES
+              img: ({node, ...props}: any) => {
+                if (!props.src) return null;
+                return (
+                  <span className="block relative w-full aspect-video my-8 overflow-hidden rounded-md shadow-sm">
+                    <Image
+                      src={props.src}
+                      alt={props.alt || "Article image"}
+                      fill
+                      loading="lazy" // Defers loading until the image is close to scrolling into view
+                      sizes="(max-width: 768px) 100vw, 800px"
+                      className="object-contain"
+                    />
+                  </span>
+                );
+              }
+            }}
+          >
             {contentToRender}
           </ReactMarkdown>
+
         </div>
       </div>
       
