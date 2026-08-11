@@ -5,7 +5,7 @@ import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
 import TableOfContents from "@/components/TableOfContents"; 
 import AmazonProductCard from "@/components/AmazonProductCard"; 
-import Image from "next/image"; // <-- Imported Next.js Image component
+import Image from "next/image";
 
 export const revalidate = 60;
 
@@ -36,7 +36,8 @@ export default async function BlogPostPage(props: { params: Promise<{ slug: stri
   ); 
 
   return (
-    <article className="max-w-6xl mx-auto px-4 py-16 font-sans relative">
+    // ADDED pb-28 (padding-bottom) so the sticky bar doesn't cover the last paragraph
+    <article className="max-w-6xl mx-auto px-4 pt-16 pb-28 font-sans relative">
       <header className="max-w-3xl mx-auto mb-10 text-center">
         <p className="text-sm font-bold text-amber-600 uppercase tracking-widest mb-4">
           {post.category || "Review"}
@@ -49,14 +50,13 @@ export default async function BlogPostPage(props: { params: Promise<{ slug: stri
           <span className="font-bold">Transparency:</span> As an Amazon Associate, we earn from qualifying purchases through links in this guide at no extra cost to you.
         </div>
 
-        {/* OPTIMIZED COVER IMAGE */}
         {post.coverImage && (
           <div className="relative w-full aspect-[16/9] mt-4 overflow-hidden rounded-lg shadow-sm">
             <Image 
               src={post.coverImage} 
               alt={post.title}
               fill
-              priority // Loads immediately for a faster visually complete page
+              priority 
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 800px"
               className="object-cover"
             />
@@ -65,13 +65,11 @@ export default async function BlogPostPage(props: { params: Promise<{ slug: stri
       </header>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start mt-12">
-        
         <aside className="lg:col-span-4 sticky top-8">
           <TableOfContents />
         </aside>
 
         <div className="lg:col-span-8 prose prose-lg prose-stone max-w-none prose-headings:font-serif prose-a:text-amber-600 prose-a:font-extrabold prose-a:underline hover:prose-a:text-amber-700 prose-img:rounded-md prose-img:mx-auto">
-          
           <ReactMarkdown 
             remarkPlugins={[remarkGfm]} 
             rehypePlugins={[rehypeRaw]}
@@ -84,7 +82,6 @@ export default async function BlogPostPage(props: { params: Promise<{ slug: stri
                   amazonUrl={props.amazonurl}
                 />
               ),
-              // OPTIMIZED MARKDOWN IMAGES
               img: ({node, ...props}: any) => {
                 if (!props.src) return null;
                 return (
@@ -93,21 +90,44 @@ export default async function BlogPostPage(props: { params: Promise<{ slug: stri
                       src={props.src}
                       alt={props.alt || "Article image"}
                       fill
-                      loading="lazy" // Defers loading until the image is close to scrolling into view
+                      loading="lazy" 
                       sizes="(max-width: 768px) 100vw, 800px"
                       className="object-contain"
                     />
                   </span>
                 );
               }
-            } as any} // <--- Added "as any" right here to fix the TypeScript Build Error!
+            } as any} 
           >
             {contentToRender}
           </ReactMarkdown>
-
         </div>
       </div>
       
+      {/* ========================================= */}
+      {/* AGGRESSIVE MONETIZATION: MOBILE STICKY BAR */}
+      {/* ========================================= */}
+      {post.affiliateLink && (
+        <div className="fixed bottom-0 left-0 w-full bg-white border-t border-gray-200 p-3 shadow-[0_-10px_15px_-3px_rgba(0,0,0,0.1)] z-50 md:hidden flex items-center justify-between gap-3">
+          <div className="flex-1 min-w-0">
+            <p className="text-[10px] font-extrabold text-gray-400 uppercase tracking-wider truncate">
+              Featured Kit
+            </p>
+            <p className="text-sm font-bold text-gray-900 truncate leading-tight">
+              {post.title}
+            </p>
+          </div>
+          <a
+            href={post.affiliateLink}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="bg-amber-500 hover:bg-amber-400 text-gray-950 font-extrabold px-5 py-3 rounded-xl text-sm transition-all shadow-sm flex items-center justify-center gap-2 flex-shrink-0"
+          >
+            Check Price ↗
+          </a>
+        </div>
+      )}
+
     </article>
   );
 }

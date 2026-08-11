@@ -12,7 +12,6 @@ const CustomEditor = dynamic(() => import("@/components/CustomEditor"), {
   loading: () => <div className="min-h-[400px] flex items-center justify-center bg-gray-50 border border-gray-200 rounded-lg animate-pulse">Loading Editor...</div>
 });
 
-// Define our strict category lists
 const BLOG_CATEGORIES = ["Buying Guides", "Tutorials", "Tools"];
 const REVIEW_CATEGORIES = ["Book Nooks", "Dollhouses", "Metal Models"];
 
@@ -34,7 +33,8 @@ function EditorForm() {
   const [seoTitle, setSeoTitle] = useState("");
   const [metaDescription, setMetaDescription] = useState("");
   
-  // Social Media State
+  // NEW: Affiliate Link State
+  const [affiliateLink, setAffiliateLink] = useState("");
     
   const [isFetching, setIsFetching] = useState(!!editId);
   const [isSaving, setIsSaving] = useState(false);
@@ -56,6 +56,7 @@ function EditorForm() {
           setCoverImage(data.coverImage || "");
           setSeoTitle(data.seoTitle || "");
           setMetaDescription(data.metaDescription || "");
+          setAffiliateLink(data.affiliateLink || ""); // Fetch Affiliate Link
           setStatus(data.status || "draft");
           
           const rawContent = data.content || "";
@@ -124,13 +125,14 @@ function EditorForm() {
         coverImage,
         seoTitle,
         metaDescription,
+        affiliateLink, // Save Affiliate Link
         content,
         status: targetStatus,
         updatedAt: new Date().toISOString(),
         ...(editId ? {} : { createdAt: new Date().toISOString() })
       }, { merge: true });
 
-           alert(targetStatus === "published" ? "Successfully published to site!" : "Draft saved successfully!");
+      alert(targetStatus === "published" ? "Successfully published to site!" : "Draft saved successfully!");
       router.push("/admin/manage");
     } catch (error) {
       console.error("Error saving document:", error);
@@ -291,6 +293,23 @@ function EditorForm() {
               className="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-green-700 outline-none text-sm bg-white resize-none"
             />
           </div>
+        </div>
+
+        {/* NEW: Affiliate Link Input Block */}
+        <div className="bg-amber-50 p-4 rounded-lg border border-amber-200">
+          <label className="block text-sm font-extrabold text-gray-900 mb-1">
+            🛒 Primary Affiliate Link
+          </label>
+          <input 
+            type="url" 
+            value={affiliateLink}
+            onChange={(e) => setAffiliateLink(e.target.value)}
+            placeholder="https://amzn.to/..."
+            className="w-full border border-amber-300 rounded-lg p-2.5 focus:ring-2 focus:ring-amber-500 outline-none text-sm bg-white"
+          />
+          <p className="text-xs text-amber-700 mt-2 font-medium">
+            Paste your primary product link here. This automatically generates the "Check Price" sticky CTA bar for mobile users.
+          </p>
         </div>
 
         <div className="border border-gray-300 rounded-lg overflow-hidden shadow-sm mt-8">
