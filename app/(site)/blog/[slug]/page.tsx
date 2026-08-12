@@ -5,6 +5,7 @@ import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
 import TableOfContents from "@/components/TableOfContents"; 
 import AmazonProductCard from "@/components/AmazonProductCard"; 
+import BuildersResourceWidget from "@/components/BuildersResourceWidget";
 import Image from "next/image";
 
 export const revalidate = 60;
@@ -27,16 +28,24 @@ export default async function BlogPostPage(props: { params: Promise<{ slug: stri
   const post = snap.docs[0].data() as any;
   const rawContent = post.content || post.body || ""; 
   
-  const contentToRender = rawContent.replace(
-    /\[AMAZON_CARD\s*\|\|\s*([\s\S]*?)\s*\|\|\s*([\s\S]*?)\s*\|\|\s*([\s\S]*?)\s*\|\|\s*([\s\S]*?)\]/g,
-    (match: any, title: string, badge: string, image: string, link: string) => {
-      const stripHTML = (str: string) => str.replace(/(<([^>]+)>)/gi, "").trim();
-      return `<amazon-card title="${stripHTML(title)}" badge="${stripHTML(badge)}" imageurl="${stripHTML(image)}" amazonurl="${stripHTML(link)}"></amazon-card>`;
-    }
-  ); 
+  const contentToRender = rawContent
+    .replace(
+      /\[AMAZON_CARD\s*\|\|\s*([\s\S]*?)\s*\|\|\s*([\s\S]*?)\s*\|\|\s*([\s\S]*?)\s*\|\|\s*([\s\S]*?)\]/g,
+      (match: any, title: string, badge: string, image: string, link: string) => {
+        const stripHTML = (str: string) => str.replace(/(<([^>]+)>)/gi, "").trim();
+        return `<amazon-card title="${stripHTML(title)}" badge="${stripHTML(badge)}" imageurl="${stripHTML(image)}" amazonurl="${stripHTML(link)}"></amazon-card>`;
+      }
+    )
+    .replace(
+      /\[BOUNTY_BUTTON\s*\|\|\s*([\s\S]*?)\s*\|\|\s*([\s\S]*?)\]/g,
+      (match: any, text: string, link: string) => {
+        const stripHTML = (str: string) => str.replace(/(<([^>]+)>)/gi, "").trim();
+        // CHANGED: Now outputs a custom component tag instead of raw HTML divs
+        return `<bounty-button text="${stripHTML(text)}" link="${stripHTML(link)}"></bounty-button>`;
+      }
+    );
 
   return (
-    // ADDED pb-28 (padding-bottom) so the sticky bar doesn't cover the last paragraph
     <article className="max-w-6xl mx-auto px-4 pt-16 pb-28 font-sans relative">
       <header className="max-w-3xl mx-auto mb-10 text-center">
         <p className="text-sm font-bold text-amber-600 uppercase tracking-widest mb-4">
@@ -65,8 +74,12 @@ export default async function BlogPostPage(props: { params: Promise<{ slug: stri
       </header>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start mt-12">
-        <aside className="lg:col-span-4 sticky top-8">
+        <aside className="lg:col-span-4 sticky top-8 space-y-8">
           <TableOfContents />
+          
+          <div className="hidden lg:block">
+            <BuildersResourceWidget />
+          </div>
         </aside>
 
         <div className="lg:col-span-8 prose prose-lg prose-stone max-w-none prose-headings:font-serif prose-a:text-amber-600 prose-a:font-extrabold prose-a:underline hover:prose-a:text-amber-700 prose-img:rounded-md prose-img:mx-auto">
@@ -81,6 +94,22 @@ export default async function BlogPostPage(props: { params: Promise<{ slug: stri
                   imageUrl={props.imageurl}
                   amazonUrl={props.amazonurl}
                 />
+              ),
+              // UPDATED: Changed div and p tags to span tags to satisfy React hydration rules
+              "bounty-button": ({node, ...props}: any) => (
+                <span className="block my-10">
+                  <a 
+                    href={props.link} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="block w-full text-center bg-amber-500 hover:bg-amber-400 text-gray-950 font-extrabold text-xl py-5 px-6 rounded-xl shadow-lg transition-transform hover:scale-105 border-b-4 border-amber-600 hover:border-amber-500 uppercase tracking-widest no-underline"
+                  >
+                    {props.text}
+                  </a>
+                  <span className="block text-center text-xs text-gray-500 mt-3 font-semibold uppercase tracking-wider">
+                    Cancel anytime. No risk.
+                  </span>
+                </span>
               ),
               img: ({node, ...props}: any) => {
                 if (!props.src) return null;
@@ -104,9 +133,6 @@ export default async function BlogPostPage(props: { params: Promise<{ slug: stri
         </div>
       </div>
       
-      {/* ========================================= */}
-      {/* AGGRESSIVE MONETIZATION: MOBILE STICKY BAR */}
-      {/* ========================================= */}
       {post.affiliateLink && (
         <div className="fixed bottom-0 left-0 w-full bg-white border-t border-gray-200 p-3 shadow-[0_-10px_15px_-3px_rgba(0,0,0,0.1)] z-50 md:hidden flex items-center justify-between gap-3">
           <div className="flex-1 min-w-0">
