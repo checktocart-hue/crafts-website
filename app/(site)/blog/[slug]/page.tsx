@@ -30,18 +30,24 @@ export default async function BlogPostPage(props: { params: Promise<{ slug: stri
   
   const contentToRender = rawContent
     .replace(
-      /\[AMAZON_CARD\s*\|\|\s*([\s\S]*?)\s*\|\|\s*([\s\S]*?)\s*\|\|\s*([\s\S]*?)\s*\|\|\s*([\s\S]*?)\]/g,
-      (match: any, title: string, badge: string, image: string, link: string) => {
+      /\[AMAZON_CARD\s*\|\|\s*([\s\S]*?)\s*\|\|\s*([\s\S]*?)\s*\|\|\s*([\s\S]*?)\]/g,
+      (match: any, title: string, badge: string, link: string) => {
         const stripHTML = (str: string) => str.replace(/(<([^>]+)>)/gi, "").trim();
-        return `<amazon-card title="${stripHTML(title)}" badge="${stripHTML(badge)}" imageurl="${stripHTML(image)}" amazonurl="${stripHTML(link)}"></amazon-card>`;
+        return `<amazon-card title="${stripHTML(title)}" badge="${stripHTML(badge)}" amazonurl="${stripHTML(link)}"></amazon-card>`;
       }
     )
     .replace(
       /\[BOUNTY_BUTTON\s*\|\|\s*([\s\S]*?)\s*\|\|\s*([\s\S]*?)\]/g,
       (match: any, text: string, link: string) => {
         const stripHTML = (str: string) => str.replace(/(<([^>]+)>)/gi, "").trim();
-        // CHANGED: Now outputs a custom component tag instead of raw HTML divs
         return `<bounty-button text="${stripHTML(text)}" link="${stripHTML(link)}"></bounty-button>`;
+      }
+    )
+    .replace(
+      /\[WINNER_BOX\s*\|\|\s*([\s\S]*?)\s*\|\|\s*([\s\S]*?)\]/g,
+      (match: any, title: string, content: string) => {
+        const stripHTML = (str: string) => str.replace(/(<([^>]+)>)/gi, "").trim();
+        return `<winner-box title="${stripHTML(title)}" content="${stripHTML(content)}"></winner-box>`;
       }
     );
 
@@ -91,11 +97,9 @@ export default async function BlogPostPage(props: { params: Promise<{ slug: stri
                 <AmazonProductCard 
                   title={props.title}
                   badge={props.badge}
-                  imageUrl={props.imageurl}
                   amazonUrl={props.amazonurl}
                 />
               ),
-              // UPDATED: Changed div and p tags to span tags to satisfy React hydration rules
               "bounty-button": ({node, ...props}: any) => (
                 <span className="block my-10">
                   <a 
@@ -108,6 +112,27 @@ export default async function BlogPostPage(props: { params: Promise<{ slug: stri
                   </a>
                   <span className="block text-center text-xs text-gray-500 mt-3 font-semibold uppercase tracking-wider">
                     Cancel anytime. No risk.
+                  </span>
+                </span>
+              ),
+              "winner-box": ({node, ...props}: any) => (
+                <span className="block my-10 bg-amber-50/50 border border-amber-200 rounded-2xl p-6 md:p-8 shadow-sm relative overflow-hidden">
+                  <span className="absolute -top-4 -right-4 text-amber-100 opacity-50 text-9xl pointer-events-none">
+                    🏆
+                  </span>
+                  
+                  <span className="block relative z-10">
+                    <span className="flex items-center gap-3 mb-3">
+                      <span className="bg-amber-500 text-gray-950 flex items-center justify-center w-8 h-8 rounded-lg font-bold shadow-sm shrink-0">
+                        ✓
+                      </span>
+                      <strong className="block text-xl md:text-2xl font-bold font-serif text-gray-900 m-0">
+                        {props.title}
+                      </strong>
+                    </span>
+                    <span className="block text-gray-700 text-base md:text-lg leading-relaxed m-0 font-medium">
+                      {props.content}
+                    </span>
                   </span>
                 </span>
               ),

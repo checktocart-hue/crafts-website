@@ -63,11 +63,29 @@ export default function CustomEditor({ value, onChange }: EditorProps) {
     link: ''
   });
 
+  // Function to handle the new Quick Insert buttons
+  const insertShortcode = (type: string) => {
+    if (!editorInstance) return;
+
+    editorInstance.model.change((writer: any) => {
+      const insertPosition = editorInstance.model.document.selection.getFirstPosition();
+      let textToInsert = "";
+
+      if (type === "winner") {
+        textToInsert = "\n[WINNER_BOX || The Short Answer || Type your quick verdict here.]\n";
+      } else if (type === "bounty") {
+        textToInsert = "\n[BOUNTY_BUTTON || Unlock 6 Months Free ↗ || https://amzn.to/4wum3kL]\n";
+      }
+
+      writer.insertText(textToInsert, insertPosition);
+    });
+  };
+
   const handleInsertCard = () => {
     if (!editorInstance || !cardData.title || !cardData.link) return;
 
     // Creates a safe shortcode string that CKEditor won't strip or break
-    const shortcode = `[AMAZON_CARD || ${cardData.title} || ${cardData.badge} || ${cardData.image} || ${cardData.link}]\n`;
+    const shortcode = `\n[AMAZON_CARD || ${cardData.title} || ${cardData.badge} || ${cardData.image} || ${cardData.link}]\n`;
 
     // Injects the shortcode exactly where the cursor is blinking
     editorInstance.model.change((writer: any) => {
@@ -85,18 +103,48 @@ export default function CustomEditor({ value, onChange }: EditorProps) {
       
       {/* AFFILIATE TOOLS PANEL */}
       <div className="mb-4 rounded-xl border border-gray-200 bg-gray-50 overflow-hidden shadow-sm">
-        <div className="p-3 bg-gray-100 border-b border-gray-200 flex items-center justify-between">
-          <span className="font-bold text-sm text-gray-700">🛠 Content Tools</span>
+        <div className="p-3 bg-gray-100 border-b border-gray-200 flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
+          
+          {/* Quick Insert Toolbar */}
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="font-bold text-sm text-gray-700 mr-2">🛠 Content Tools:</span>
+            
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                insertShortcode("winner");
+              }}
+              className="px-3 py-1.5 bg-white border border-amber-200 text-amber-800 rounded-lg text-xs hover:bg-amber-50 font-bold shadow-sm transition-colors"
+            >
+              🏆 Winner Box
+            </button>
+            
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                insertShortcode("bounty");
+              }}
+              className="px-3 py-1.5 bg-white border border-amber-200 text-amber-800 rounded-lg text-xs hover:bg-amber-50 font-bold shadow-sm transition-colors"
+            >
+              💰 Bounty Button
+            </button>
+          </div>
+
+          {/* Amazon Card Builder Toggle */}
           <button
-            onClick={() => setShowBuilder(!showBuilder)}
-            className="bg-amber-500 hover:bg-amber-400 text-gray-950 font-bold text-xs px-4 py-2 rounded-lg transition-colors shadow-sm"
+            onClick={(e) => {
+              e.preventDefault();
+              setShowBuilder(!showBuilder);
+            }}
+            className="bg-amber-500 hover:bg-amber-400 text-gray-950 font-bold text-xs px-4 py-2 rounded-lg transition-colors shadow-sm whitespace-nowrap"
           >
-            {showBuilder ? "Close Builder" : "📦 Insert Amazon Card"}
+            {showBuilder ? "Close Builder" : "📦 Build Amazon Card"}
           </button>
         </div>
 
+        {/* Amazon Card Builder Form */}
         {showBuilder && (
-          <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4 bg-white">
+          <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4 bg-white border-t border-gray-200">
             <div className="space-y-1">
               <label className="text-xs font-bold text-gray-600">Product Title</label>
               <input 
@@ -139,7 +187,10 @@ export default function CustomEditor({ value, onChange }: EditorProps) {
             </div>
             <div className="md:col-span-2 pt-2">
               <button 
-                onClick={handleInsertCard} 
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleInsertCard();
+                }} 
                 className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2.5 rounded-lg transition-colors shadow-sm"
               >
                 Insert Card at Cursor
