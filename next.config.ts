@@ -23,17 +23,33 @@ const nextConfig: NextConfig = {
   },
   async redirects() {
     return [
-      // 1. SPECIFIC REDIRECT (Put this FIRST so it protects your Piececool post immediately)
+      // 1. SPECIFIC SLUG FIXES 
+      // (Must be placed before wildcards to prevent double-redirect chains)
       {
-        source: '/projects/piececool-vs-metal-earth-review',
-        destination: '/blog/piececool-vs-metal-earth-review',
-        permanent: true, 
+        source: '/blog/title-the-ultimate-guide-to-book-nook-kits',
+        destination: '/blog/ultimate-guide-to-book-nook-kits',
+        permanent: true,
       },
-      // 2. WILDCARD CATCH-ALL (Catches Cutebee and any other old Sanity URLs)
+      {
+        source: '/projects/title-the-ultimate-guide-to-book-nook-kits',
+        destination: '/blog/ultimate-guide-to-book-nook-kits',
+        permanent: true,
+      },
+
+      // 2. WILDCARD: Retire /projects/ route entirely 
+      // (Catches Piececool, Cutebee, Basswood, Halloween, etc.)
       {
         source: '/projects/:path*',
         destination: '/blog/:path*',
         permanent: true, 
+      },
+      
+      // 3. WILDCARD: Retire /reviews/ route entirely 
+      // (Catches Sunshine Town & Simon's Coffee Shop duplicates)
+      {
+        source: '/reviews/:path*',
+        destination: '/blog/:path*',
+        permanent: true,
       },
     ];
   },

@@ -7,8 +7,20 @@ import TableOfContents from "@/components/TableOfContents";
 import AmazonProductCard from "@/components/AmazonProductCard"; 
 import BuildersResourceWidget from "@/components/BuildersResourceWidget";
 import Image from "next/image";
+import { Metadata } from "next";
 
 export const revalidate = 60;
+
+// 1. THIS FIXES YOUR DUPLICATE URL/ADSENSE PENALTY
+// This forces Google to only index the /blog/ path, consolidating your traffic
+export async function generateMetadata(props: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const params = await props.params;
+  return {
+    alternates: {
+      canonical: `https://www.craftsandkits.com/blog/${params.slug}`,
+    },
+  };
+}
 
 export default async function BlogPostPage(props: { params: Promise<{ slug: string }> }) {
   const params = await props.params;
@@ -29,6 +41,12 @@ export default async function BlogPostPage(props: { params: Promise<{ slug: stri
   const rawContent = post.content || post.body || ""; 
   
   const contentToRender = rawContent
+    // 2. THIS STRIPS OUT THE "ADVERTISEMENT" TEXT
+    // It replaces the literal word with a custom HTML tag we define below
+    .replace(
+      /ADVERTISEMENT/gi, 
+      '<ad-placeholder></ad-placeholder>'
+    )
     .replace(
       /\[AMAZON_CARD\s*\|\|\s*([\s\S]*?)\s*\|\|\s*([\s\S]*?)\s*\|\|\s*([\s\S]*?)\]/g,
       (match: any, title: string, badge: string, link: string) => {
@@ -61,8 +79,22 @@ export default async function BlogPostPage(props: { params: Promise<{ slug: stri
           {post.title}
         </h1>
 
-        <div className="bg-gray-50 border border-gray-200 text-gray-600 text-xs px-4 py-3 rounded-lg inline-block shadow-sm mb-4">
-          <span className="font-bold">Transparency:</span> As an Amazon Associate, we earn from qualifying purchases through links in this guide at no extra cost to you.
+        {/* 3. AUTHOR BYLINE & FTC DISCLOSURE STANDARDIZATION */}
+        <div className="flex flex-col items-center justify-center gap-3 mb-4">
+          <div className="flex items-center gap-2 text-gray-800 font-medium">
+            <span className="w-8 h-8 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center font-bold text-sm">
+              RM
+            </span>
+            <span>By Rashy Michaels</span>
+            <span className="text-gray-300">•</span>
+            <span className="text-sm text-gray-500">
+              {post.date || new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+            </span>
+          </div>
+
+          <div className="bg-gray-50 border border-gray-200 text-gray-600 text-xs px-4 py-3 rounded-lg inline-block shadow-sm">
+            <span className="font-bold">Transparency:</span> As an Amazon Associate, we earn from qualifying purchases through links in this guide at no extra cost to you.
+          </div>
         </div>
 
         {post.coverImage && (
@@ -93,6 +125,15 @@ export default async function BlogPostPage(props: { params: Promise<{ slug: stri
             remarkPlugins={[remarkGfm]} 
             rehypePlugins={[rehypeRaw]}
             components={{
+              // 4. THE SILENT AD-PLACEHOLDER COMPONENT
+              // Keeps your layout from jumping but stays invisible to Google's spam filters
+              "ad-placeholder": ({node, ...props}: any) => (
+                <div 
+                  aria-hidden="true" 
+                  className="w-full my-8 min-h-[250px] bg-transparent"
+                  id="mediavine-target-slot"
+                ></div>
+              ),
               "amazon-card": ({node, ...props}: any) => (
                 <AmazonProductCard 
                   title={props.title}
