@@ -75,6 +75,8 @@ export default function CustomEditor({ value, onChange }: EditorProps) {
         textToInsert = "\n[WINNER_BOX || The Short Answer || Type your quick verdict here.]\n";
       } else if (type === "bounty") {
         textToInsert = "\n[BOUNTY_BUTTON || Unlock 6 Months Free ↗ || https://amzn.to/4wum3kL]\n";
+      } else if (type === "quickpick") {
+        textToInsert = "\n[QUICK_PICK || Product Name || State exactly why this is the best option for the buyer in 1-2 sentences. || https://www.amazon.com/dp/YOUR-LINK]\n";
       }
 
       writer.insertText(textToInsert, insertPosition);
@@ -112,6 +114,16 @@ export default function CustomEditor({ value, onChange }: EditorProps) {
             <button
               onClick={(e) => {
                 e.preventDefault();
+                insertShortcode("quickpick");
+              }}
+              className="px-3 py-1.5 bg-white border-2 border-amber-400 text-amber-900 rounded-lg text-xs hover:bg-amber-50 font-extrabold shadow-sm transition-colors"
+            >
+              ⚡ Quick Pick
+            </button>
+
+            <button
+              onClick={(e) => {
+                e.preventDefault();
                 insertShortcode("winner");
               }}
               className="px-3 py-1.5 bg-white border border-amber-200 text-amber-800 rounded-lg text-xs hover:bg-amber-50 font-bold shadow-sm transition-colors"
@@ -124,7 +136,7 @@ export default function CustomEditor({ value, onChange }: EditorProps) {
                 e.preventDefault();
                 insertShortcode("bounty");
               }}
-              className="className=px-3 py-1.5 bg-white border border-amber-200 text-amber-800 rounded-lg text-xs hover:bg-amber-50 font-bold shadow-sm transition-colors"
+              className="px-3 py-1.5 bg-white border border-amber-200 text-amber-800 rounded-lg text-xs hover:bg-amber-50 font-bold shadow-sm transition-colors"
             >
               💰 Bounty Button
             </button>
@@ -221,9 +233,6 @@ export default function CustomEditor({ value, onChange }: EditorProps) {
               'bold', 'italic', 'link', 'bulletedList', 'numberedList', '|',
               'uploadImage', 'insertTable', 'blockQuote', 'undo', 'redo'
             ],
-            // ----------------------------------------------------
-            // NEW: EXPLICIT HEADING MAPPING PREVENTS AUTO-FLATTENING
-            // ----------------------------------------------------
             heading: {
               options: [
                 { model: 'paragraph', title: 'Paragraph', class: 'ck-heading_paragraph' },
