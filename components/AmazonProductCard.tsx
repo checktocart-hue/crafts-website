@@ -1,33 +1,53 @@
+import React from 'react';
+import Image from 'next/image';
+
 interface AmazonProductCardProps {
   title: string;
   badge?: string;
+  image?: string; // <-- FIXED: TypeScript now knows to expect this
   amazonUrl: string;
 }
 
-export default function AmazonProductCard({ title, badge, amazonUrl }: AmazonProductCardProps) {
+export default function AmazonProductCard({ 
+  title, 
+  badge, 
+  image, 
+  amazonUrl 
+}: AmazonProductCardProps) {
   return (
-    <span className="block my-8 overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition-all hover:shadow-md">
-      {/* Top Header Badge */}
-      {badge && (
-        <span className="block bg-green-700 px-4 py-1.5 text-xs font-bold uppercase tracking-wider text-white">
-          {badge}
-        </span>
+    <div className="my-8 flex flex-col md:flex-row items-center bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow not-prose">
+      {/* 1. New Image Block */}
+      {image && (
+        <div className="w-full md:w-48 h-48 relative flex-shrink-0 bg-gray-50 border-b md:border-b-0 md:border-r border-gray-100 p-4">
+          <Image 
+            src={image} 
+            alt={title}
+            fill
+            className="object-contain mix-blend-multiply"
+            sizes="(max-width: 768px) 100vw, 200px"
+          />
+        </div>
       )}
-
-      <span className="flex flex-col items-center sm:items-start text-center sm:text-left gap-4 p-6">
-        <strong className="block text-xl md:text-2xl font-bold text-gray-900 font-serif leading-tight m-0">
-          {title}
-        </strong>
+      
+      {/* 2. Text and Button Block */}
+      <div className="p-6 flex-1 flex flex-col justify-center items-center md:items-start text-center md:text-left w-full">
+        {badge && (
+          <span className="inline-block bg-amber-100 text-amber-800 text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full mb-3">
+            {badge}
+          </span>
+        )}
         
-        <a
+        <h3 className="text-xl font-bold text-gray-900 mb-4">{title}</h3>
+        
+        <a 
           href={amazonUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex w-full sm:w-auto items-center justify-center bg-amber-500 hover:bg-amber-400 text-gray-950 font-extrabold px-6 py-3.5 rounded-xl transition-transform hover:scale-105 shadow-sm border-b-4 border-amber-600 hover:border-amber-500 uppercase tracking-widest no-underline mt-2"
+          className="inline-block w-full md:w-auto bg-gray-900 hover:bg-gray-800 text-white font-bold py-3 px-8 rounded-lg transition-colors text-sm shadow-sm"
         >
           Check Price on Amazon ↗
         </a>
-      </span>
-    </span>
+      </div>
+    </div>
   );
 }
