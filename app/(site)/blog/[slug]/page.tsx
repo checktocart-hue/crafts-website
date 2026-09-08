@@ -56,11 +56,12 @@ export default async function BlogPostPage(props: { params: Promise<{ slug: stri
         return `<quick-pick title="${stripHTML(title)}" reason="${stripHTML(reason)}" url="${stripHTML(link)}"></quick-pick>`;
       }
     )
+    // 4. FIXED: AMAZON CARD PARSER NOW EXPECTS 4 GROUPS (Title, Badge, Image, Link)
     .replace(
-      /\[AMAZON_CARD\s*\|\|\s*([\s\S]*?)\s*\|\|\s*([\s\S]*?)\s*\|\|\s*([\s\S]*?)\]/g,
-      (match: any, title: string, badge: string, link: string) => {
+      /\[AMAZON_CARD\s*\|\|\s*([\s\S]*?)\s*\|\|\s*([\s\S]*?)\s*\|\|\s*([\s\S]*?)\s*\|\|\s*([\s\S]*?)\]/g,
+      (match: any, title: string, badge: string, image: string, link: string) => {
         const stripHTML = (str: string) => str.replace(/(<([^>]+)>)/gi, "").trim();
-        return `<amazon-card title="${stripHTML(title)}" badge="${stripHTML(badge)}" amazonurl="${stripHTML(link)}"></amazon-card>`;
+        return `<amazon-card title="${stripHTML(title)}" badge="${stripHTML(badge)}" image="${stripHTML(image)}" amazonurl="${stripHTML(link)}"></amazon-card>`;
       }
     )
     .replace(
@@ -88,7 +89,7 @@ export default async function BlogPostPage(props: { params: Promise<{ slug: stri
           {post.title}
         </h1>
 
-        {/* 4. AUTHOR BYLINE & FTC DISCLOSURE STANDARDIZATION */}
+        {/* 5. AUTHOR BYLINE & FTC DISCLOSURE STANDARDIZATION */}
         <div className="flex flex-col items-center justify-center gap-3 mb-4">
           <div className="flex items-center gap-2 text-gray-800 font-medium">
             <span className="w-8 h-8 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center font-bold text-sm">
@@ -134,7 +135,7 @@ export default async function BlogPostPage(props: { params: Promise<{ slug: stri
             remarkPlugins={[remarkGfm]} 
             rehypePlugins={[rehypeRaw]}
             components={{
-              // 5. THE SILENT AD-PLACEHOLDER COMPONENT
+              // 6. THE SILENT AD-PLACEHOLDER COMPONENT
               // Keeps your layout from jumping but stays invisible to Google's spam filters
               "ad-placeholder": ({node, ...props}: any) => (
                 <div 
@@ -154,6 +155,7 @@ export default async function BlogPostPage(props: { params: Promise<{ slug: stri
                 <AmazonProductCard 
                   title={props.title}
                   badge={props.badge}
+                  image={props.image} // <-- FIXED: Added the image prop
                   amazonUrl={props.amazonurl}
                 />
               ),
