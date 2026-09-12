@@ -10,42 +10,37 @@ import QuickPick from "@/components/QuickPick";
 import Image from "next/image";
 import { Metadata } from "next";
 
-// NOTE: revalidate and dynamic cache rules have been deleted to prevent conflicts
+export const revalidate = 60;
+export const dynamic = "force-dynamic";
 
-// 1. DIAGNOSTIC METADATA FUNCTION
-// If this fails, it will print the exact reason to your browser tab.
+// 1. THE FINAL METADATA FIX
+// Uses point-reads (getDoc) to completely bypass the Next.js cache.
 export async function generateMetadata(props: { params: Promise<{ slug: string }> }): Promise<Metadata> {
-  try {
-    const params = await props.params;
-    const slug = params.slug;
-    
-    if (!slug) return { title: "CRASH: No slug provided to metadata" };
-
-    let q = query(collection(db, "blog"), where("slug", "==", slug), limit(1));
-    let snap = await getDocs(q);
-    
-    if (snap.empty) {
-      q = query(collection(db, "reviews"), where("slug", "==", slug), limit(1));
-      snap = await getDocs(q);
-    }
-
-    if (!snap.empty) {
-      const post = snap.docs[0].data() as any;
-      return {
-        title: post.seoTitle || post.title || "CRASH: Database fields empty",
-        description: post.metaDescription || "Missing Description",
-        alternates: {
-          canonical: `https://www.craftsandkits.com/blog/${slug}`,
-        },
-      };
-    }
-    
-    return { title: "CRASH: Post Not Found in Database" };
-    
-  } catch (error: any) {
-    // THIS IS THE MAGIC BULLET. If it breaks, it prints the error to your tab!
-    return { title: `CRASH: ${error.message}` };
+  const params = await props.params;
+  
+  let docRef = doc(db, "blog", params.slug);
+  let docSnap = await getDoc(docRef);
+  
+  if (!docSnap.exists()) {
+    docRef = doc(db, "reviews", params.slug);
+    docSnap = await getDoc(docRef);
   }
+
+  if (!docSnap.exists()) {
+    return {
+      title: "Post Not Found | Crafts & Kits",
+    };
+  }
+
+  const post = docSnap.data() as any;
+
+  return {
+    title: post.seoTitle || post.title || "Crafts & Kits",
+    description: post.metaDescription || "In-depth tutorials and recommendations for book nooks, metal models, and miniature kits.",
+    alternates: {
+      canonical: `https://www.craftsandkits.com/blog/${params.slug}`,
+    },
+  };
 }
 
 export default async function BlogPostPage(props: { params: Promise<{ slug: string }> }) {
