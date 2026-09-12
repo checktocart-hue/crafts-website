@@ -10,41 +10,42 @@ import QuickPick from "@/components/QuickPick";
 import Image from "next/image";
 import { Metadata } from "next";
 
-export const revalidate = 60;
-export const dynamic = "force-dynamic";
+// NOTE: revalidate and dynamic cache rules have been deleted to prevent conflicts
 
-// 1. THIS IS THE METADATA FIX
-// It now queries Firebase directly to grab your custom SEO Title and Meta Description
+// 1. DIAGNOSTIC METADATA FUNCTION
+// If this fails, it will print the exact reason to your browser tab.
 export async function generateMetadata(props: { params: Promise<{ slug: string }> }): Promise<Metadata> {
-  const params = await props.params;
-  
-  // 1. Force a direct, uncached read from the specific document ID (slug)
-  let docRef = doc(db, "blog", params.slug);
-  let docSnap = await getDoc(docRef);
-  
-  // 2. If it's not in blog, check reviews
-  if (!docSnap.exists()) {
-    docRef = doc(db, "reviews", params.slug);
-    docSnap = await getDoc(docRef);
+  try {
+    const params = await props.params;
+    const slug = params.slug;
+    
+    if (!slug) return { title: "CRASH: No slug provided to metadata" };
+
+    let q = query(collection(db, "blog"), where("slug", "==", slug), limit(1));
+    let snap = await getDocs(q);
+    
+    if (snap.empty) {
+      q = query(collection(db, "reviews"), where("slug", "==", slug), limit(1));
+      snap = await getDocs(q);
+    }
+
+    if (!snap.empty) {
+      const post = snap.docs[0].data() as any;
+      return {
+        title: post.seoTitle || post.title || "CRASH: Database fields empty",
+        description: post.metaDescription || "Missing Description",
+        alternates: {
+          canonical: `https://www.craftsandkits.com/blog/${slug}`,
+        },
+      };
+    }
+    
+    return { title: "CRASH: Post Not Found in Database" };
+    
+  } catch (error: any) {
+    // THIS IS THE MAGIC BULLET. If it breaks, it prints the error to your tab!
+    return { title: `CRASH: ${error.message}` };
   }
-
-  // 3. Fallback if completely missing
-  if (!docSnap.exists()) {
-    return {
-      title: "Post Not Found | Crafts & Kits",
-    };
-  }
-
-  const post = docSnap.data() as any;
-
-  // 4. Inject the exact data
-  return {
-    title: post.seoTitle || post.title || "Crafts & Kits",
-    description: post.metaDescription || "In-depth tutorials and recommendations for book nooks, metal models, and miniature kits.",
-    alternates: {
-      canonical: `https://www.craftsandkits.com/blog/${params.slug}`,
-    },
-  };
 }
 
 export default async function BlogPostPage(props: { params: Promise<{ slug: string }> }) {
