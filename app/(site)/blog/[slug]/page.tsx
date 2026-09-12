@@ -1,4 +1,4 @@
-import { collection, getDocs, query, where, limit } from "firebase/firestore";
+import { collection, getDocs, query, where, limit, doc, getDoc } from "firebase/firestore";
 import { db } from "@/app/lib/firebase";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -18,22 +18,26 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata(props: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const params = await props.params;
   
-  let q = query(collection(db, "blog"), where("slug", "==", params.slug), limit(1));
-  let snap = await getDocs(q);
+  // 1. Force a direct, uncached read from the specific document ID (slug)
+  let docRef = doc(db, "blog", params.slug);
+  let docSnap = await getDoc(docRef);
   
-  if (snap.empty) {
-    q = query(collection(db, "reviews"), where("slug", "==", params.slug), limit(1));
-    snap = await getDocs(q);
+  // 2. If it's not in blog, check reviews
+  if (!docSnap.exists()) {
+    docRef = doc(db, "reviews", params.slug);
+    docSnap = await getDoc(docRef);
   }
 
-  if (snap.empty) {
+  // 3. Fallback if completely missing
+  if (!docSnap.exists()) {
     return {
       title: "Post Not Found | Crafts & Kits",
     };
   }
 
-  const post = snap.docs[0].data() as any;
+  const post = docSnap.data() as any;
 
+  // 4. Inject the exact data
   return {
     title: post.seoTitle || post.title || "Crafts & Kits",
     description: post.metaDescription || "In-depth tutorials and recommendations for book nooks, metal models, and miniature kits.",
