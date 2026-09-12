@@ -11,6 +11,7 @@ import Image from "next/image";
 import { Metadata } from "next";
 
 export const revalidate = 60;
+export const dynamic = "force-dynamic";
 
 // 1. THIS IS THE METADATA FIX
 // It now queries Firebase directly to grab your custom SEO Title and Meta Description
