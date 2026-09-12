@@ -12,11 +12,30 @@ import { Metadata } from "next";
 
 export const revalidate = 60;
 
-// 1. THIS FIXES YOUR DUPLICATE URL/ADSENSE PENALTY
-// This forces Google to only index the /blog/ path, consolidating your traffic
+// 1. THIS IS THE METADATA FIX
+// It now queries Firebase directly to grab your custom SEO Title and Meta Description
 export async function generateMetadata(props: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const params = await props.params;
+  
+  let q = query(collection(db, "blog"), where("slug", "==", params.slug), limit(1));
+  let snap = await getDocs(q);
+  
+  if (snap.empty) {
+    q = query(collection(db, "reviews"), where("slug", "==", params.slug), limit(1));
+    snap = await getDocs(q);
+  }
+
+  if (snap.empty) {
+    return {
+      title: "Post Not Found | Crafts & Kits",
+    };
+  }
+
+  const post = snap.docs[0].data() as any;
+
   return {
+    title: post.seoTitle || post.title || "Crafts & Kits",
+    description: post.metaDescription || "In-depth tutorials and recommendations for book nooks, metal models, and miniature kits.",
     alternates: {
       canonical: `https://www.craftsandkits.com/blog/${params.slug}`,
     },
@@ -42,13 +61,10 @@ export default async function BlogPostPage(props: { params: Promise<{ slug: stri
   const rawContent = post.content || post.body || ""; 
   
   const contentToRender = rawContent
-    // 2. THIS STRIPS OUT THE "ADVERTISEMENT" TEXT
-    // It replaces the literal word with a custom HTML tag we define below
     .replace(
       /ADVERTISEMENT/gi, 
       '<ad-placeholder></ad-placeholder>'
     )
-    // 3. THE NEW QUICK PICK PARSER
     .replace(
       /\[QUICK_PICK\s*\|\|\s*([\s\S]*?)\s*\|\|\s*([\s\S]*?)\s*\|\|\s*([\s\S]*?)\]/g,
       (match: any, title: string, reason: string, link: string) => {
@@ -56,7 +72,6 @@ export default async function BlogPostPage(props: { params: Promise<{ slug: stri
         return `<quick-pick title="${stripHTML(title)}" reason="${stripHTML(reason)}" url="${stripHTML(link)}"></quick-pick>`;
       }
     )
-    // 4. FIXED: AMAZON CARD PARSER NOW EXPECTS 4 GROUPS (Title, Badge, Image, Link)
     .replace(
       /\[AMAZON_CARD\s*\|\|\s*([\s\S]*?)\s*\|\|\s*([\s\S]*?)\s*\|\|\s*([\s\S]*?)\s*\|\|\s*([\s\S]*?)\]/g,
       (match: any, title: string, badge: string, image: string, link: string) => {
@@ -89,7 +104,6 @@ export default async function BlogPostPage(props: { params: Promise<{ slug: stri
           {post.title}
         </h1>
 
-        {/* 5. AUTHOR BYLINE & FTC DISCLOSURE STANDARDIZATION */}
         <div className="flex flex-col items-center justify-center gap-3 mb-4">
           <div className="flex items-center gap-2 text-gray-800 font-medium">
             <span className="w-8 h-8 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center font-bold text-sm">
@@ -135,8 +149,6 @@ export default async function BlogPostPage(props: { params: Promise<{ slug: stri
             remarkPlugins={[remarkGfm]} 
             rehypePlugins={[rehypeRaw]}
             components={{
-              // 6. THE SILENT AD-PLACEHOLDER COMPONENT
-              // Keeps your layout from jumping but stays invisible to Google's spam filters
               "ad-placeholder": ({node, ...props}: any) => (
                 <div 
                   aria-hidden="true" 
@@ -155,7 +167,7 @@ export default async function BlogPostPage(props: { params: Promise<{ slug: stri
                 <AmazonProductCard 
                   title={props.title}
                   badge={props.badge}
-                  image={props.image} // <-- FIXED: Added the image prop
+                  image={props.image} 
                   amazonUrl={props.amazonurl}
                 />
               ),
