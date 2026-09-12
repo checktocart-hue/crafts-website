@@ -1,9 +1,39 @@
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, collection, getDocs, query, where, limit } from "firebase/firestore";
 import { db } from "@/app/lib/firebase";
 import Link from "next/link";
+import { Metadata } from "next";
 
 // This tells Next.js to check Firebase for updates every 60 seconds
 export const revalidate = 60; 
+
+// 1. DYNAMIC METADATA FETCH
+// Pulls the exact SEO Title and Meta Description you wrote in the CMS
+export async function generateMetadata(props: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const params = await props.params;
+  
+  // Query the reviews collection first
+  let q = query(collection(db, "reviews"), where("slug", "==", params.slug), limit(1));
+  let snap = await getDocs(q);
+  
+  if (snap.empty) {
+    q = query(collection(db, "blog"), where("slug", "==", params.slug), limit(1));
+    snap = await getDocs(q);
+  }
+
+  if (snap.empty) {
+    return { title: "Review Not Found | Crafts & Kits" };
+  }
+
+  const post = snap.docs[0].data() as any;
+
+  return {
+    title: post.seoTitle || post.title || "Crafts & Kits",
+    description: post.metaDescription || "In-depth tutorials and recommendations for book nooks, metal models, and miniature kits.",
+    alternates: {
+      canonical: `https://www.craftsandkits.com/reviews/${params.slug}`,
+    },
+  };
+}
 
 export default async function ReviewPage({ 
   params 
