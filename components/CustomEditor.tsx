@@ -56,12 +56,39 @@ function CustomUploadAdapterPlugin(editor: any) {
 export default function CustomEditor({ value, onChange }: EditorProps) {
   const [editorInstance, setEditorInstance] = useState<any>(null);
   const [showBuilder, setShowBuilder] = useState(false);
+  const [wordCountLabel, setWordCountLabel] = useState("📊 Word Count"); // NEW: Dynamic Label State
   const [cardData, setCardData] = useState({
     title: '',
     badge: 'Top Pick',
     image: '',
     link: ''
   });
+
+  // NEW: The Word Count Logic
+  const handleWordCount = (e: React.MouseEvent) => {
+    e.preventDefault();
+    
+    // Grab the current editor data (or fallback to the passed value prop)
+    const currentContent = editorInstance ? editorInstance.getData() : value;
+    
+    // Strip out all HTML tags, brackets, and extra spacing to isolate raw text
+    const plainText = currentContent
+      .replace(/<[^>]*>?/gm, ' ') // Strip HTML tags
+      .replace(/\[.*?\]/g, ' ')   // Strip Shortcode brackets
+      .replace(/\s+/g, ' ')       // Normalize spaces
+      .trim();
+
+    // Split by spaces to count the words
+    const count = plainText ? plainText.split(/\s+/).length : 0;
+    
+    // Temporarily update the button text to show the count
+    setWordCountLabel(`📊 ${count} Words`);
+    
+    // Reset the button text back to normal after 4 seconds
+    setTimeout(() => {
+      setWordCountLabel("📊 Word Count");
+    }, 4000);
+  };
 
   // Function to handle the new Quick Insert buttons
   const insertShortcode = (type: string) => {
@@ -110,6 +137,14 @@ export default function CustomEditor({ value, onChange }: EditorProps) {
           {/* Quick Insert Toolbar */}
           <div className="flex items-center gap-2 flex-wrap">
             <span className="font-bold text-sm text-gray-700 mr-2">🛠 Content Tools:</span>
+            
+            {/* NEW: Word Count Button */}
+            <button
+              onClick={handleWordCount}
+              className="px-3 py-1.5 bg-white border border-indigo-200 text-indigo-800 rounded-lg text-xs hover:bg-indigo-50 font-bold shadow-sm transition-all duration-300 min-w-[110px]"
+            >
+              {wordCountLabel}
+            </button>
             
             <button
               onClick={(e) => {
