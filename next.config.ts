@@ -24,7 +24,6 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       // 1. SPECIFIC SLUG FIXES 
-      // (Must be placed before wildcards to prevent double-redirect chains)
       {
         source: '/blog/title-the-ultimate-guide-to-book-nook-kits',
         destination: '/blog/ultimate-guide-to-book-nook-kits',
@@ -37,18 +36,18 @@ const nextConfig: NextConfig = {
       },
 
       // 2. WILDCARD: Retire /projects/ route entirely 
-      // (Catches Piececool, Cutebee, Basswood, Halloween, etc.)
+      // The asterisk is fine here because you want the main /projects/ page to redirect too
       {
         source: '/projects/:path*',
         destination: '/blog/:path*',
         permanent: true, 
       },
       
-      // 3. WILDCARD: Retire /reviews/ route entirely 
-      // (Catches Sunshine Town & Simon's Coffee Shop duplicates)
+      // 3. THE FIX: Redirect individual review articles, but keep the main /reviews page alive!
+      // The '+' ensures it only redirects if there is a specific article slug after the slash
       {
-        source: '/reviews/:path*',
-        destination: '/blog/:path*',
+        source: '/reviews/:path+',
+        destination: '/blog/:path+',
         permanent: true,
       },
     ];
