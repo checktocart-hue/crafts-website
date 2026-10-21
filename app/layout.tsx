@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Dancing_Script } from "next/font/google";
 import Script from "next/script";
+import TopAnnouncementBar from "@/components/TopAnnouncementBar"; // adjust path if needed
 import "./globals.css";
 
 const inter = Inter({
@@ -59,6 +60,7 @@ export default function RootLayout({
       <body
         className={`${inter.variable} ${dancingScript.variable} font-sans antialiased text-gray-800 bg-white`}
       >
+        <TopAnnouncementBar />
         {children}
       </body>
     </html>
