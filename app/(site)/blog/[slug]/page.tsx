@@ -8,35 +8,60 @@ import AmazonProductCard from "@/components/AmazonProductCard";
 import BuildersResourceWidget from "@/components/BuildersResourceWidget";
 import QuickPick from "@/components/QuickPick";
 import Image from "next/image";
+import Link from "next/link";
 import { Metadata } from "next";
 
 export const revalidate = 60;
 export const dynamic = "force-dynamic";
 
-// 1. THE FINAL METADATA FIX
-// Uses point-reads (getDoc) to completely bypass the Next.js cache.
+// 1. FIXED METADATA FUNCTION (Queries by 'slug' field first, then falls back to Doc ID)
 export async function generateMetadata(props: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const params = await props.params;
-  
-  let docRef = doc(db, "blog", params.slug);
-  let docSnap = await getDoc(docRef);
-  
-  if (!docSnap.exists()) {
-    docRef = doc(db, "reviews", params.slug);
-    docSnap = await getDoc(docRef);
+  let post: any = null;
+
+  // Search 'blog' collection where the slug field matches the URL
+  let q = query(collection(db, "blog"), where("slug", "==", params.slug), limit(1));
+  let snap = await getDocs(q);
+
+  // If not found in 'blog', search 'reviews' collection
+  if (snap.empty) {
+    q = query(collection(db, "reviews"), where("slug", "==", params.slug), limit(1));
+    snap = await getDocs(q);
   }
 
-  if (!docSnap.exists()) {
+  if (!snap.empty) {
+    post = snap.docs[0].data();
+  } else {
+    // Fallback for any older posts where the Document ID was the slug
+    let docSnap = await getDoc(doc(db, "blog", params.slug));
+    if (!docSnap.exists()) {
+      docSnap = await getDoc(doc(db, "reviews", params.slug));
+    }
+    if (docSnap.exists()) {
+      post = docSnap.data();
+    }
+  }
+
+  if (!post) {
     return {
       title: "Post Not Found | Crafts & Kits",
     };
   }
 
-  const post = docSnap.data() as any;
+  // Create a clean fallback description from the article text if metaDescription is empty
+  const cleanExcerpt = (post.content || "")
+    .replace(/<[^>]*>?/gm, " ")
+    .replace(/\[.*?\]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 155);
 
   return {
     title: post.seoTitle || post.title || "Crafts & Kits",
-    description: post.metaDescription || "In-depth tutorials and recommendations for book nooks, metal models, and miniature kits.",
+    description:
+      post.metaDescription ||
+      cleanExcerpt ||
+      "In-depth tutorials and recommendations for book nooks, metal models, and miniature kits.",
     alternates: {
       canonical: `https://www.craftsandkits.com/blog/${params.slug}`,
     },
@@ -63,35 +88,35 @@ export default async function BlogPostPage(props: { params: Promise<{ slug: stri
   
   const contentToRender = rawContent
     .replace(
-      /ADVERTISEMENT/gi, 
-      '<ad-placeholder></ad-placeholder>'
+      /(?:<p>\s*)?ADVERTISEMENT(?:\s*<\/p>)?/gi, 
+      '\n\n<ad-placeholder></ad-placeholder>\n\n'
     )
     .replace(
-      /\[QUICK_PICK\s*\|\|\s*([\s\S]*?)\s*\|\|\s*([\s\S]*?)\s*\|\|\s*([\s\S]*?)\]/g,
+      /(?:<p>\s*)?\[QUICK_PICK\s*\|\|\s*([\s\S]*?)\s*\|\|\s*([\s\S]*?)\s*\|\|\s*([\s\S]*?)\](?:\s*<\/p>)?/gi,
       (match: any, title: string, reason: string, link: string) => {
         const stripHTML = (str: string) => str.replace(/(<([^>]+)>)/gi, "").trim();
-        return `<quick-pick title="${stripHTML(title)}" reason="${stripHTML(reason)}" url="${stripHTML(link)}"></quick-pick>`;
+        return `\n\n<quick-pick title="${stripHTML(title)}" reason="${stripHTML(reason)}" url="${stripHTML(link)}"></quick-pick>\n\n`;
       }
     )
     .replace(
-      /\[AMAZON_CARD\s*\|\|\s*([\s\S]*?)\s*\|\|\s*([\s\S]*?)\s*\|\|\s*([\s\S]*?)\s*\|\|\s*([\s\S]*?)\]/g,
+      /(?:<p>\s*)?\[AMAZON_CARD\s*\|\|\s*([\s\S]*?)\s*\|\|\s*([\s\S]*?)\s*\|\|\s*([\s\S]*?)\s*\|\|\s*([\s\S]*?)\](?:\s*<\/p>)?/gi,
       (match: any, title: string, badge: string, image: string, link: string) => {
         const stripHTML = (str: string) => str.replace(/(<([^>]+)>)/gi, "").trim();
-        return `<amazon-card title="${stripHTML(title)}" badge="${stripHTML(badge)}" image="${stripHTML(image)}" amazonurl="${stripHTML(link)}"></amazon-card>`;
+        return `\n\n<amazon-card title="${stripHTML(title)}" badge="${stripHTML(badge)}" image="${stripHTML(image)}" amazonurl="${stripHTML(link)}"></amazon-card>\n\n`;
       }
     )
     .replace(
-      /\[BOUNTY_BUTTON\s*\|\|\s*([\s\S]*?)\s*\|\|\s*([\s\S]*?)\]/g,
+      /(?:<p>\s*)?\[BOUNTY_BUTTON\s*\|\|\s*([\s\S]*?)\s*\|\|\s*([\s\S]*?)\](?:\s*<\/p>)?/gi,
       (match: any, text: string, link: string) => {
         const stripHTML = (str: string) => str.replace(/(<([^>]+)>)/gi, "").trim();
-        return `<bounty-button text="${stripHTML(text)}" link="${stripHTML(link)}"></bounty-button>`;
+        return `\n\n<bounty-button text="${stripHTML(text)}" link="${stripHTML(link)}"></bounty-button>\n\n`;
       }
     )
     .replace(
-      /\[WINNER_BOX\s*\|\|\s*([\s\S]*?)\s*\|\|\s*([\s\S]*?)\]/g,
+      /(?:<p>\s*)?\[WINNER_BOX\s*\|\|\s*([\s\S]*?)\s*\|\|\s*([\s\S]*?)\](?:\s*<\/p>)?/gi,
       (match: any, title: string, content: string) => {
         const stripHTML = (str: string) => str.replace(/(<([^>]+)>)/gi, "").trim();
-        return `<winner-box title="${stripHTML(title)}" content="${stripHTML(content)}"></winner-box>`;
+        return `\n\n<winner-box title="${stripHTML(title)}" content="${stripHTML(content)}"></winner-box>\n\n`;
       }
     );
 
@@ -150,6 +175,9 @@ export default async function BlogPostPage(props: { params: Promise<{ slug: stri
             remarkPlugins={[remarkGfm]} 
             rehypePlugins={[rehypeRaw]}
             components={{
+              p: ({node, children, ...props}: any) => (
+                <div className="mb-6 leading-relaxed" {...props}>{children}</div>
+              ),
               "ad-placeholder": ({node, ...props}: any) => (
                 <div 
                   aria-hidden="true" 
@@ -227,6 +255,29 @@ export default async function BlogPostPage(props: { params: Promise<{ slug: stri
           >
             {contentToRender}
           </ReactMarkdown>
+
+          {/* IN-ARTICLE GUMROAD EBOOK BANNER */}
+          <div className="not-prose bg-amber-50 border-l-4 border-amber-500 p-6 my-10 rounded-r-xl shadow-sm flex flex-col md:flex-row items-center justify-between gap-6">
+            <div>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">
+                Struggling with tiny wires and messy glue?
+              </h3>
+              <p className="text-gray-700 text-sm leading-relaxed">
+                Don&apos;t ruin your $50 kit. Get <strong>Zero to Finished</strong>, the complete 6-module beginner&apos;s blueprint to building flawless miniature rooms, mastering micro-wiring, and fixing broken wooden parts.
+              </p>
+            </div>
+            <div className="flex-shrink-0 w-full md:w-auto text-center">
+              <Link 
+                href="https://craftsman353.gumroad.com/l/miniature-guide" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="inline-block w-full md:w-auto bg-amber-600 hover:bg-amber-700 text-white font-bold py-3 px-6 rounded-lg transition-colors duration-200 shadow-sm no-underline"
+              >
+                Get The Guide →
+              </Link>
+            </div>
+          </div>
+
         </div>
       </div>
       
