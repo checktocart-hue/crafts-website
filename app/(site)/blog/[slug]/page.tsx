@@ -1,307 +1,193 @@
-import { collection, getDocs, query, where, limit, doc, getDoc } from "firebase/firestore";
-import { db } from "@/app/lib/firebase";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
-import rehypeRaw from "rehype-raw";
-import TableOfContents from "@/components/TableOfContents"; 
-import AmazonProductCard from "@/components/AmazonProductCard"; 
-import BuildersResourceWidget from "@/components/BuildersResourceWidget";
-import QuickPick from "@/components/QuickPick";
-import Image from "next/image";
-import Link from "next/link";
-import { Metadata } from "next";
+import { notFound } from 'next/navigation';
+import { collection, query, where, getDocs, limit, doc, getDoc } from 'firebase/firestore';
+import { db } from '@/app/lib/firebase';
+import ReactMarkdown from 'react-markdown';
+import Link from 'next/link';
+import TableOfContents from '@/components/TableOfContents';
+import BuildersResourceWidget from '@/components/BuildersResourceWidget';
 
-export const revalidate = 60;
-export const dynamic = "force-dynamic";
+export async function generateMetadata({ params }: { params: { slug: string } }) {
+  let post = null;
+  const collections = ["blog", "reviews"];
 
-// 1. FIXED METADATA FUNCTION (Queries by 'slug' field first, then falls back to Doc ID)
-export async function generateMetadata(props: { params: Promise<{ slug: string }> }): Promise<Metadata> {
-  const params = await props.params;
-  let post: any = null;
-
-  // Search 'blog' collection where the slug field matches the URL
-  let q = query(collection(db, "blog"), where("slug", "==", params.slug), limit(1));
-  let snap = await getDocs(q);
-
-  // If not found in 'blog', search 'reviews' collection
-  if (snap.empty) {
-    q = query(collection(db, "reviews"), where("slug", "==", params.slug), limit(1));
-    snap = await getDocs(q);
-  }
-
-  if (!snap.empty) {
-    post = snap.docs[0].data();
-  } else {
-    // Fallback for any older posts where the Document ID was the slug
-    let docSnap = await getDoc(doc(db, "blog", params.slug));
-    if (!docSnap.exists()) {
-      docSnap = await getDoc(doc(db, "reviews", params.slug));
-    }
-    if (docSnap.exists()) {
-      post = docSnap.data();
+  for (const col of collections) {
+    const q = query(collection(db, col), where("slug", "==", params.slug), limit(1));
+    const snapshot = await getDocs(q);
+    if (!snapshot.empty) {
+      post = snapshot.docs[0].data();
+      break;
     }
   }
 
   if (!post) {
-    return {
-      title: "Post Not Found | Crafts & Kits",
-    };
+    const docRef = doc(db, "blog", params.slug);
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) post = docSnap.data();
   }
 
-  // Create a clean fallback description from the article text if metaDescription is empty
-  const cleanExcerpt = (post.content || "")
-    .replace(/<[^>]*>?/gm, " ")
-    .replace(/\[.*?\]/g, " ")
-    .replace(/\s+/g, " ")
-    .trim()
-    .slice(0, 155);
+  if (!post) return { title: 'Post Not Found | CraftsAndKits' };
 
   return {
-    title: post.seoTitle || post.title || "Crafts & Kits",
-    description:
-      post.metaDescription ||
-      cleanExcerpt ||
-      "In-depth tutorials and recommendations for book nooks, metal models, and miniature kits.",
-    alternates: {
-      canonical: `https://www.craftsandkits.com/blog/${params.slug}`,
-    },
+    title: post.seoTitle || post.title,
+    description: post.metaDescription || post.content?.substring(0, 155).replace(/(<([^>]+)>)/gi, ""),
   };
 }
 
-export default async function BlogPostPage(props: { params: Promise<{ slug: string }> }) {
-  const params = await props.params;
-  
-  let q = query(collection(db, "blog"), where("slug", "==", params.slug), limit(1));
-  let snap = await getDocs(q);
-  
-  if (snap.empty) {
-    q = query(collection(db, "reviews"), where("slug", "==", params.slug), limit(1));
-    snap = await getDocs(q);
-  }
+// Intercepts and parses your custom CKEditor shortcodes into Tailwind React components
+const renderContent = (content: string) => {
+  // 1. Strip CKEditor's injected <p> tags around shortcodes
+  const cleanContent = content.replace(/<p>(\[.*?\]|ADVERTISEMENT)<\/p>/g, '$1');
 
-  if (snap.empty) {
-    return <div className="max-w-3xl mx-auto py-20 text-center font-bold text-2xl">Post not found</div>;
-  }
+  // 2. Split string to isolate shortcodes as their own array items
+  const parts = cleanContent.split(/(\[WINNER_BOX.*?\]|\[QUICK_PICK.*?\]|\[AMAZON_CARD.*?\]|\[BOUNTY_BUTTON.*?\]|ADVERTISEMENT)/g);
 
-  const post = snap.docs[0].data() as any;
-  const rawContent = post.content || post.body || ""; 
-  
-  const contentToRender = rawContent
-    .replace(
-      /(?:<p>\s*)?ADVERTISEMENT(?:\s*<\/p>)?/gi, 
-      '\n\n<ad-placeholder></ad-placeholder>\n\n'
-    )
-    .replace(
-      /(?:<p>\s*)?\[QUICK_PICK\s*\|\|\s*([\s\S]*?)\s*\|\|\s*([\s\S]*?)\s*\|\|\s*([\s\S]*?)\](?:\s*<\/p>)?/gi,
-      (match: any, title: string, reason: string, link: string) => {
-        const stripHTML = (str: string) => str.replace(/(<([^>]+)>)/gi, "").trim();
-        return `\n\n<quick-pick title="${stripHTML(title)}" reason="${stripHTML(reason)}" url="${stripHTML(link)}"></quick-pick>\n\n`;
-      }
-    )
-    .replace(
-      /(?:<p>\s*)?\[AMAZON_CARD\s*\|\|\s*([\s\S]*?)\s*\|\|\s*([\s\S]*?)\s*\|\|\s*([\s\S]*?)\s*\|\|\s*([\s\S]*?)\](?:\s*<\/p>)?/gi,
-      (match: any, title: string, badge: string, image: string, link: string) => {
-        const stripHTML = (str: string) => str.replace(/(<([^>]+)>)/gi, "").trim();
-        return `\n\n<amazon-card title="${stripHTML(title)}" badge="${stripHTML(badge)}" image="${stripHTML(image)}" amazonurl="${stripHTML(link)}"></amazon-card>\n\n`;
-      }
-    )
-    .replace(
-      /(?:<p>\s*)?\[BOUNTY_BUTTON\s*\|\|\s*([\s\S]*?)\s*\|\|\s*([\s\S]*?)\](?:\s*<\/p>)?/gi,
-      (match: any, text: string, link: string) => {
-        const stripHTML = (str: string) => str.replace(/(<([^>]+)>)/gi, "").trim();
-        return `\n\n<bounty-button text="${stripHTML(text)}" link="${stripHTML(link)}"></bounty-button>\n\n`;
-      }
-    )
-    .replace(
-      /(?:<p>\s*)?\[WINNER_BOX\s*\|\|\s*([\s\S]*?)\s*\|\|\s*([\s\S]*?)\](?:\s*<\/p>)?/gi,
-      (match: any, title: string, content: string) => {
-        const stripHTML = (str: string) => str.replace(/(<([^>]+)>)/gi, "").trim();
-        return `\n\n<winner-box title="${stripHTML(title)}" content="${stripHTML(content)}"></winner-box>\n\n`;
-      }
+  return parts.map((part, index) => {
+    if (!part) return null;
+
+    if (part === 'ADVERTISEMENT') {
+      return <div key={index} id="mediavine-target-slot" className="my-8 w-full h-auto min-h-[250px] bg-gray-50 flex items-center justify-center text-gray-400 text-sm border border-dashed border-gray-300">Advertisement Placeholder</div>;
+    }
+
+    if (part.startsWith('[WINNER_BOX')) {
+      const [, title, text] = part.replace(/^\[WINNER_BOX\s*\|\|\s*/, '').replace(/\]$/, '').split(/\s*\|\|\s*/);
+      return (
+        <div key={index} className="my-8 p-6 bg-amber-50 border-l-4 border-amber-500 rounded-r-lg shadow-sm">
+          <h4 className="text-amber-800 font-bold text-lg mb-2 flex items-center gap-2">
+            🏆 {title || 'The Short Answer'}
+          </h4>
+          <p className="text-amber-900 leading-relaxed m-0">{text}</p>
+        </div>
+      );
+    }
+
+    if (part.startsWith('[QUICK_PICK')) {
+      const [, name, desc, link] = part.replace(/^\[QUICK_PICK\s*\|\|\s*/, '').replace(/\]$/, '').split(/\s*\|\|\s*/);
+      return (
+        <div key={index} className="my-10 border-2 border-blue-600 rounded-xl p-6 bg-white shadow-md relative mt-12">
+          <span className="absolute -top-4 left-6 bg-blue-600 text-white px-4 py-1 rounded-full text-sm font-bold uppercase tracking-wider">Top Pick</span>
+          <h3 className="text-xl font-bold text-gray-900 mb-2">{name}</h3>
+          <p className="text-gray-700 mb-4">{desc}</p>
+          <a href={link} target="_blank" rel="noopener noreferrer" className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition-colors">
+            Check Price on Amazon ↗
+          </a>
+        </div>
+      );
+    }
+
+    if (part.startsWith('[AMAZON_CARD')) {
+      const [, title, badge, img, link] = part.replace(/^\[AMAZON_CARD\s*\|\|\s*/, '').replace(/\]$/, '').split(/\s*\|\|\s*/);
+      return (
+        <div key={index} className="my-8 flex flex-col md:flex-row gap-6 p-6 border border-gray-200 rounded-xl bg-white shadow-sm hover:shadow-md transition-shadow">
+          <div className="w-full md:w-1/3 flex justify-center items-center relative">
+            {badge && badge !== 'none' && (
+              <span className="absolute top-0 left-0 bg-orange-500 text-white text-xs font-bold px-3 py-1 rounded-br-lg rounded-tl-lg">{badge}</span>
+            )}
+            <img src={img} alt={title} className="max-h-48 object-contain" />
+          </div>
+          <div className="w-full md:w-2/3 flex flex-col justify-center">
+            <h3 className="text-lg font-bold text-gray-900 mb-3">{title}</h3>
+            <a href={link} target="_blank" rel="noopener noreferrer" className="w-full md:w-auto text-center bg-orange-400 hover:bg-orange-500 text-gray-900 font-bold py-3 px-6 rounded-lg transition-colors">
+              View on Amazon ↗
+            </a>
+          </div>
+        </div>
+      );
+    }
+
+    if (part.startsWith('[BOUNTY_BUTTON')) {
+      const [, cta, link] = part.replace(/^\[BOUNTY_BUTTON\s*\|\|\s*/, '').replace(/\]$/, '').split(/\s*\|\|\s*/);
+      return (
+        <div key={index} className="my-6">
+          <a href={link} target="_blank" rel="noopener noreferrer" className="inline-block w-full md:w-auto text-center bg-orange-400 hover:bg-orange-500 text-gray-900 font-bold py-3 px-8 rounded-lg shadow-sm transition-transform hover:scale-105">
+            {cta}
+          </a>
+        </div>
+      );
+    }
+
+    // Normal text goes back through ReactMarkdown, completely avoiding Hydration errors
+    if (part.trim() === '') return null;
+    return (
+      <ReactMarkdown
+        key={index}
+        components={{
+          p: ({ node, ...props }) => <div className="mb-6 leading-relaxed text-gray-800" {...props} />
+        }}
+      >
+        {part}
+      </ReactMarkdown>
     );
+  });
+};
+
+export default async function BlogPostPage({ params }: { params: { slug: string } }) {
+  let post = null;
+  const collections = ["blog", "reviews"];
+
+  for (const col of collections) {
+    const q = query(collection(db, col), where("slug", "==", params.slug), limit(1));
+    const snapshot = await getDocs(q);
+    if (!snapshot.empty) {
+      post = snapshot.docs[0].data();
+      break;
+    }
+  }
+
+  if (!post) {
+    const docRef = doc(db, "blog", params.slug);
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) post = docSnap.data();
+  }
+
+  if (!post) return notFound();
 
   return (
-    <article className="max-w-6xl mx-auto px-4 pt-16 pb-28 font-sans relative">
-      <header className="max-w-3xl mx-auto mb-10 text-center">
-        <p className="text-sm font-bold text-amber-600 uppercase tracking-widest mb-4">
-          {post.category || "Review"}
-        </p>
-        <h1 className="text-4xl md:text-5xl font-serif font-bold text-gray-900 mb-6 leading-tight">
-          {post.title}
-        </h1>
-
-        <div className="flex flex-col items-center justify-center gap-3 mb-4">
-          <div className="flex items-center gap-2 text-gray-800 font-medium">
-            <span className="w-8 h-8 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center font-bold text-sm">
-              RM
-            </span>
-            <span>By Rashy Michaels</span>
-            <span className="text-gray-300">•</span>
-            <span className="text-sm text-gray-500">
-              {post.date || new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
-            </span>
-          </div>
-
-          <div className="bg-gray-50 border border-gray-200 text-gray-600 text-xs px-4 py-3 rounded-lg inline-block shadow-sm">
-            <span className="font-bold">Transparency:</span> As an Amazon Associate, we earn from qualifying purchases through links in this guide at no extra cost to you.
-          </div>
-        </div>
-
-        {post.coverImage && (
-          <div className="relative w-full aspect-[16/9] mt-4 overflow-hidden rounded-lg shadow-sm">
-            <Image 
-              src={post.coverImage} 
-              alt={post.title}
-              fill
-              priority 
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 800px"
-              className="object-cover"
-            />
-          </div>
-        )}
-      </header>
-
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start mt-12">
-        <aside className="lg:col-span-4 sticky top-8 space-y-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 flex flex-col lg:flex-row gap-12">
+      {/* Sticky Left Sidebar */}
+      <aside className="w-full lg:w-1/4 flex flex-col gap-8 hidden lg:flex relative">
+        <div className="sticky top-24">
           <TableOfContents />
-          
-          <div className="hidden lg:block">
+          <div className="mt-8">
             <BuildersResourceWidget />
           </div>
-        </aside>
-
-        <div className="lg:col-span-8 prose prose-lg prose-stone max-w-none prose-headings:font-serif prose-a:text-amber-600 prose-a:font-extrabold prose-a:underline hover:prose-a:text-amber-700 prose-img:rounded-md prose-img:mx-auto">
-          <ReactMarkdown 
-            remarkPlugins={[remarkGfm]} 
-            rehypePlugins={[rehypeRaw]}
-            components={{
-              p: ({node, children, ...props}: any) => (
-                <div className="mb-6 leading-relaxed" {...props}>{children}</div>
-              ),
-              "ad-placeholder": ({node, ...props}: any) => (
-                <div 
-                  aria-hidden="true" 
-                  className="w-full my-8 min-h-[250px] bg-transparent"
-                  id="mediavine-target-slot"
-                ></div>
-              ),
-              "quick-pick": ({node, ...props}: any) => (
-                <QuickPick 
-                  title={props.title} 
-                  reason={props.reason} 
-                  url={props.url} 
-                />
-              ),
-              "amazon-card": ({node, ...props}: any) => (
-                <AmazonProductCard 
-                  title={props.title}
-                  badge={props.badge}
-                  image={props.image} 
-                  amazonUrl={props.amazonurl}
-                />
-              ),
-              "bounty-button": ({node, ...props}: any) => (
-                <span className="block my-10">
-                  <a 
-                    href={props.link} 
-                    target="_blank" 
-                    rel="noopener noreferrer" 
-                    className="block w-full text-center bg-amber-500 hover:bg-amber-400 text-gray-950 font-extrabold text-xl py-5 px-6 rounded-xl shadow-lg transition-transform hover:scale-105 border-b-4 border-amber-600 hover:border-amber-500 uppercase tracking-widest no-underline"
-                  >
-                    {props.text}
-                  </a>
-                  <span className="block text-center text-xs text-gray-500 mt-3 font-semibold uppercase tracking-wider">
-                    Cancel anytime. No risk.
-                  </span>
-                </span>
-              ),
-              "winner-box": ({node, ...props}: any) => (
-                <span className="block my-10 bg-amber-50/50 border border-amber-200 rounded-2xl p-6 md:p-8 shadow-sm relative overflow-hidden">
-                  <span className="absolute -top-4 -right-4 text-amber-100 opacity-50 text-9xl pointer-events-none">
-                    🏆
-                  </span>
-                  
-                  <span className="block relative z-10">
-                    <span className="flex items-center gap-3 mb-3">
-                      <span className="bg-amber-500 text-gray-950 flex items-center justify-center w-8 h-8 rounded-lg font-bold shadow-sm shrink-0">
-                        ✓
-                      </span>
-                      <strong className="block text-xl md:text-2xl font-bold font-serif text-gray-900 m-0">
-                        {props.title}
-                      </strong>
-                    </span>
-                    <span className="block text-gray-700 text-base md:text-lg leading-relaxed m-0 font-medium">
-                      {props.content}
-                    </span>
-                  </span>
-                </span>
-              ),
-              img: ({node, ...props}: any) => {
-                if (!props.src) return null;
-                return (
-                  <span className="block relative w-full aspect-video my-8 overflow-hidden rounded-md shadow-sm">
-                    <Image
-                      src={props.src}
-                      alt={props.alt || "Article image"}
-                      fill
-                      loading="lazy" 
-                      sizes="(max-width: 768px) 100vw, 800px"
-                      className="object-contain"
-                    />
-                  </span>
-                );
-              }
-            } as any} 
-          >
-            {contentToRender}
-          </ReactMarkdown>
-
-          {/* IN-ARTICLE GUMROAD EBOOK BANNER */}
-          <div className="not-prose bg-amber-50 border-l-4 border-amber-500 p-6 my-10 rounded-r-xl shadow-sm flex flex-col md:flex-row items-center justify-between gap-6">
-            <div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">
-                Struggling with tiny wires and messy glue?
-              </h3>
-              <p className="text-gray-700 text-sm leading-relaxed">
-                Don&apos;t ruin your $50 kit. Get <strong>Zero to Finished</strong>, the complete 6-module beginner&apos;s blueprint to building flawless miniature rooms, mastering micro-wiring, and fixing broken wooden parts.
-              </p>
-            </div>
-            <div className="flex-shrink-0 w-full md:w-auto text-center">
-              <Link 
-                href="https://craftsman353.gumroad.com/l/miniature-guide" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="inline-block w-full md:w-auto bg-amber-600 hover:bg-amber-700 text-white font-bold py-3 px-6 rounded-lg transition-colors duration-200 shadow-sm no-underline"
-              >
-                Get The Guide →
-              </Link>
-            </div>
-          </div>
-
         </div>
-      </div>
-      
-      {post.affiliateLink && (
-        <div className="fixed bottom-0 left-0 w-full bg-white border-t border-gray-200 p-3 shadow-[0_-10px_15px_-3px_rgba(0,0,0,0.1)] z-50 md:hidden flex items-center justify-between gap-3">
-          <div className="flex-1 min-w-0">
-            <p className="text-[10px] font-extrabold text-gray-400 uppercase tracking-wider truncate">
-              Featured Kit
-            </p>
-            <p className="text-sm font-bold text-gray-900 truncate leading-tight">
-              {post.title}
-            </p>
+      </aside>
+
+      {/* Main Content Body */}
+      <article className="w-full lg:w-3/4">
+        <header className="mb-10">
+          <p className="text-sm text-blue-600 font-bold uppercase tracking-wider mb-2">{post.category}</p>
+          <h1 className="text-4xl md:text-5xl font-extrabold text-gray-900 leading-tight mb-6">{post.title}</h1>
+          <div className="flex items-center gap-4 text-gray-600 text-sm border-b border-gray-200 pb-8">
+            <span>By <strong>Rashy Michaels</strong></span>
+            <span>•</span>
+            <span>{post.updatedAt ? new Date(post.updatedAt).toLocaleDateString() : 'Recently Updated'}</span>
           </div>
-          <a
-            href={post.affiliateLink}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="bg-amber-500 hover:bg-amber-400 text-gray-950 font-extrabold px-5 py-3 rounded-xl text-sm transition-all shadow-sm flex items-center justify-center gap-2 flex-shrink-0"
-          >
-            Check Price ↗
+          <p className="text-xs text-gray-400 mt-4 italic">As an Amazon Associate I earn from qualifying purchases.</p>
+        </header>
+
+        <div className="prose prose-lg max-w-none">
+          {renderContent(post.content || '')}
+        </div>
+
+        {/* In-Article Gumroad Pitch */}
+        <div className="mt-16 p-8 bg-blue-900 text-white rounded-2xl shadow-xl text-center">
+          <h3 className="text-2xl font-bold mb-4">Tired of Breaking Laser-Cut Wood and Messing Up Your Wiring?</h3>
+          <p className="mb-6 opacity-90">Grab my 6-module beginner's blueprint, <em>Zero to Finished</em>, and learn how to build flawless, fully-lit dioramas the right way.</p>
+          <a href="https://craftsman353.gumroad.com/l/miniature-guide" target="_blank" rel="noopener noreferrer" className="inline-block bg-white text-blue-900 font-bold py-4 px-8 rounded-full shadow-md hover:bg-gray-100 transition-colors">
+            Get the Blueprint for $14.99 ↗
+          </a>
+        </div>
+      </article>
+
+      {/* Mobile-Only Sticky Bottom CTA */}
+      {post.affiliateLink && (
+        <div className="fixed bottom-0 left-0 w-full bg-white border-t border-gray-200 p-4 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] lg:hidden z-50 flex justify-center">
+          <a href={post.affiliateLink} target="_blank" rel="noopener noreferrer" className="w-full max-w-md text-center bg-orange-500 hover:bg-orange-600 text-white font-bold py-4 px-6 rounded-xl transition-colors">
+            Check Current Price ↗
           </a>
         </div>
       )}
-
-    </article>
+    </div>
   );
 }
