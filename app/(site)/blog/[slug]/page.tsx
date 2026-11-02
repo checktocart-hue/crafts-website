@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation';
 import { collection, query, where, getDocs, limit, doc, getDoc } from 'firebase/firestore';
 import { db } from '@/app/lib/firebase';
-import ReactMarkdown from 'react-markdown';
+import { marked } from 'marked';
 import TableOfContents from '@/components/TableOfContents';
 import BuildersResourceWidget from '@/components/BuildersResourceWidget';
 
@@ -59,7 +59,20 @@ export async function generateMetadata({
   };
 }
 
-// Intercepts and parses custom CKEditor shortcodes into Tailwind React components
+// Automatically adds id="slugified-heading" to <h2> and <h3> tags so TableOfContents jump-links work
+function injectHeadingIds(html: string): string {
+  return html.replace(/<(h[23])([^>]*)>(.*?)<\/\1>/gi, (match, tag, attrs, innerHTML) => {
+    if (attrs.includes('id=')) return match;
+    const plainText = innerHTML.replace(/<[^>]+>/g, '').trim();
+    const id = plainText
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)+/g, '');
+    return `<${tag}${attrs} id="${id}">${innerHTML}</${tag}>`;
+  });
+}
+
+// Intercepts custom shortcodes into React components and renders CKEditor HTML / Markdown cleanly
 const renderContent = (content: string) => {
   if (!content || typeof content !== 'string') return null;
 
@@ -94,7 +107,7 @@ const renderContent = (content: string) => {
       return (
         <div
           key={index}
-          className="my-8 p-6 bg-amber-50 border-l-4 border-amber-500 rounded-r-lg shadow-sm"
+          className="my-8 p-6 bg-amber-50 border-l-4 border-amber-500 rounded-r-lg shadow-sm not-prose"
         >
           <h4 className="text-amber-800 font-bold text-lg mb-2 flex items-center gap-2">
             🏆 {title || 'The Short Answer'}
@@ -112,7 +125,7 @@ const renderContent = (content: string) => {
       return (
         <div
           key={index}
-          className="my-10 border-2 border-blue-600 rounded-xl p-6 bg-white shadow-md relative mt-12"
+          className="my-10 border-2 border-blue-600 rounded-xl p-6 bg-white shadow-md relative mt-12 not-prose"
         >
           <span className="absolute -top-4 left-6 bg-blue-600 text-white px-4 py-1 rounded-full text-sm font-bold uppercase tracking-wider">
             Top Pick
@@ -139,7 +152,7 @@ const renderContent = (content: string) => {
       return (
         <div
           key={index}
-          className="my-8 flex flex-col md:flex-row gap-6 p-6 border border-gray-200 rounded-xl bg-white shadow-sm hover:shadow-md transition-shadow"
+          className="my-8 flex flex-col md:flex-row gap-6 p-6 border border-gray-200 rounded-xl bg-white shadow-sm hover:shadow-md transition-shadow not-prose"
         >
           <div className="w-full md:w-1/3 flex justify-center items-center relative">
             {badge && badge !== 'none' && (
@@ -170,7 +183,7 @@ const renderContent = (content: string) => {
         .replace(/\]$/, '')
         .split(/\s*\|\|\s*/);
       return (
-        <div key={index} className="my-6">
+        <div key={index} className="my-6 not-prose">
           <a
             href={link || '#'}
             target="_blank"
@@ -191,7 +204,7 @@ const renderContent = (content: string) => {
       return (
         <div
           key={index}
-          className="my-10 p-6 md:p-8 bg-gradient-to-br from-slate-900 via-blue-950 to-indigo-950 text-white rounded-2xl shadow-lg border border-blue-800/60 relative overflow-hidden"
+          className="my-10 p-6 md:p-8 bg-gradient-to-br from-slate-900 via-blue-950 to-indigo-950 text-white rounded-2xl shadow-lg border border-blue-800/60 relative overflow-hidden not-prose"
         >
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
             <div className="space-y-2 md:w-2/3">
@@ -223,18 +236,16 @@ const renderContent = (content: string) => {
 
     if (part.trim() === '') return null;
 
-    // Normal text or HTML goes through ReactMarkdown
+    // Parse hybrid Markdown/HTML via marked and inject heading IDs for TableOfContents
+    const parsedHtml = marked.parse(part, { async: false }) as string;
+    const finalHtml = injectHeadingIds(parsedHtml);
+
     return (
-      <ReactMarkdown
+      <div
         key={index}
-        components={{
-          p: ({ node, ...props }) => (
-            <div className="mb-6 leading-relaxed text-gray-800" {...props} />
-          ),
-        }}
-      >
-        {part}
-      </ReactMarkdown>
+        className="ckeditor-body space-y-4 text-gray-800 leading-relaxed"
+        dangerouslySetInnerHTML={{ __html: finalHtml }}
+      />
     );
   });
 };
@@ -289,7 +300,7 @@ export default async function BlogPostPage({
           </p>
         </header>
 
-        <div className="prose prose-lg max-w-none">
+        <div className="prose prose-lg max-w-none prose-headings:font-extrabold prose-headings:text-gray-900 prose-a:text-blue-600 hover:prose-a:underline prose-img:rounded-xl prose-table:border-collapse prose-th:bg-gray-100 prose-th:p-3 prose-td:p-3 prose-td:border prose-th:border">
           {renderContent(post.content || '')}
         </div>
 
