@@ -59,6 +59,25 @@ export async function generateMetadata({
   };
 }
 
+// Decodes escaped HTML entities (&lt;p&gt; -> <p>) so CKEditor HTML never prints as raw code
+function decodeHtmlEntities(str: string): string {
+  let decoded = str;
+  // Run twice in case CKEditor double-encoded (&amp;lt;p&amp;gt;)
+  for (let i = 0; i < 2; i++) {
+    decoded = decoded
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&quot;/g, '"')
+      .replace(/&#39;/g, "'")
+      .replace(/&amp;/g, '&');
+  }
+  // Clean up accidental <p><p> or </p></p> if CKEditor wrapped already-tagged HTML
+  decoded = decoded
+    .replace(/<p>\s*(<(?:p|h[1-6]|ul|ol|figure|table|blockquote|div)\b)/gi, '$1')
+    .replace(/(<\/(?:p|h[1-6]|ul|ol|figure|table|blockquote|div)>)\s*<\/p>/gi, '$1');
+  return decoded;
+}
+
 // Automatically adds id="slugified-heading" to <h2> and <h3> tags so TableOfContents jump-links work
 function injectHeadingIds(html: string): string {
   return html.replace(/<(h[23])([^>]*)>(.*?)<\/\1>/gi, (match, tag, attrs, innerHTML) => {
@@ -73,13 +92,16 @@ function injectHeadingIds(html: string): string {
 }
 
 // Intercepts custom shortcodes into React components and renders CKEditor HTML / Markdown cleanly
-const renderContent = (content: string) => {
-  if (!content || typeof content !== 'string') return null;
+const renderContent = (rawContent: string) => {
+  if (!rawContent || typeof rawContent !== 'string') return null;
 
-  // 1. Strip CKEditor's injected <p> tags around shortcodes
-  const cleanContent = content.replace(/<p>\s*(\[[\s\S]*?\]|ADVERTISEMENT)\s*<\/p>/gi, '$1');
+  // 1. Decode any escaped HTML (&lt;p&gt; -> <p>) first
+  const decodedContent = decodeHtmlEntities(rawContent);
 
-  // 2. Split string to isolate shortcodes
+  // 2. Strip CKEditor's injected <p> tags around shortcodes
+  const cleanContent = decodedContent.replace(/<p>\s*(\[[\s\S]*?\]|ADVERTISEMENT)\s*<\/p>/gi, '$1');
+
+  // 3. Split string to isolate shortcodes
   const parts = cleanContent.split(
     /(\[WINNER_BOX[\s\S]*?\]|\[QUICK_PICK[\s\S]*?\]|\[AMAZON_CARD[\s\S]*?\]|\[BOUNTY_BUTTON[\s\S]*?\]|\[GUMROAD_BOX[\s\S]*?\]|ADVERTISEMENT)/g
   );
@@ -236,8 +258,12 @@ const renderContent = (content: string) => {
 
     if (part.trim() === '') return null;
 
-    // Parse hybrid Markdown/HTML via marked and inject heading IDs for TableOfContents
-    const parsedHtml = marked.parse(part, { async: false }) as string;
+    // If the part already contains HTML tags (<p>, <h2>, <figure>, <table>), render directly without marked escaping it
+    const hasHtmlTags = /<(?:p|h[1-6]|ul|ol|li|figure|table|div|strong|em|a)\b/i.test(part);
+    const parsedHtml = hasHtmlTags
+      ? part
+      : (marked.parse(part, { async: false }) as string);
+
     const finalHtml = injectHeadingIds(parsedHtml);
 
     return (
@@ -262,13 +288,14 @@ export default async function BlogPostPage({
   if (!post) return notFound();
 
   const AnyTOC = TableOfContents as any;
+  const cleanHtmlForToc = decodeHtmlEntities(post.content || '');
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 flex flex-col lg:flex-row gap-12">
       {/* Sticky Left Sidebar */}
       <aside className="w-full lg:w-1/4 flex-col gap-8 hidden lg:flex relative">
         <div className="sticky top-24">
-          <AnyTOC content={post.content || ''} />
+          <AnyTOC content={cleanHtmlForToc} />
           <div className="mt-8">
             <BuildersResourceWidget />
           </div>
