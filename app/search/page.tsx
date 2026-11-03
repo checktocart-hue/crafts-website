@@ -47,7 +47,6 @@ async function getAllPublishedPosts(): Promise<IndexedPost[]> {
 
     const processDoc = (docSnap: any, colName: 'blog' | 'reviews') => {
       const data = docSnap.data();
-      // Exclude unpublished drafts
       if (data.status && data.status !== 'published') return;
       if (!data.title || !data.slug) return;
 
@@ -83,7 +82,6 @@ async function getAllPublishedPosts(): Promise<IndexedPost[]> {
     blogSnap.forEach((d) => processDoc(d, 'blog'));
     reviewSnap.forEach((d) => processDoc(d, 'reviews'));
 
-    // Sort newest first by default
     posts.sort((a, b) => (b.updatedAt || '').localeCompare(a.updatedAt || ''));
   } catch (error) {
     console.error('Error fetching search index from Firestore:', error);
@@ -100,7 +98,6 @@ async function SearchResults({ searchParams }: SearchPageProps) {
 
   const allPosts = await getAllPublishedPosts();
 
-  // Multi-word relevance scoring so partial queries still match accurately
   const stopWords = new Set(['vs', 'for', 'the', 'and', 'best', 'how', 'to', 'in', 'of', 'a', 'is']);
   const tokens = query
     .split(/\s+/)
@@ -114,7 +111,6 @@ async function SearchResults({ searchParams }: SearchPageProps) {
         return { post, score: -1 };
       }
 
-      // If no search query typed yet, show all posts (or category-filtered posts)
       if (!query) {
         return { post, score: 1 };
       }
@@ -125,13 +121,11 @@ async function SearchResults({ searchParams }: SearchPageProps) {
       const lowerCat = post.category.toLowerCase();
       const lowerDesc = post.description.toLowerCase();
 
-      // High-priority exact phrase matches
       if (lowerTitle.includes(query)) score += 60;
       if (lowerSlug.includes(query)) score += 40;
       if (lowerDesc.includes(query)) score += 25;
       if (post.searchBlob.includes(query)) score += 15;
 
-      // Individual keyword token matches
       for (const token of activeTokens) {
         if (lowerTitle.includes(token)) score += 25;
         else if (lowerSlug.includes(token)) score += 15;
@@ -159,7 +153,27 @@ async function SearchResults({ searchParams }: SearchPageProps) {
   ];
 
   return (
-    <div className="max-w-4xl mx-auto px-6 py-12 md:py-16">
+    <div className="max-w-4xl mx-auto px-6 py-10 md:py-14">
+      {/* Top Navigation & Back to Home Bar */}
+      <div className="flex flex-wrap items-center justify-between gap-4 pb-6 mb-8 border-b border-zinc-200">
+        <Link
+          href="/"
+          className="inline-flex items-center gap-2 text-sm font-bold text-zinc-700 hover:text-amber-600 bg-zinc-100 hover:bg-amber-50 px-4 py-2 rounded-xl transition-colors"
+        >
+          <span>←</span> Back to Home
+        </Link>
+
+        <div className="flex items-center gap-4 text-xs font-bold text-zinc-500">
+          <Link href="/blog" className="hover:text-zinc-900 transition-colors">
+            All Guides
+          </Link>
+          <span>•</span>
+          <Link href="/reviews" className="hover:text-zinc-900 transition-colors">
+            Kit Reviews
+          </Link>
+        </div>
+      </div>
+
       <h1 className="text-3xl md:text-4xl font-extrabold text-zinc-900 mb-3">
         Search Guides &amp; Reviews
       </h1>
@@ -179,6 +193,14 @@ async function SearchResults({ searchParams }: SearchPageProps) {
         >
           Search
         </button>
+        {query && (
+          <Link
+            href="/search"
+            className="flex items-center justify-center bg-zinc-100 hover:bg-zinc-200 text-zinc-700 font-bold px-4 py-3 rounded-xl transition-colors text-sm"
+          >
+            Clear
+          </Link>
+        )}
       </form>
 
       {/* Quick Topic Pills */}
@@ -223,15 +245,23 @@ async function SearchResults({ searchParams }: SearchPageProps) {
             No articles found matching{' '}
             <strong className="text-zinc-900">&ldquo;{rawQuery}&rdquo;</strong>.
           </p>
-          <p className="text-xs text-zinc-500 mb-4">
-            Try searching a broader keyword like &ldquo;Book Nook&rdquo;, &ldquo;Glue&rdquo;, or &ldquo;Rolife&rdquo;, or browse all guides:
+          <p className="text-xs text-zinc-500 mb-6">
+            Try searching a broader keyword like &ldquo;Book Nook&rdquo;, &ldquo;Glue&rdquo;, or &ldquo;Rolife&rdquo;, or return home:
           </p>
-          <Link
-            href="/search"
-            className="inline-block bg-zinc-900 text-white text-xs font-bold px-4 py-2.5 rounded-lg hover:bg-zinc-800 transition-colors"
-          >
-            View All Articles
-          </Link>
+          <div className="flex flex-wrap justify-center gap-3">
+            <Link
+              href="/search"
+              className="inline-block bg-zinc-900 text-white text-xs font-bold px-4 py-2.5 rounded-lg hover:bg-zinc-800 transition-colors"
+            >
+              View All Articles
+            </Link>
+            <Link
+              href="/"
+              className="inline-block bg-white border border-zinc-300 text-zinc-800 text-xs font-bold px-4 py-2.5 rounded-lg hover:bg-zinc-100 transition-colors"
+            >
+              ← Back to Homepage
+            </Link>
+          </div>
         </div>
       ) : (
         <div className="space-y-4">
@@ -268,6 +298,16 @@ async function SearchResults({ searchParams }: SearchPageProps) {
           ))}
         </div>
       )}
+
+      {/* Bottom Footer Return Link */}
+      <div className="mt-12 pt-8 border-t border-zinc-200 flex justify-center">
+        <Link
+          href="/"
+          className="inline-flex items-center gap-2 text-sm font-bold text-zinc-700 hover:text-amber-600 transition-colors"
+        >
+          <span>←</span> Return to CraftsAndKits Homepage
+        </Link>
+      </div>
     </div>
   );
 }
