@@ -23,7 +23,12 @@ const nextConfig: NextConfig = {
   },
   async redirects() {
     return [
-      // 1. SPECIFIC SLUG FIXES 
+      // 1. SPECIFIC SLUG FIXES & SEO CANNIBALIZATION MERGES
+      {
+        source: '/blog/best-modern-miniature-dollhouse-kits-for-adults',
+        destination: '/blog/best-miniature-dollhouse-kits-adults',
+        permanent: true,
+      },
       {
         source: '/blog/title-the-ultimate-guide-to-book-nook-kits',
         destination: '/blog/ultimate-guide-to-book-nook-kits',
