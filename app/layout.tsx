@@ -32,6 +32,9 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        {/* Impact Affiliate Verification */}
+        <meta name="impact-site-verification" value="b18074ad-64b6-42c1-913c-f0bfb5625bee" />
+
         {/* Google Analytics / Google Tag */}
         <Script
           src="https://www.googletagmanager.com/gtag/js?id=G-TL2C8ED873"
