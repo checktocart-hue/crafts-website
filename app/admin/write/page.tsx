@@ -51,6 +51,14 @@ function decodeHtmlEntities(str: string): string {
   return decoded;
 }
 
+// Strips HTML tags and whitespace if CKEditor auto-linked a URL inside a shortcode
+function cleanUrl(rawUrl?: string): string {
+  if (!rawUrl) return "#";
+  const stripped = rawUrl.replace(/<[^>]+>/g, "").trim();
+  if (!stripped) return "#";
+  return stripped;
+}
+
 // Live Studio Renderer so you can see Dual Buttons, Gumroad Boxes, and Cards render in real-time
 function renderStudioPreview(rawContent: string) {
   if (!rawContent) return null;
@@ -97,11 +105,13 @@ function renderStudioPreview(rawContent: string) {
     }
 
     if (part.startsWith("[QUICK_PICK")) {
-      const [name, desc, link1, link2, promo] = part
+      const [name, desc, rawLink1, rawLink2, promo] = part
         .replace(/^\[QUICK_PICK\s*\|\|\s*/i, "")
         .replace(/\]$/, "")
         .split(/\s*\|\|\s*/);
-      const isDual = !!link2;
+      const link1 = cleanUrl(rawLink1);
+      const link2 = rawLink2 ? cleanUrl(rawLink2) : "";
+      const isDual = !!link2 && link2 !== "#";
 
       return (
         <div
@@ -118,7 +128,7 @@ function renderStudioPreview(rawContent: string) {
             {isDual ? (
               <>
                 <a
-                  href={link1 || "#"}
+                  href={link1}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex-1 text-center bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl flex flex-col items-center justify-center shadow-xs"
@@ -131,7 +141,7 @@ function renderStudioPreview(rawContent: string) {
                   )}
                 </a>
                 <a
-                  href={link2 || "#"}
+                  href={link2}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex-1 text-center bg-orange-500 hover:bg-orange-600 text-gray-900 font-bold py-3 px-4 rounded-xl flex flex-col items-center justify-center shadow-xs"
@@ -144,7 +154,7 @@ function renderStudioPreview(rawContent: string) {
               </>
             ) : (
               <a
-                href={link1 || "#"}
+                href={link1}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-5 rounded-lg text-sm"
@@ -158,11 +168,14 @@ function renderStudioPreview(rawContent: string) {
     }
 
     if (part.startsWith("[AMAZON_CARD")) {
-      const [title, badge, img, link1, link2, promo] = part
+      const [title, badge, rawImg, rawLink1, rawLink2, promo] = part
         .replace(/^\[AMAZON_CARD\s*\|\|\s*/i, "")
         .replace(/\]$/, "")
         .split(/\s*\|\|\s*/);
-      const isDual = !!link2;
+      const img = cleanUrl(rawImg);
+      const link1 = cleanUrl(rawLink1);
+      const link2 = rawLink2 ? cleanUrl(rawLink2) : "";
+      const isDual = !!link2 && link2 !== "#";
 
       return (
         <div
@@ -175,7 +188,7 @@ function renderStudioPreview(rawContent: string) {
                 {badge}
               </span>
             )}
-            {img && (
+            {img && img !== "#" && (
               <img
                 src={img}
                 alt={title || "Product"}
@@ -189,7 +202,7 @@ function renderStudioPreview(rawContent: string) {
               {isDual ? (
                 <>
                   <a
-                    href={link1 || "#"}
+                    href={link1}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex-1 text-center bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-4 rounded-lg text-sm flex flex-col items-center justify-center"
@@ -202,7 +215,7 @@ function renderStudioPreview(rawContent: string) {
                     )}
                   </a>
                   <a
-                    href={link2 || "#"}
+                    href={link2}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex-1 text-center bg-orange-400 hover:bg-orange-500 text-gray-900 font-bold py-2.5 px-4 rounded-lg text-sm flex flex-col items-center justify-center"
@@ -215,7 +228,7 @@ function renderStudioPreview(rawContent: string) {
                 </>
               ) : (
                 <a
-                  href={link1 || "#"}
+                  href={link1}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-full md:w-auto text-center bg-orange-400 hover:bg-orange-500 text-gray-900 font-bold py-2.5 px-5 rounded-lg text-sm"
@@ -230,18 +243,20 @@ function renderStudioPreview(rawContent: string) {
     }
 
     if (part.startsWith("[BOUNTY_BUTTON")) {
-      const [cta, link1, link2, promo] = part
+      const [cta, rawLink1, rawLink2, promo] = part
         .replace(/^\[BOUNTY_BUTTON\s*\|\|\s*/i, "")
         .replace(/\]$/, "")
         .split(/\s*\|\|\s*/);
-      const isDual = !!link2;
+      const link1 = cleanUrl(rawLink1);
+      const link2 = rawLink2 ? cleanUrl(rawLink2) : "";
+      const isDual = !!link2 && link2 !== "#";
 
       return (
         <div key={index} className="my-6 flex flex-col sm:flex-row gap-3 justify-center">
           {isDual ? (
             <>
               <a
-                href={link1 || "#"}
+                href={link1}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-full sm:w-auto text-center bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-xl shadow-xs flex flex-col items-center"
@@ -254,7 +269,7 @@ function renderStudioPreview(rawContent: string) {
                 )}
               </a>
               <a
-                href={link2 || "#"}
+                href={link2}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-full sm:w-auto text-center bg-orange-500 hover:bg-orange-600 text-gray-900 font-bold py-3 px-6 rounded-xl shadow-xs flex flex-col items-center"
@@ -267,7 +282,7 @@ function renderStudioPreview(rawContent: string) {
             </>
           ) : (
             <a
-              href={link1 || "#"}
+              href={link1}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-block w-full md:w-auto text-center bg-orange-400 hover:bg-orange-500 text-gray-900 font-bold py-2.5 px-6 rounded-lg text-sm"
@@ -312,10 +327,11 @@ function renderStudioPreview(rawContent: string) {
     }
 
     if (part.startsWith("[IMAGE")) {
-      const [src, caption] = part
+      const [rawSrc, caption] = part
         .replace(/^\[IMAGE\s*\|\|\s*/i, "")
         .replace(/\]$/, "")
         .split(/\s*\|\|\s*/);
+      const src = cleanUrl(rawSrc);
       return (
         <figure key={index} className="my-6">
           <img
@@ -361,6 +377,7 @@ function EditorForm() {
   >("all");
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [showLivePreview, setShowLivePreview] = useState(true);
+  const [shortcodeNotice, setShortcodeNotice] = useState<string | null>(null);
 
   // Active Document Tracking (null = brand new unsaved post)
   const [activeId, setActiveId] = useState<string | null>(initialEditId);
@@ -562,9 +579,35 @@ function EditorForm() {
     }
   };
 
-  // Insert custom shortcodes at the bottom of the current editor content
+  // Insert custom shortcodes at CKEditor cursor (or bottom of editor) AND copy to clipboard
   const insertShortcode = (shortcode: string) => {
-    setContent((prev) => `${prev}\n<p>${shortcode}</p>\n`);
+    // 1. Copy to clipboard automatically as a foolproof backup
+    if (typeof navigator !== "undefined" && navigator.clipboard) {
+      navigator.clipboard.writeText(shortcode).catch(() => {});
+    }
+
+    // 2. If CKEditor instance is exposed globally, insert directly at cursor or end
+    const ckInstance =
+      typeof window !== "undefined" ? (window as any).__ckEditorInstance : null;
+
+    if (ckInstance) {
+      try {
+        const currentData = ckInstance.getData() || "";
+        const nextData = `${currentData}<p>${shortcode}</p>`;
+        ckInstance.setData(nextData);
+        setContent(nextData);
+      } catch {
+        setContent((prev) => `${prev}\n<p>${shortcode}</p>\n`);
+      }
+    } else {
+      setContent((prev) => `${prev}\n<p>${shortcode}</p>\n`);
+    }
+
+    // 3. Show visual confirmation banner
+    setShortcodeNotice(
+      "✓ Shortcode added to bottom of editor & copied to clipboard (Ctrl+V to paste anywhere)!"
+    );
+    setTimeout(() => setShortcodeNotice(null), 4000);
   };
 
   // Upsert in place without leaving the page
@@ -1146,6 +1189,12 @@ function EditorForm() {
                       + Dual Bounty Buttons (Rolife + Amzn)
                     </button>
                   </div>
+
+                  {shortcodeNotice && (
+                    <div className="mt-1 px-3 py-1.5 bg-green-100 border border-green-300 text-green-900 text-xs font-bold rounded-md">
+                      {shortcodeNotice}
+                    </div>
+                  )}
                 </div>
 
                 <div className="border border-gray-300 rounded-lg overflow-hidden shadow-xs">
