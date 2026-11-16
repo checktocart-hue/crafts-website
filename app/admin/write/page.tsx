@@ -37,10 +37,318 @@ interface PostSummary {
   updatedAt: string;
 }
 
+// Decodes escaped HTML entities (&lt;p&gt; -> <p>) for clean studio previewing
+function decodeHtmlEntities(str: string): string {
+  let decoded = str;
+  for (let i = 0; i < 2; i++) {
+    decoded = decoded
+      .replace(/&lt;/g, "<")
+      .replace(/&gt;/g, ">")
+      .replace(/&quot;/g, '"')
+      .replace(/&#39;/g, "'")
+      .replace(/&amp;/g, "&");
+  }
+  return decoded;
+}
+
+// Live Studio Renderer so you can see Dual Buttons, Gumroad Boxes, and Cards render in real-time
+function renderStudioPreview(rawContent: string) {
+  if (!rawContent) return null;
+  const decodedContent = decodeHtmlEntities(rawContent);
+  const cleanContent = decodedContent.replace(
+    /<p>\s*(\[[\s\S]*?\]|ADVERTISEMENT)\s*<\/p>/gi,
+    "$1"
+  );
+
+  const parts = cleanContent.split(
+    /(\[WINNER_BOX[\s\S]*?\]|\[QUICK_PICK[\s\S]*?\]|\[AMAZON_CARD[\s\S]*?\]|\[BOUNTY_BUTTON[\s\S]*?\]|\[GUMROAD_BOX[\s\S]*?\]|\[IMAGE[\s\S]*?\]|ADVERTISEMENT)/g
+  );
+
+  return parts.map((part, index) => {
+    if (!part) return null;
+
+    if (part === "ADVERTISEMENT") {
+      return (
+        <div
+          key={index}
+          className="my-6 w-full min-h-[120px] bg-gray-50 flex items-center justify-center text-gray-400 text-xs border border-dashed border-gray-300 rounded-lg"
+        >
+          Advertisement Placeholder
+        </div>
+      );
+    }
+
+    if (part.startsWith("[WINNER_BOX")) {
+      const [title, text] = part
+        .replace(/^\[WINNER_BOX\s*\|\|\s*/i, "")
+        .replace(/\]$/, "")
+        .split(/\s*\|\|\s*/);
+      return (
+        <div
+          key={index}
+          className="my-6 p-5 bg-amber-50 border-l-4 border-amber-500 rounded-r-lg shadow-xs"
+        >
+          <h4 className="text-amber-800 font-bold text-base mb-1">
+            🏆 {title || "The Short Answer"}
+          </h4>
+          <p className="text-amber-900 text-sm leading-relaxed m-0">{text || ""}</p>
+        </div>
+      );
+    }
+
+    if (part.startsWith("[QUICK_PICK")) {
+      const [name, desc, link1, link2, promo] = part
+        .replace(/^\[QUICK_PICK\s*\|\|\s*/i, "")
+        .replace(/\]$/, "")
+        .split(/\s*\|\|\s*/);
+      const isDual = !!link2;
+
+      return (
+        <div
+          key={index}
+          className="my-8 border-2 border-blue-600 rounded-xl p-6 bg-white shadow-sm relative mt-10"
+        >
+          <span className="absolute -top-3.5 left-6 bg-blue-600 text-white px-3 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider">
+            Top Pick
+          </span>
+          <h3 className="text-lg font-bold text-gray-900 mb-2">{name || "Top Pick"}</h3>
+          <p className="text-gray-700 text-sm mb-5">{desc || ""}</p>
+
+          <div className="flex flex-col sm:flex-row gap-3">
+            {isDual ? (
+              <>
+                <a
+                  href={link1 || "#"}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-1 text-center bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl flex flex-col items-center justify-center shadow-xs"
+                >
+                  <span className="text-sm">Buy Direct from Rolife ↗</span>
+                  {promo && (
+                    <span className="text-xs text-amber-200 mt-0.5 font-extrabold">
+                      15% Off Code: {promo}
+                    </span>
+                  )}
+                </a>
+                <a
+                  href={link2 || "#"}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-1 text-center bg-orange-500 hover:bg-orange-600 text-gray-900 font-bold py-3 px-4 rounded-xl flex flex-col items-center justify-center shadow-xs"
+                >
+                  <span className="text-sm">Buy on Amazon ↗</span>
+                  <span className="text-xs text-orange-950 mt-0.5 opacity-80">
+                    Prime Fast Shipping
+                  </span>
+                </a>
+              </>
+            ) : (
+              <a
+                href={link1 || "#"}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-5 rounded-lg text-sm"
+              >
+                Check Price on Amazon ↗
+              </a>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    if (part.startsWith("[AMAZON_CARD")) {
+      const [title, badge, img, link1, link2, promo] = part
+        .replace(/^\[AMAZON_CARD\s*\|\|\s*/i, "")
+        .replace(/\]$/, "")
+        .split(/\s*\|\|\s*/);
+      const isDual = !!link2;
+
+      return (
+        <div
+          key={index}
+          className="my-6 flex flex-col md:flex-row gap-5 p-5 border border-gray-200 rounded-xl bg-white shadow-xs"
+        >
+          <div className="w-full md:w-1/3 flex justify-center items-center relative">
+            {badge && badge !== "none" && (
+              <span className="absolute top-0 left-0 bg-orange-500 text-white text-[11px] font-bold px-2.5 py-0.5 rounded-br-lg rounded-tl-lg">
+                {badge}
+              </span>
+            )}
+            {img && (
+              <img
+                src={img}
+                alt={title || "Product"}
+                className="max-h-36 object-contain"
+              />
+            )}
+          </div>
+          <div className="w-full md:w-2/3 flex flex-col justify-center">
+            <h3 className="text-base font-bold text-gray-900 mb-3">{title || ""}</h3>
+            <div className="flex flex-col sm:flex-row gap-3">
+              {isDual ? (
+                <>
+                  <a
+                    href={link1 || "#"}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex-1 text-center bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-4 rounded-lg text-sm flex flex-col items-center justify-center"
+                  >
+                    <span>Buy Direct from Rolife ↗</span>
+                    {promo && (
+                      <span className="text-[11px] text-amber-200 mt-0.5 font-extrabold">
+                        15% Off Code: {promo}
+                      </span>
+                    )}
+                  </a>
+                  <a
+                    href={link2 || "#"}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex-1 text-center bg-orange-400 hover:bg-orange-500 text-gray-900 font-bold py-2.5 px-4 rounded-lg text-sm flex flex-col items-center justify-center"
+                  >
+                    <span>View on Amazon ↗</span>
+                    <span className="text-[11px] text-orange-950 mt-0.5 opacity-80">
+                      Prime Shipping
+                    </span>
+                  </a>
+                </>
+              ) : (
+                <a
+                  href={link1 || "#"}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full md:w-auto text-center bg-orange-400 hover:bg-orange-500 text-gray-900 font-bold py-2.5 px-5 rounded-lg text-sm"
+                >
+                  View on Amazon ↗
+                </a>
+              )}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    if (part.startsWith("[BOUNTY_BUTTON")) {
+      const [cta, link1, link2, promo] = part
+        .replace(/^\[BOUNTY_BUTTON\s*\|\|\s*/i, "")
+        .replace(/\]$/, "")
+        .split(/\s*\|\|\s*/);
+      const isDual = !!link2;
+
+      return (
+        <div key={index} className="my-6 flex flex-col sm:flex-row gap-3 justify-center">
+          {isDual ? (
+            <>
+              <a
+                href={link1 || "#"}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full sm:w-auto text-center bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-xl shadow-xs flex flex-col items-center"
+              >
+                <span className="text-sm">{cta || "Buy Direct from Rolife ↗"}</span>
+                {promo && (
+                  <span className="text-xs text-amber-200 mt-0.5 font-extrabold">
+                    Code: {promo}
+                  </span>
+                )}
+              </a>
+              <a
+                href={link2 || "#"}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full sm:w-auto text-center bg-orange-500 hover:bg-orange-600 text-gray-900 font-bold py-3 px-6 rounded-xl shadow-xs flex flex-col items-center"
+              >
+                <span className="text-sm">Buy on Amazon ↗</span>
+                <span className="text-xs text-orange-950 mt-0.5 opacity-80">
+                  Prime Shipping
+                </span>
+              </a>
+            </>
+          ) : (
+            <a
+              href={link1 || "#"}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-block w-full md:w-auto text-center bg-orange-400 hover:bg-orange-500 text-gray-900 font-bold py-2.5 px-6 rounded-lg text-sm"
+            >
+              {cta || "Check Price ↗"}
+            </a>
+          )}
+        </div>
+      );
+    }
+
+    if (part.startsWith("[GUMROAD_BOX")) {
+      const [headline, body, btnText] = part
+        .replace(/^\[GUMROAD_BOX\s*\|\|\s*/i, "")
+        .replace(/\]$/, "")
+        .split(/\s*\|\|\s*/);
+      return (
+        <div
+          key={index}
+          className="my-6 p-6 bg-gradient-to-br from-slate-900 via-blue-950 to-indigo-950 text-white rounded-2xl shadow-md"
+        >
+          <span className="inline-block bg-amber-400 text-slate-950 text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-0.5 rounded-full">
+            📘 Zero to Finished Blueprint
+          </span>
+          <h3 className="text-lg font-extrabold text-white mt-2 mb-1">
+            {headline || "Want Your Miniature Build to Look Flawless?"}
+          </h3>
+          <p className="text-blue-100 text-xs leading-relaxed mb-4">
+            {body ||
+              "Grab my 6-module beginner eBook covering invisible glue seams, foolproof micro-LED wiring, and rescuing snapped wood parts."}
+          </p>
+          <a
+            href="https://craftsman353.gumroad.com/l/miniature-guide"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-block bg-amber-400 text-slate-950 font-extrabold py-2.5 px-5 rounded-xl text-xs"
+          >
+            {btnText || "Download Blueprint ($14.99) ↗"}
+          </a>
+        </div>
+      );
+    }
+
+    if (part.startsWith("[IMAGE")) {
+      const [src, caption] = part
+        .replace(/^\[IMAGE\s*\|\|\s*/i, "")
+        .replace(/\]$/, "")
+        .split(/\s*\|\|\s*/);
+      return (
+        <figure key={index} className="my-6">
+          <img
+            src={src}
+            alt={caption || "Miniature build photo"}
+            className="w-full max-h-72 rounded-xl object-cover border border-gray-200"
+          />
+          {caption && (
+            <figcaption className="mt-1.5 text-center text-xs text-gray-500 italic">
+              {caption}
+            </figcaption>
+          )}
+        </figure>
+      );
+    }
+
+    if (part.trim() === "") return null;
+
+    return (
+      <div
+        key={index}
+        className="prose prose-sm max-w-none text-gray-800"
+        dangerouslySetInnerHTML={{ __html: part }}
+      />
+    );
+  });
+}
+
 function EditorForm() {
   const searchParams = useSearchParams();
   const initialEditId = searchParams.get("edit");
-  const initialEditCol = (searchParams.get("col") as "blog" | "reviews") || "reviews";
+  const initialEditCol =
+    (searchParams.get("col") as "blog" | "reviews") || "reviews";
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -48,12 +356,17 @@ function EditorForm() {
   const [allPosts, setAllPosts] = useState<PostSummary[]>([]);
   const [isLoadingList, setIsLoadingList] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
-  const [filterTab, setFilterTab] = useState<"all" | "published" | "draft" | "blog" | "reviews">("all");
+  const [filterTab, setFilterTab] = useState<
+    "all" | "published" | "draft" | "blog" | "reviews"
+  >("all");
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [showLivePreview, setShowLivePreview] = useState(true);
 
   // Active Document Tracking (null = brand new unsaved post)
   const [activeId, setActiveId] = useState<string | null>(initialEditId);
-  const [activeCol, setActiveCol] = useState<"blog" | "reviews">(initialEditCol);
+  const [activeCol, setActiveCol] = useState<"blog" | "reviews">(
+    initialEditCol
+  );
 
   // Form States
   const [title, setTitle] = useState("");
@@ -126,43 +439,61 @@ function EditorForm() {
   }, [fetchAllPosts]);
 
   // Load a specific post into the editor without leaving the page
-  const loadPostIntoEditor = useCallback(async (id: string, col: "blog" | "reviews") => {
-    setIsFetchingDoc(true);
-    setSaveBanner(null);
-    try {
-      const docRef = doc(db, col, id);
-      const docSnap = await getDoc(docRef);
+  const loadPostIntoEditor = useCallback(
+    async (id: string, col: "blog" | "reviews") => {
+      setIsFetchingDoc(true);
+      setSaveBanner(null);
+      try {
+        const docRef = doc(db, col, id);
+        const docSnap = await getDoc(docRef);
 
-      if (docSnap.exists()) {
-        const data = docSnap.data();
-        setActiveId(id);
-        setActiveCol(col);
-        setTitle(data.title || "");
-        setSlug(data.slug || "");
-        const docType = data.type || (col === "blog" ? "Blog Post" : "Product Review");
-        setType(docType);
-        setCategory(
-          data.category || (docType === "Blog Post" ? BLOG_CATEGORIES[0] : REVIEW_CATEGORIES[0])
-        );
-        setCoverImage(data.coverImage || "");
-        setSeoTitle(data.seoTitle || "");
-        setMetaDescription(data.metaDescription || "");
-        setAffiliateLink(data.affiliateLink || "");
-        setStatus(data.status || "draft");
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          setActiveId(id);
+          setActiveCol(col);
+          setTitle(data.title || "");
+          setSlug(data.slug || "");
+          const docType =
+            data.type || (col === "blog" ? "Blog Post" : "Product Review");
+          setType(docType);
+          setCategory(
+            data.category ||
+              (docType === "Blog Post"
+                ? BLOG_CATEGORIES[0]
+                : REVIEW_CATEGORIES[0])
+          );
+          setCoverImage(data.coverImage || "");
+          setSeoTitle(data.seoTitle || "");
+          setMetaDescription(data.metaDescription || "");
+          setAffiliateLink(data.affiliateLink || "");
+          setStatus(data.status || "draft");
 
-        const rawContent = data.content || "";
-        const formattedContent = await marked.parse(rawContent);
-        setContent(formattedContent as string);
+          const rawContent = decodeHtmlEntities(data.content || "");
+          const hasHtmlTags =
+            /<(?:p|h[1-6]|ul|ol|li|figure|table|div|strong|em|a)\b/i.test(
+              rawContent
+            );
+          const formattedContent = hasHtmlTags
+            ? rawContent
+            : ((await marked.parse(rawContent)) as string);
 
-        // Keep URL query params in sync without triggering a page reload
-        window.history.replaceState(null, "", `/admin/write?edit=${id}&col=${col}`);
+          setContent(formattedContent);
+
+          // Keep URL query params in sync without triggering a page reload
+          window.history.replaceState(
+            null,
+            "",
+            `/admin/write?edit=${id}&col=${col}`
+          );
+        }
+      } catch (error) {
+        console.error("Error fetching document:", error);
+      } finally {
+        setIsFetchingDoc(false);
       }
-    } catch (error) {
-      console.error("Error fetching document:", error);
-    } finally {
-      setIsFetchingDoc(false);
-    }
-  }, []);
+    },
+    []
+  );
 
   // Load initial URL param post if present
   useEffect(() => {
@@ -206,7 +537,9 @@ function EditorForm() {
   const handleTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newType = e.target.value;
     setType(newType);
-    setCategory(newType === "Blog Post" ? BLOG_CATEGORIES[0] : REVIEW_CATEGORIES[0]);
+    setCategory(
+      newType === "Blog Post" ? BLOG_CATEGORIES[0] : REVIEW_CATEGORIES[0]
+    );
   };
 
   const handleCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -217,7 +550,10 @@ function EditorForm() {
     formData.append("file", file);
 
     try {
-      const response = await fetch("/api/upload", { method: "POST", body: formData });
+      const response = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
       const data = await response.json();
       if (data.url) setCoverImage(data.url);
       else alert("Upload failed.");
@@ -315,7 +651,11 @@ function EditorForm() {
       alert("Please enter a slug first to preview.");
       return;
     }
-    const targetCol = activeId ? activeCol : type === "Blog Post" ? "blog" : "reviews";
+    const targetCol = activeId
+      ? activeCol
+      : type === "Blog Post"
+      ? "blog"
+      : "reviews";
     window.open(`/preview?slug=${slug}&col=${targetCol}`, "_blank");
   };
 
@@ -365,19 +705,21 @@ function EditorForm() {
           />
           {/* Filter Pills */}
           <div className="flex flex-wrap gap-1 mt-2">
-            {(["all", "published", "draft", "blog", "reviews"] as const).map((tab) => (
-              <button
-                key={tab}
-                onClick={() => setFilterTab(tab)}
-                className={`px-2 py-1 rounded text-[11px] font-semibold capitalize transition cursor-pointer ${
-                  filterTab === tab
-                    ? "bg-gray-900 text-white"
-                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                }`}
-              >
-                {tab}
-              </button>
-            ))}
+            {(["all", "published", "draft", "blog", "reviews"] as const).map(
+              (tab) => (
+                <button
+                  key={tab}
+                  onClick={() => setFilterTab(tab)}
+                  className={`px-2 py-1 rounded text-[11px] font-semibold capitalize transition cursor-pointer ${
+                    filterTab === tab
+                      ? "bg-gray-900 text-white"
+                      : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                  }`}
+                >
+                  {tab}
+                </button>
+              )
+            )}
           </div>
         </div>
 
@@ -676,71 +1018,159 @@ function EditorForm() {
                   className="w-full border border-amber-300 rounded-lg p-2.5 focus:ring-2 focus:ring-amber-500 outline-none text-sm bg-white"
                 />
                 <p className="text-xs text-amber-700 mt-2 font-medium">
-                  Paste your primary product link here. This automatically generates the &ldquo;Check Price&rdquo; sticky CTA bar for mobile users.
+                  Paste your primary product link here. This automatically
+                  generates the &ldquo;Check Price&rdquo; sticky CTA bar for
+                  mobile users.
                 </p>
               </div>
 
               {/* 1-Click Shortcode Helper Bar */}
               <div className="pt-2">
-                <div className="flex flex-wrap items-center gap-2 mb-2">
-                  <span className="text-xs font-bold text-gray-500 uppercase tracking-wider mr-1">
-                    Insert Shortcode:
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      insertShortcode(
-                        "[WINNER_BOX || The Short Answer || Clear, punchy verdict comparing the options.]"
-                      )
-                    }
-                    className="text-xs bg-amber-100 hover:bg-amber-200 text-amber-900 font-bold px-3 py-1.5 rounded-md transition cursor-pointer"
-                  >
-                    + Winner Box
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      insertShortcode(
-                        "[QUICK_PICK || Product Name || 1-2 sentence explanation of why this is the #1 choice. || https://www.amazon.com/dp/YOUR-LINK]"
-                      )
-                    }
-                    className="text-xs bg-blue-100 hover:bg-blue-200 text-blue-900 font-bold px-3 py-1.5 rounded-md transition cursor-pointer"
-                  >
-                    + Quick Pick
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      insertShortcode(
-                        "[AMAZON_CARD || Product Title || Best Value || https://m.media-amazon.com/... || https://www.amazon.com/dp/YOUR-LINK]"
-                      )
-                    }
-                    className="text-xs bg-orange-100 hover:bg-orange-200 text-orange-900 font-bold px-3 py-1.5 rounded-md transition cursor-pointer"
-                  >
-                    + Amazon Card
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      insertShortcode(
-                        "[BOUNTY_BUTTON || Check Price on Amazon ↗ || https://amzn.to/...]"
-                      )
-                    }
-                    className="text-xs bg-green-100 hover:bg-green-200 text-green-900 font-bold px-3 py-1.5 rounded-md transition cursor-pointer"
-                  >
-                    + Bounty Button
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => insertShortcode("ADVERTISEMENT")}
-                    className="text-xs bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold px-3 py-1.5 rounded-md transition cursor-pointer"
-                  >
-                    + Ad Slot
-                  </button>
+                <div className="flex flex-col gap-2 mb-3 bg-gray-50 p-3 rounded-lg border border-gray-200">
+                  {/* Row 1: Standard Shortcodes */}
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-[11px] font-extrabold text-gray-500 uppercase tracking-wider mr-1">
+                      Standard Shortcodes:
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        insertShortcode(
+                          "[WINNER_BOX || The Short Answer || Clear, punchy verdict comparing the options.]"
+                        )
+                      }
+                      className="text-xs bg-amber-100 hover:bg-amber-200 text-amber-900 font-bold px-3 py-1.5 rounded-md transition cursor-pointer"
+                    >
+                      + Winner Box
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        insertShortcode(
+                          "[QUICK_PICK || Product Name || 1-2 sentence explanation of why this is the #1 choice. || https://www.amazon.com/dp/YOUR-LINK]"
+                        )
+                      }
+                      className="text-xs bg-blue-100 hover:bg-blue-200 text-blue-900 font-bold px-3 py-1.5 rounded-md transition cursor-pointer"
+                    >
+                      + Quick Pick (1-Link)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        insertShortcode(
+                          "[AMAZON_CARD || Product Title || Best Value || https://m.media-amazon.com/... || https://www.amazon.com/dp/YOUR-LINK]"
+                        )
+                      }
+                      className="text-xs bg-orange-100 hover:bg-orange-200 text-orange-900 font-bold px-3 py-1.5 rounded-md transition cursor-pointer"
+                    >
+                      + Amazon Card (1-Link)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        insertShortcode(
+                          "[BOUNTY_BUTTON || Check Price on Amazon ↗ || https://amzn.to/...]"
+                        )
+                      }
+                      className="text-xs bg-green-100 hover:bg-green-200 text-green-900 font-bold px-3 py-1.5 rounded-md transition cursor-pointer"
+                    >
+                      + Bounty Button (1-Link)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        insertShortcode(
+                          "[GUMROAD_BOX || Want Your Miniature Build to Look Flawless? || Grab my 6-module beginner eBook covering invisible glue seams, foolproof micro-LED wiring, and rescuing snapped wood parts. || Download Blueprint ($14.99) ↗]"
+                        )
+                      }
+                      className="text-xs bg-slate-800 hover:bg-slate-900 text-amber-300 font-bold px-3 py-1.5 rounded-md transition cursor-pointer"
+                    >
+                      + Gumroad Box
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        insertShortcode(
+                          "[IMAGE || https://your-image-url.jpg || Helpful photo caption describing the build step.]"
+                        )
+                      }
+                      className="text-xs bg-purple-100 hover:bg-purple-200 text-purple-900 font-bold px-3 py-1.5 rounded-md transition cursor-pointer"
+                    >
+                      + Image Tag
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => insertShortcode("ADVERTISEMENT")}
+                      className="text-xs bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold px-3 py-1.5 rounded-md transition cursor-pointer"
+                    >
+                      + Ad Slot
+                    </button>
+                  </div>
+
+                  {/* Row 2: Dual Rolife + Amazon Shortcodes (13% Impact Commission + 15% Off Promo) */}
+                  <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-gray-200">
+                    <span className="text-[11px] font-extrabold text-blue-700 uppercase tracking-wider mr-1">
+                      🔥 Dual Buttons (Rolife + Amazon):
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        insertShortcode(
+                          "[QUICK_PICK || Rolife Kit Name || Why builders love this kit... || https://YOUR-IMPACT-ROLIFE-LINK || https://amzn.to/YOUR-AMAZON-LINK || BFCM2026]"
+                        )
+                      }
+                      className="text-xs bg-blue-600 hover:bg-blue-700 text-white font-bold px-3 py-1.5 rounded-md shadow-xs transition cursor-pointer"
+                    >
+                      + Dual Quick Pick (Rolife + Amzn)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        insertShortcode(
+                          "[AMAZON_CARD || Rolife Kit Name || Top Holiday Pick || https://m.media-amazon.com/... || https://YOUR-IMPACT-ROLIFE-LINK || https://amzn.to/YOUR-AMAZON-LINK || BFCM2026]"
+                        )
+                      }
+                      className="text-xs bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-3 py-1.5 rounded-md shadow-xs transition cursor-pointer"
+                    >
+                      + Dual Product Card (Rolife + Amzn)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        insertShortcode(
+                          "[BOUNTY_BUTTON || Buy Direct from Rolife ↗ || https://YOUR-IMPACT-ROLIFE-LINK || https://amzn.to/YOUR-AMAZON-LINK || BFCM2026]"
+                        )
+                      }
+                      className="text-xs bg-teal-700 hover:bg-teal-800 text-white font-bold px-3 py-1.5 rounded-md shadow-xs transition cursor-pointer"
+                    >
+                      + Dual Bounty Buttons (Rolife + Amzn)
+                    </button>
+                  </div>
                 </div>
 
                 <div className="border border-gray-300 rounded-lg overflow-hidden shadow-xs">
                   <CustomEditor value={content} onChange={setContent} />
+                </div>
+
+                {/* Live Rendered Shortcode Preview inside Studio */}
+                <div className="mt-6 border border-gray-200 rounded-xl bg-gray-50/60 overflow-hidden">
+                  <div className="px-4 py-3 bg-gray-100 border-b border-gray-200 flex items-center justify-between">
+                    <span className="text-xs font-extrabold uppercase tracking-wider text-gray-700">
+                      👁️ Live Shortcode & Dual-Button Preview
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setShowLivePreview(!showLivePreview)}
+                      className="text-xs font-bold text-blue-600 hover:underline cursor-pointer"
+                    >
+                      {showLivePreview ? "Hide Preview" : "Show Preview"}
+                    </button>
+                  </div>
+                  {showLivePreview && (
+                    <div className="p-6 bg-white max-h-[600px] overflow-y-auto">
+                      {renderStudioPreview(content)}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -755,7 +1185,9 @@ export default function AdminEditorPage() {
   return (
     <Suspense
       fallback={
-        <div className="p-12 text-center text-gray-500">Loading workspace...</div>
+        <div className="p-12 text-center text-gray-500">
+          Loading workspace...
+        </div>
       }
     >
       <EditorForm />
