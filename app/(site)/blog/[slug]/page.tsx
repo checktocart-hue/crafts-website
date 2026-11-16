@@ -62,7 +62,6 @@ export async function generateMetadata({
 // Decodes escaped HTML entities (&lt;p&gt; -> <p>) so CKEditor HTML never prints as raw code
 function decodeHtmlEntities(str: string): string {
   let decoded = str;
-  // Run twice in case CKEditor double-encoded (&amp;lt;p&amp;gt;)
   for (let i = 0; i < 2; i++) {
     decoded = decoded
       .replace(/&lt;/g, '<')
@@ -71,7 +70,6 @@ function decodeHtmlEntities(str: string): string {
       .replace(/&#39;/g, "'")
       .replace(/&amp;/g, '&');
   }
-  // Clean up accidental <p><p> or </p></p> if CKEditor wrapped already-tagged HTML
   decoded = decoded
     .replace(/<p>\s*(<(?:p|h[1-6]|ul|ol|figure|table|blockquote|div)\b)/gi, '$1')
     .replace(/(<\/(?:p|h[1-6]|ul|ol|figure|table|blockquote|div)>)\s*<\/p>/gi, '$1');
@@ -101,9 +99,9 @@ const renderContent = (rawContent: string) => {
   // 2. Strip CKEditor's injected <p> tags around shortcodes
   const cleanContent = decodedContent.replace(/<p>\s*(\[[\s\S]*?\]|ADVERTISEMENT)\s*<\/p>/gi, '$1');
 
-  // 3. Split string to isolate shortcodes
+  // 3. Split string to isolate shortcodes (including [GUMROAD_BOX] and [IMAGE])
   const parts = cleanContent.split(
-    /(\[WINNER_BOX[\s\S]*?\]|\[QUICK_PICK[\s\S]*?\]|\[AMAZON_CARD[\s\S]*?\]|\[BOUNTY_BUTTON[\s\S]*?\]|\[GUMROAD_BOX[\s\S]*?\]|ADVERTISEMENT)/g
+    /(\[WINNER_BOX[\s\S]*?\]|\[QUICK_PICK[\s\S]*?\]|\[AMAZON_CARD[\s\S]*?\]|\[BOUNTY_BUTTON[\s\S]*?\]|\[GUMROAD_BOX[\s\S]*?\]|\[IMAGE[\s\S]*?\]|ADVERTISEMENT)/g
   );
 
   return parts.map((part, index) => {
@@ -114,7 +112,7 @@ const renderContent = (rawContent: string) => {
         <div
           key={index}
           id="mediavine-target-slot"
-          className="my-8 w-full h-auto min-h-[250px] bg-gray-50 flex items-center justify-center text-gray-400 text-sm border border-dashed border-gray-300"
+          className="my-8 w-full h-auto min-h-[250px] bg-gray-50 flex items-center justify-center text-gray-400 text-sm border border-dashed border-gray-300 not-prose"
         >
           Advertisement Placeholder
         </div>
@@ -140,10 +138,13 @@ const renderContent = (rawContent: string) => {
     }
 
     if (part.startsWith('[QUICK_PICK')) {
-      const [name, desc, link] = part
+      const [name, desc, link1, link2, promo] = part
         .replace(/^\[QUICK_PICK\s*\|\|\s*/i, '')
         .replace(/\]$/, '')
         .split(/\s*\|\|\s*/);
+
+      const isDual = !!link2;
+
       return (
         <div
           key={index}
@@ -153,24 +154,59 @@ const renderContent = (rawContent: string) => {
             Top Pick
           </span>
           <h3 className="text-xl font-bold text-gray-900 mb-2">{name || 'Top Pick'}</h3>
-          <p className="text-gray-700 mb-4">{desc || ''}</p>
-          <a
-            href={link || '#'}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition-colors"
-          >
-            Check Price on Amazon ↗
-          </a>
+          <p className="text-gray-700 mb-6">{desc || ''}</p>
+
+          <div className="flex flex-col sm:flex-row gap-4">
+            {isDual ? (
+              <>
+                <a
+                  href={link1 || '#'}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-1 text-center bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl transition-transform hover:scale-105 flex flex-col items-center justify-center shadow-md"
+                >
+                  <span className="text-lg">Buy Direct from Rolife ↗</span>
+                  {promo && (
+                    <span className="text-sm text-amber-200 mt-1 font-extrabold">
+                      15% Off Code: {promo}
+                    </span>
+                  )}
+                </a>
+                <a
+                  href={link2 || '#'}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-1 text-center bg-orange-500 hover:bg-orange-600 text-gray-900 font-bold py-3 px-4 rounded-xl transition-transform hover:scale-105 flex flex-col items-center justify-center shadow-md"
+                >
+                  <span className="text-lg">Buy on Amazon ↗</span>
+                  <span className="text-sm text-orange-950 mt-1 opacity-80">
+                    Prime Fast Shipping
+                  </span>
+                </a>
+              </>
+            ) : (
+              <a
+                href={link1 || '#'}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition-colors"
+              >
+                Check Price on Amazon ↗
+              </a>
+            )}
+          </div>
         </div>
       );
     }
 
     if (part.startsWith('[AMAZON_CARD')) {
-      const [title, badge, img, link] = part
+      const [title, badge, img, link1, link2, promo] = part
         .replace(/^\[AMAZON_CARD\s*\|\|\s*/i, '')
         .replace(/\]$/, '')
         .split(/\s*\|\|\s*/);
+
+      const isDual = !!link2;
+
       return (
         <div
           key={index}
@@ -185,35 +221,94 @@ const renderContent = (rawContent: string) => {
             {img && <img src={img} alt={title || 'Product'} className="max-h-48 object-contain" />}
           </div>
           <div className="w-full md:w-2/3 flex flex-col justify-center">
-            <h3 className="text-lg font-bold text-gray-900 mb-3">{title || ''}</h3>
-            <a
-              href={link || '#'}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-full md:w-auto text-center bg-orange-400 hover:bg-orange-500 text-gray-900 font-bold py-3 px-6 rounded-lg transition-colors"
-            >
-              View on Amazon ↗
-            </a>
+            <h3 className="text-lg font-bold text-gray-900 mb-4">{title || ''}</h3>
+            <div className="flex flex-col sm:flex-row gap-3">
+              {isDual ? (
+                <>
+                  <a
+                    href={link1 || '#'}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex-1 text-center bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition-colors flex flex-col items-center justify-center"
+                  >
+                    <span>Buy Direct from Rolife ↗</span>
+                    {promo && (
+                      <span className="text-xs text-amber-200 mt-0.5 font-extrabold">
+                        15% Off Code: {promo}
+                      </span>
+                    )}
+                  </a>
+                  <a
+                    href={link2 || '#'}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex-1 text-center bg-orange-400 hover:bg-orange-500 text-gray-900 font-bold py-3 px-4 rounded-lg transition-colors flex flex-col items-center justify-center"
+                  >
+                    <span>View on Amazon ↗</span>
+                    <span className="text-xs text-orange-950 mt-0.5 opacity-80">Prime Shipping</span>
+                  </a>
+                </>
+              ) : (
+                <a
+                  href={link1 || '#'}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full md:w-auto text-center bg-orange-400 hover:bg-orange-500 text-gray-900 font-bold py-3 px-6 rounded-lg transition-colors"
+                >
+                  View on Amazon ↗
+                </a>
+              )}
+            </div>
           </div>
         </div>
       );
     }
 
     if (part.startsWith('[BOUNTY_BUTTON')) {
-      const [cta, link] = part
+      const [cta, link1, link2, promo] = part
         .replace(/^\[BOUNTY_BUTTON\s*\|\|\s*/i, '')
         .replace(/\]$/, '')
         .split(/\s*\|\|\s*/);
+
+      const isDual = !!link2;
+
       return (
-        <div key={index} className="my-6 not-prose">
-          <a
-            href={link || '#'}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-block w-full md:w-auto text-center bg-orange-400 hover:bg-orange-500 text-gray-900 font-bold py-3 px-8 rounded-lg shadow-sm transition-transform hover:scale-105"
-          >
-            {cta || 'Check Price ↗'}
-          </a>
+        <div key={index} className="my-8 not-prose flex flex-col sm:flex-row gap-4 justify-center">
+          {isDual ? (
+            <>
+              <a
+                href={link1 || '#'}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full sm:w-auto text-center bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-8 rounded-xl shadow-md transition-transform hover:scale-105 flex flex-col items-center"
+              >
+                <span className="text-lg">{cta || 'Buy Direct ↗'}</span>
+                {promo && (
+                  <span className="text-sm text-amber-200 mt-1 font-extrabold">
+                    Code: {promo}
+                  </span>
+                )}
+              </a>
+              <a
+                href={link2 || '#'}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full sm:w-auto text-center bg-orange-500 hover:bg-orange-600 text-gray-900 font-bold py-4 px-8 rounded-xl shadow-md transition-transform hover:scale-105 flex flex-col items-center"
+              >
+                <span className="text-lg">Buy on Amazon ↗</span>
+                <span className="text-sm text-orange-950 mt-1 opacity-80">Prime Shipping</span>
+              </a>
+            </>
+          ) : (
+            <a
+              href={link1 || '#'}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-block w-full md:w-auto text-center bg-orange-400 hover:bg-orange-500 text-gray-900 font-bold py-3 px-8 rounded-lg shadow-sm transition-transform hover:scale-105"
+            >
+              {cta || 'Check Price ↗'}
+            </a>
+          )}
         </div>
       );
     }
@@ -256,9 +351,30 @@ const renderContent = (rawContent: string) => {
       );
     }
 
+    if (part.startsWith('[IMAGE')) {
+      const [src, caption] = part
+        .replace(/^\[IMAGE\s*\|\|\s*/i, '')
+        .replace(/\]$/, '')
+        .split(/\s*\|\|\s*/);
+      return (
+        <figure key={index} className="my-8 not-prose">
+          <img
+            src={src}
+            alt={caption || 'Miniature build photo'}
+            className="w-full rounded-xl shadow-sm object-cover"
+          />
+          {caption && (
+            <figcaption className="mt-2 text-center text-sm text-gray-500 italic">
+              {caption}
+            </figcaption>
+          )}
+        </figure>
+      );
+    }
+
     if (part.trim() === '') return null;
 
-    // If the part already contains HTML tags (<p>, <h2>, <figure>, <table>), render directly without marked escaping it
+    // Render HTML directly if already formatted by CKEditor, otherwise parse Markdown
     const hasHtmlTags = /<(?:p|h[1-6]|ul|ol|li|figure|table|div|strong|em|a)\b/i.test(part);
     const parsedHtml = hasHtmlTags
       ? part
