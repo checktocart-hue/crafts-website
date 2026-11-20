@@ -56,6 +56,9 @@ export async function generateMetadata({
   return {
     title: post.seoTitle || post.title || 'CraftsAndKits',
     description: post.metaDescription || rawText,
+    alternates: {
+      canonical: `https://www.craftsandkits.com/blog/${slug}`,
+    },
   };
 }
 
@@ -74,6 +77,14 @@ function decodeHtmlEntities(str: string): string {
     .replace(/<p>\s*(<(?:p|h[1-6]|ul|ol|figure|table|blockquote|div)\b)/gi, '$1')
     .replace(/(<\/(?:p|h[1-6]|ul|ol|figure|table|blockquote|div)>)\s*<\/p>/gi, '$1');
   return decoded;
+}
+
+// Strips HTML tags and whitespace if CKEditor auto-linked a URL inside a shortcode
+function cleanUrl(rawUrl?: string): string {
+  if (!rawUrl) return '#';
+  const stripped = rawUrl.replace(/<[^>]+>/g, '').trim();
+  if (!stripped) return '#';
+  return stripped;
 }
 
 // Automatically adds id="slugified-heading" to <h2> and <h3> tags so TableOfContents jump-links work
@@ -138,12 +149,14 @@ const renderContent = (rawContent: string) => {
     }
 
     if (part.startsWith('[QUICK_PICK')) {
-      const [name, desc, link1, link2, promo] = part
+      const [name, desc, rawLink1, rawLink2, promo] = part
         .replace(/^\[QUICK_PICK\s*\|\|\s*/i, '')
         .replace(/\]$/, '')
         .split(/\s*\|\|\s*/);
 
-      const isDual = !!link2;
+      const link1 = cleanUrl(rawLink1);
+      const link2 = rawLink2 ? cleanUrl(rawLink2) : '';
+      const isDual = !!link2 && link2 !== '#';
 
       return (
         <div
@@ -160,7 +173,7 @@ const renderContent = (rawContent: string) => {
             {isDual ? (
               <>
                 <a
-                  href={link1 || '#'}
+                  href={link1}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex-1 text-center bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl transition-transform hover:scale-105 flex flex-col items-center justify-center shadow-md"
@@ -173,7 +186,7 @@ const renderContent = (rawContent: string) => {
                   )}
                 </a>
                 <a
-                  href={link2 || '#'}
+                  href={link2}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex-1 text-center bg-orange-500 hover:bg-orange-600 text-gray-900 font-bold py-3 px-4 rounded-xl transition-transform hover:scale-105 flex flex-col items-center justify-center shadow-md"
@@ -186,7 +199,7 @@ const renderContent = (rawContent: string) => {
               </>
             ) : (
               <a
-                href={link1 || '#'}
+                href={link1}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition-colors"
@@ -200,12 +213,15 @@ const renderContent = (rawContent: string) => {
     }
 
     if (part.startsWith('[AMAZON_CARD')) {
-      const [title, badge, img, link1, link2, promo] = part
+      const [title, badge, rawImg, rawLink1, rawLink2, promo] = part
         .replace(/^\[AMAZON_CARD\s*\|\|\s*/i, '')
         .replace(/\]$/, '')
         .split(/\s*\|\|\s*/);
 
-      const isDual = !!link2;
+      const img = cleanUrl(rawImg);
+      const link1 = cleanUrl(rawLink1);
+      const link2 = rawLink2 ? cleanUrl(rawLink2) : '';
+      const isDual = !!link2 && link2 !== '#';
 
       return (
         <div
@@ -218,7 +234,9 @@ const renderContent = (rawContent: string) => {
                 {badge}
               </span>
             )}
-            {img && <img src={img} alt={title || 'Product'} className="max-h-48 object-contain" />}
+            {img && img !== '#' && (
+              <img src={img} alt={title || 'Product'} className="max-h-48 object-contain" />
+            )}
           </div>
           <div className="w-full md:w-2/3 flex flex-col justify-center">
             <h3 className="text-lg font-bold text-gray-900 mb-4">{title || ''}</h3>
@@ -226,7 +244,7 @@ const renderContent = (rawContent: string) => {
               {isDual ? (
                 <>
                   <a
-                    href={link1 || '#'}
+                    href={link1}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex-1 text-center bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition-colors flex flex-col items-center justify-center"
@@ -239,7 +257,7 @@ const renderContent = (rawContent: string) => {
                     )}
                   </a>
                   <a
-                    href={link2 || '#'}
+                    href={link2}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex-1 text-center bg-orange-400 hover:bg-orange-500 text-gray-900 font-bold py-3 px-4 rounded-lg transition-colors flex flex-col items-center justify-center"
@@ -250,7 +268,7 @@ const renderContent = (rawContent: string) => {
                 </>
               ) : (
                 <a
-                  href={link1 || '#'}
+                  href={link1}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-full md:w-auto text-center bg-orange-400 hover:bg-orange-500 text-gray-900 font-bold py-3 px-6 rounded-lg transition-colors"
@@ -265,19 +283,21 @@ const renderContent = (rawContent: string) => {
     }
 
     if (part.startsWith('[BOUNTY_BUTTON')) {
-      const [cta, link1, link2, promo] = part
+      const [cta, rawLink1, rawLink2, promo] = part
         .replace(/^\[BOUNTY_BUTTON\s*\|\|\s*/i, '')
         .replace(/\]$/, '')
         .split(/\s*\|\|\s*/);
 
-      const isDual = !!link2;
+      const link1 = cleanUrl(rawLink1);
+      const link2 = rawLink2 ? cleanUrl(rawLink2) : '';
+      const isDual = !!link2 && link2 !== '#';
 
       return (
         <div key={index} className="my-8 not-prose flex flex-col sm:flex-row gap-4 justify-center">
           {isDual ? (
             <>
               <a
-                href={link1 || '#'}
+                href={link1}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-full sm:w-auto text-center bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-8 rounded-xl shadow-md transition-transform hover:scale-105 flex flex-col items-center"
@@ -290,7 +310,7 @@ const renderContent = (rawContent: string) => {
                 )}
               </a>
               <a
-                href={link2 || '#'}
+                href={link2}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-full sm:w-auto text-center bg-orange-500 hover:bg-orange-600 text-gray-900 font-bold py-4 px-8 rounded-xl shadow-md transition-transform hover:scale-105 flex flex-col items-center"
@@ -301,7 +321,7 @@ const renderContent = (rawContent: string) => {
             </>
           ) : (
             <a
-              href={link1 || '#'}
+              href={link1}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-block w-full md:w-auto text-center bg-orange-400 hover:bg-orange-500 text-gray-900 font-bold py-3 px-8 rounded-lg shadow-sm transition-transform hover:scale-105"
@@ -352,10 +372,11 @@ const renderContent = (rawContent: string) => {
     }
 
     if (part.startsWith('[IMAGE')) {
-      const [src, caption] = part
+      const [rawSrc, caption] = part
         .replace(/^\[IMAGE\s*\|\|\s*/i, '')
         .replace(/\]$/, '')
         .split(/\s*\|\|\s*/);
+      const src = cleanUrl(rawSrc);
       return (
         <figure key={index} className="my-8 not-prose">
           <img
@@ -470,7 +491,7 @@ export default async function BlogPostPage({
       {post.affiliateLink && (
         <div className="fixed bottom-0 left-0 w-full bg-white border-t border-gray-200 p-4 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] lg:hidden z-50 flex justify-center">
           <a
-            href={post.affiliateLink}
+            href={cleanUrl(post.affiliateLink)}
             target="_blank"
             rel="noopener noreferrer"
             className="w-full max-w-md text-center bg-orange-500 hover:bg-orange-600 text-white font-bold py-4 px-6 rounded-xl transition-colors"
