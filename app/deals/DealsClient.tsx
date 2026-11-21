@@ -7,25 +7,23 @@ import Link from 'next/link';
 // 1. UPDATE YOUR AFFILIATE LINKS HERE (SINGLE SOURCE OF TRUTH)
 // =========================================================================
 const LINKS = {
-  rolifeStoreHome: 'https://YOUR_ROLIFE_IMPACT_BLACK_FRIDAY_LINK',
-  amazonDealsPage: 'https://amzn.to/YOUR_AMAZON_MINIATURE_DEALS_LINK',
-  gumroadSale: 'https://craftsman353.gumroad.com/l/miniature-guide',
+  rolifeStoreHome: 'https://www.rolifeonline.com/pages/black-friday-sale: 'https://link.amazon/B0dPgKwi2: 'https://craftsman353.gumroad.com/l/miniature-guide',
 
   // Individual Featured Kits (Direct Rolife Impact + Amazon)
-  cuckooClockRolife: 'https://YOUR_ROLIFE_IMPACT_LCB01_LINK',
-  cuckooClockAmazon: 'https://amzn.to/YOUR_LCB01_AMAZON_LINK',
+    cuckooClockAmazon: 'https://link.amazon/B0f9pWTo0',
 
-  teddysToyShopRolife: 'https://YOUR_ROLIFE_IMPACT_DG189_LINK',
-  teddysToyShopAmazon: 'https://amzn.to/YOUR_DG189_AMAZON_LINK',
+  teddysToyShopRolife: 'https://rolife.pxf.io/c/8194936/4112999/56826?prodsku=18077982357878425587720975&u=https%3A%2F%2Fwww.rolifeonline.com%2Fproducts%2Frolife-diy-miniature-house-teddy-s-toy-shop-dg189%3Fcountry%3DUS%26sku%3D18077982357878425587720975&intsrc=APIG_38465',
+  teddysToyShopAmazon: 'https://link.amazon/B0faoFlqC',
 
-  floralPerfumeRolife: 'https://YOUR_ROLIFE_IMPACT_DG188_LINK',
-  floralPerfumeAmazon: 'https://amzn.to/YOUR_DG188_AMAZON_LINK',
+  floralPerfumeRolife: '
+https://rolife.pxf.io/c/8194936/4112999/56826?prodsku=18077982357772058037710975&u=https%3A%2F%2Fwww.rolifeonline.com%2Fproducts%2Frolife-diy-miniature-house-floral-perfume-shop-dg188%3Fcountry%3DUS%26sku%3D18077982357772058037710975&intsrc=APIG_38465',
+  floralPerfumeAmazon: 'https://link.amazon/B03gfjG5e',
 
   harvestWindmillRolife: 'https://YOUR_ROLIFE_IMPACT_LCA01_LINK',
   harvestWindmillAmazon: 'https://amzn.to/YOUR_LCA01_AMAZON_LINK',
 
   dinosaurPinballRolife: 'https://YOUR_ROLIFE_IMPACT_MGP01_LINK',
-  dinosaurPinballAmazon: 'https://amzn.to/YOUR_MGP01_AMAZON_LINK',
+  dinosaurPinballAmazon: 'https://link.amazon/B0cR9y4G5',
 
   holidayBundleRolife: 'https://YOUR_ROLIFE_IMPACT_BUNDLE_LINK',
   sakuraDensyaRolife: 'https://YOUR_ROLIFE_IMPACT_TGB01_LINK',
@@ -160,7 +158,7 @@ const FEATURED_DEALS: DealItem[] = [
     codeToUse: 'BFCM25',
     blurb: 'Fully playable tabletop wooden pinball machine. Crosses $120 solo to unlock 25% off.',
     rolifeUrl: LINKS.dinosaurPinballRolife,
-    amazonUrl: LINKS.dinosaurPinballAmazon,
+    amazonUrl: https://link.amazon/B0cR9y4G5,
   },
   {
     id: 'bundle-xmas',
@@ -173,7 +171,7 @@ const FEATURED_DEALS: DealItem[] = [
     codeToUse: 'BFCM20',
     blurb: 'Two festive Rolife holiday builds in one discounted bundle—ideal for weekend crafting.',
     reviewSlug: '/blog/rolife-polaris-post-dg187-review',
-    rolifeUrl: LINKS.holidayBundleRolife,
+   amazonUrl: https://link.amazon/B01SxHrDB,
   },
   {
     id: 'tgb01',
@@ -186,8 +184,8 @@ const FEATURED_DEALS: DealItem[] = [
     codeToUse: 'BFCM20',
     blurb: 'The iconic Tokyo cherry-blossom tram book nook with touch-switch warm lighting.',
     reviewSlug: '/blog/robotime-sakura-densya-review',
-    rolifeUrl: LINKS.sakuraDensyaRolife,
-    amazonUrl: LINKS.sakuraDensyaAmazon,
+    rolifeUrl: https://rolife.pxf.io/c/8194936/4112999/56826?prodsku=18055906533414975711883087&u=https%3A%2F%2Fwww.rolifeonline.com%2Fproducts%2Frolife-tgb01-sakura-densya-3d-wooden-diy-miniature-house-book-nook-%3Fcountry%3DUS%26sku%3D18055906533414975711883087&intsrc=APIG_38465 ,
+    amazonUrl: https://link.amazon/B0j4JHmk1 ,
   },
   {
     id: 'minicity-lib',
@@ -199,7 +197,7 @@ const FEATURED_DEALS: DealItem[] = [
     dealPrice: 'Check Amazon',
     blurb: 'Crisp laser-cut wooden library insert with included dust cover and warm LEDs.',
     reviewSlug: '/blog/minicity-library-book-nook-review',
-    amazonUrl: LINKS.minicityLibraryAmazon,
+    amazonUrl: https://link.amazon/A0iQrCA6p,
   },
 ];
 
