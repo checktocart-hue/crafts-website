@@ -34,7 +34,7 @@ const LINKS = {
 };
 
 // =========================================================================
-// 2. ACTIVE PROMO CODES (VERIFIED NOV 2026)
+// 2. ACTIVE PROMO CODES (VERIFIED THROUGH DEC 1, 2026 AT 12:00 PM PST)
 // =========================================================================
 interface PromoCode {
   id: string;
@@ -54,7 +54,8 @@ const PROMO_CODES: PromoCode[] = [
     brand: 'Rolife & ROKR Official Store',
     badge: 'MOST POPULAR • NO MINIMUM',
     headline: '20% OFF Sitewide',
-    details: 'Works with no minimum spend on eligible Black Friday kits + free shipping over $68 USD.',
+    details:
+      'Works with no minimum spend on eligible kits through Dec 1 (12:00 PM PST), plus free shipping on orders over $68 USD.',
     code: 'BFCM20',
     ctaLabel: 'Apply at Rolife Store ↗',
     url: LINKS.rolifeStoreHome,
@@ -65,21 +66,12 @@ const PROMO_CODES: PromoCode[] = [
     brand: 'Rolife & ROKR Official Store',
     badge: 'BIGGEST SAVINGS • $120+ ORDERS',
     headline: '25% OFF Orders $120+',
-    details: 'Best for buying 2–3 gifts or big ROKR mechanical puzzles like Dinosaur Lab Pinball. One code per order.',
+    details:
+      'Best for buying 2–3 gifts or large ROKR mechanical builds like Dinosaur Lab Pinball. One code per order; flash deals excluded.',
     code: 'BFCM25',
     ctaLabel: 'Shop $120+ Bundles ↗',
     url: LINKS.rolifeStoreHome,
     highlight: true,
-  },
-  {
-    id: 'evergreen12',
-    brand: 'CraftsAndKits Exclusive',
-    badge: 'BACKUP / FULL-PRICE KITS',
-    headline: '12% OFF Eligible Kits',
-    details: 'Keep this code handy for non-sale new arrivals or after Cyber Monday ends on Nov 30.',
-    code: 'YOUR_12%_CODE', // Replace with your personal Impact affiliate code
-    ctaLabel: 'Shop Rolife Direct ↗',
-    url: LINKS.rolifeStoreHome,
   },
 ];
 
@@ -111,7 +103,7 @@ const FEATURED_DEALS: DealItem[] = [
     category: 'ROKR Mechanical',
     badge: 'HANDS-ON TESTED',
     regularPrice: '$75.99',
-    dealPrice: '$55.99',
+    dealPrice: '$60.79',
     codeToUse: 'BFCM20',
     blurb: 'Working quartz clock with hourly cuckoo bird, gliding Santa sleigh, music & warm LEDs.',
     reviewSlug: '/blog/rokr-christmas-cuckoo-clock-lcb01-review',
@@ -121,26 +113,26 @@ const FEATURED_DEALS: DealItem[] = [
   {
     id: 'dg189',
     name: "Rolife Teddy's Toy Shop",
-    sku: 'DG189 • Glue-Free',
+    sku: 'DG189 • 335 pcs • Type-C',
     category: 'Miniature Houses',
     badge: 'UNDER $40 WITH CODE',
     regularPrice: '$49.99',
     dealPrice: '$39.99',
     codeToUse: 'BFCM20',
-    blurb: 'Cozy vintage toy shop miniature house with USB-C lighting and fast snap-fit assembly.',
+    blurb: 'European-style vintage toy shop miniature house (~6-hour build) with Type-C LED lighting.',
     rolifeUrl: LINKS.teddysToyShopRolife,
     amazonUrl: LINKS.teddysToyShopAmazon,
   },
   {
     id: 'dg188',
     name: 'Rolife Floral Perfume Shop',
-    sku: 'DG188 • Glue-Free',
+    sku: 'DG188 • 347 pcs • Type-C',
     category: 'Miniature Houses',
     badge: 'UNDER $40 WITH CODE',
     regularPrice: '$49.99',
     dealPrice: '$39.99',
     codeToUse: 'BFCM20',
-    blurb: 'Detailed Parisian-style fragrance boutique with glowing display shelves.',
+    blurb: 'Detailed Parisian-style fragrance boutique (~6-hour build) with glowing display shelves.',
     rolifeUrl: LINKS.floralPerfumeRolife,
     amazonUrl: LINKS.floralPerfumeAmazon,
   },
@@ -153,7 +145,7 @@ const FEATURED_DEALS: DealItem[] = [
     regularPrice: '$78.99',
     dealPrice: '$63.19',
     codeToUse: 'BFCM20',
-    blurb: 'Mechanical Dutch windmill that functions as both a working clock and touch music box.',
+    blurb: 'Mechanical Dutch windmill (~8-hour build) with working clock, turning sails, and music box.',
     rolifeUrl: LINKS.harvestWindmillRolife,
     amazonUrl: LINKS.harvestWindmillAmazon,
   },
@@ -177,7 +169,7 @@ const FEATURED_DEALS: DealItem[] = [
     category: 'Bundles',
     badge: '2-KIT GIFT BUNDLE',
     regularPrice: '$73.98',
-    dealPrice: '$59.20',
+    dealPrice: '$59.18',
     codeToUse: 'BFCM20',
     blurb: 'Two festive Rolife holiday builds in one discounted bundle—ideal for weekend crafting.',
     reviewSlug: '/blog/rolife-polaris-post-dg187-review',
@@ -190,7 +182,7 @@ const FEATURED_DEALS: DealItem[] = [
     category: 'Book Nooks',
     badge: 'READER FAVORITE',
     regularPrice: '$49.99',
-    dealPrice: 'Check Sale',
+    dealPrice: '$39.99',
     codeToUse: 'BFCM20',
     blurb: 'The iconic Tokyo cherry-blossom tram book nook with touch-switch warm lighting.',
     reviewSlug: '/blog/robotime-sakura-densya-review',
@@ -229,9 +221,9 @@ export default function DealsClient() {
     seconds: number;
   } | null>(null);
 
-  // Countdown to end of Cyber Monday (Nov 30, 2026, 11:59 PM PT)
+  // Countdown to end of Rolife Black Friday Sale (Dec 1, 2026 at 12:00 PM PST / 20:00 UTC)
   useEffect(() => {
-    const targetDate = new Date('2026-12-01T07:59:59Z').getTime();
+    const targetDate = new Date('2026-12-01T20:00:00Z').getTime();
 
     const updateTimer = () => {
       const now = Date.now();
@@ -259,7 +251,6 @@ export default function DealsClient() {
       setCopiedId(id);
       setTimeout(() => setCopiedId(null), 2500);
     } catch {
-      // Fallback for older mobile browsers
       const input = document.createElement('input');
       input.value = code;
       document.body.appendChild(input);
@@ -297,7 +288,7 @@ export default function DealsClient() {
           {timeLeft && (
             <div className="inline-flex items-center gap-3 sm:gap-4 bg-white/10 backdrop-blur-sm border border-white/15 rounded-2xl px-5 py-3 mb-8">
               <span className="text-xs uppercase tracking-wider text-amber-300 font-bold hidden sm:inline">
-                Sale Ends In:
+                Codes Expire Dec 1 (12 PM PST):
               </span>
               {[
                 { label: 'Days', val: timeLeft.days },
@@ -342,9 +333,9 @@ export default function DealsClient() {
       </section>
 
       <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 -mt-6">
-        {/* SECTION 1: COPYABLE PROMO CODES */}
+        {/* SECTION 1: COPYABLE PROMO CODES (2-COLUMN CLEAN GRID) */}
         <section aria-labelledby="codes-heading" className="mb-14">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
             {PROMO_CODES.map((promo) => {
               const isCopied = copiedId === promo.id;
               return (
@@ -403,6 +394,12 @@ export default function DealsClient() {
               );
             })}
           </div>
+
+          <p className="text-center text-xs sm:text-sm text-slate-600 mt-4 max-w-3xl mx-auto">
+            <strong>Checkout Tip:</strong> Rolife allows one discount code per order, and flash deals (up to 50% off) cannot be combined with promo codes. Order flash-deal kits separately so{' '}
+            <code className="font-mono font-bold text-slate-800">BFCM20</code> or{' '}
+            <code className="font-mono font-bold text-slate-800">BFCM25</code> applies to your other items.
+          </p>
         </section>
 
         {/* SECTION 2: FILTERABLE LIVE DEALS GRID */}
@@ -416,7 +413,7 @@ export default function DealsClient() {
                 Top Verified 2026 Kit Deals
               </h2>
               <p className="text-slate-600 text-sm sm:text-base mt-1">
-                Prices reflect official Black Friday coupon discounts and may vary by region or stock.
+                Prices checked Nov 21, 2026 using official Black Friday codes; live stock and regional pricing may vary.
               </p>
             </div>
 
