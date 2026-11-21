@@ -181,7 +181,7 @@ const renderContent = (rawContent: string) => {
                   <span className="text-lg">Buy Direct from Rolife ↗</span>
                   {promo && (
                     <span className="text-sm text-amber-200 mt-1 font-extrabold">
-                      15% Off Code: {promo}
+                      Promo Code: {promo}
                     </span>
                   )}
                 </a>
@@ -252,7 +252,7 @@ const renderContent = (rawContent: string) => {
                     <span>Buy Direct from Rolife ↗</span>
                     {promo && (
                       <span className="text-xs text-amber-200 mt-0.5 font-extrabold">
-                        15% Off Code: {promo}
+                        Promo Code: {promo}
                       </span>
                     )}
                   </a>
