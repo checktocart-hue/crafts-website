@@ -9,20 +9,33 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: 'https',
-        hostname: 'res.cloudinary.com', 
+        hostname: 'res.cloudinary.com',
       },
       {
         protocol: 'https',
-        hostname: 'firebasestorage.googleapis.com', 
+        hostname: 'firebasestorage.googleapis.com',
       },
       {
         protocol: 'https',
-        hostname: 'm.media-amazon.com', 
-      }
-    ]
+        hostname: 'm.media-amazon.com',
+      },
+    ],
   },
   async redirects() {
     return [
+      // 0. KILL DUPLICATE VERCEL SUBDOMAIN: Force all traffic to live www domain
+      {
+        source: '/:path*',
+        has: [
+          {
+            type: 'host',
+            value: 'crafts-website.vercel.app',
+          },
+        ],
+        destination: 'https://www.craftsandkits.com/:path*',
+        permanent: true,
+      },
+
       // 1. SPECIFIC SLUG FIXES & SEO CANNIBALIZATION MERGES
       {
         source: '/blog/best-modern-miniature-dollhouse-kits-for-adults',
@@ -40,14 +53,14 @@ const nextConfig: NextConfig = {
         permanent: true,
       },
 
-      // 2. WILDCARD: Retire /projects/ route entirely 
+      // 2. WILDCARD: Retire /projects/ route entirely
       // The asterisk is fine here because you want the main /projects/ page to redirect too
       {
         source: '/projects/:path*',
         destination: '/blog/:path*',
-        permanent: true, 
+        permanent: true,
       },
-      
+
       // 3. THE FIX: Redirect individual review articles, but keep the main /reviews page alive!
       // The '+' ensures it only redirects if there is a specific article slug after the slash
       {
