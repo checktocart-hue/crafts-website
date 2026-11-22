@@ -4,37 +4,66 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 
 // =========================================================================
-// 1. AFFILIATE LINKS (ALL ROLIFE IMPACT LINKS LIVE — ADD YOUR AMAZON LINKS)
+// 1. MASTER AFFILIATE LINKS (ALL PRODUCT LINKS LIVE)
 // =========================================================================
 const LINKS = {
-  // Tip: Create an Impact link for https://www.rolifeonline.com/pages/black-friday-sale
-  // and replace rolifeStoreHome below for best BFCM20/BFCM25 conversions.
+  // Top Hero Store Hubs (Swap rolifeStoreHome to your Impact link for
+  // https://www.rolifeonline.com/pages/black-friday-sale if you create one)
   rolifeStoreHome: 'https://rolife.pxf.io/DWxGvb',
-
-  // Paste your Amazon Associate links here (leave '' to hide an Amazon button)
-  amazonDealsPage: 'https://amzn.to/YOUR_AMAZON_MINIATURE_DEALS_LINK',
-  streetSceneAmazon: '',
-  kikisEmporiumAmazon: '',
-  minicityLibraryAmazon: 'https://amzn.to/YOUR_MINICITY_AMAZON_LINK',
-
-  // Gumroad Rescue Handbook (append /BFCM26 once you create the $5 off code)
+  amazonDealsPage: 'https://link.amazon/A0iQrCA6p', // Replace with your Amazon search/deals hub link if desired
   gumroadSale: 'https://craftsman353.gumroad.com/l/miniature-guide',
 
-  // Verified Rolife Impact Deep Links
-  streetSceneRolife: 'https://rolife.pxf.io/aNgRzR',      // TGB13
-  nightOutStallRolife: 'https://rolife.pxf.io/DWo0M2',    // DW022 (subId1=crafts)
-  cookiiBunnyRolife: 'https://rolife.pxf.io/5kraB2',      // DG177
-  carolingCathedralRolife: 'https://rolife.pxf.io/2RNbNa',// TGB26
-  teddysToyShopRolife: 'https://rolife.pxf.io/gR0PeA',    // DG189
-  floralPerfumeRolife: 'https://rolife.pxf.io/1GxeM9',    // DG188
-  firesideMusicRolife: 'https://rolife.pxf.io/3kQAqM',    // AMS03
-  polarisPostRolife: 'https://rolife.pxf.io/VOX9MM',      // DG187
-  superCreatorRolife: 'https://rolife.pxf.io/yZMgP3',     // Super Creator Hub
-  kikisEmporiumRolife: 'https://rolife.pxf.io/DWNDob',    // DG155
+  // --- ROLIFE FLASH DEALS & DIRECT-ONLY ---
+  streetSceneRolife: 'https://rolife.pxf.io/aNgRzR',       // TGB13
+  nightOutStallRolife: 'https://rolife.pxf.io/DWo0M2',     // DW022
+  cookiiBunnyRolife: 'https://rolife.pxf.io/5kraB2',       // DG177
+  carolingCathedralRolife: 'https://rolife.pxf.io/2RNbNa', // TGB26
+  firesideMusicRolife: 'https://rolife.pxf.io/3kQAqM',     // AMS03
+  kikisEmporiumRolife: 'https://rolife.pxf.io/DWNDob',     // DG155
+  superCreatorRolife: 'https://rolife.pxf.io/yZMgP3',      // Super Creator Hub
+
+  // --- ROLIFE DUAL-CHANNEL (BOTH ROLIFE DIRECT + AMAZON) ---
+  teddysToyShopRolife: 'https://rolife.pxf.io/gR0PeA',
+  teddysToyShopAmazon: 'https://link.amazon/B0faoFlqC',
+
+  floralPerfumeRolife: 'https://rolife.pxf.io/1GxeM9',
+  floralPerfumeAmazon: 'https://link.amazon/B03gfjG5e',
+
+  polarisPostRolife: 'https://rolife.pxf.io/VOX9MM',
+  polarisPostAmazon: 'https://link.amazon/B08HIWdZh',
+
+  sakuraDensyaRolife:
+    'https://rolife.pxf.io/c/8194936/4112999/56826?prodsku=18055906533414975711883087&u=https%3A%2F%2Fwww.rolifeonline.com%2Fproducts%2Frolife-tgb01-sakura-densya-3d-wooden-diy-miniature-house-book-nook-%3Fcountry%3DUS%26sku%3D18055906533414975711883087&intsrc=APIG_38465',
+  sakuraDensyaAmazon: 'https://link.amazon/B0j4JHmk1',
+
+  aFrameCabinRolife:
+    'https://rolife.pxf.io/c/8194936/4112999/56826?prodsku=18072488701716531853530975&u=https%3A%2F%2Fwww.rolifeonline.com%2Fproducts%2Frolife-diy-miniature-house-a-frame-cabin-dg181%3Fcountry%3DUS%26sku%3D18072488701716531853530975&intsrc=APIG_38465',
+  aFrameCabinAmazon: 'https://link.amazon/B0eg2nbs0',
+
+  samsStudyRolife:
+    'https://rolife.pxf.io/c/8194936/4112999/56826?prodsku=18053530683441478185233087&u=https%3A%2F%2Fwww.rolifeonline.com%2Fproducts%2Frolife-sams-study-dg102%3Fcountry%3DUS%26sku%3D18053530683441478185233087&intsrc=APIG_38465',
+  samsStudyAmazon: 'https://link.amazon/B0iRW9bU0',
+
+  cathysFlowerRolife:
+    'https://rolife.pxf.io/c/8194936/4112999/56826?prodsku=18053530683455571046563087&u=https%3A%2F%2Fwww.rolifeonline.com%2Fproducts%2Frolife-cathys-flower-house-dg104-diy-miniature-dollhouse%3Fcountry%3DUS%26sku%3D18053530683455571046563087&intsrc=APIG_38465',
+  cathysFlowerAmazon: 'https://link.amazon/B0hjW9vt7',
+
+  // --- AMAZON-ONLY ROLIFE, ROKR, OTHER BRANDS & TOOLS ---
+  simonsCoffeeAmazon: 'https://amzn.to/4rMQa5O',
+  holidayBundleAmazon: 'https://link.amazon/B01SxHrDB',
+  cuckooClockAmazon: 'https://link.amazon/B0f9pWTo0',
+  dinosaurPinballAmazon: 'https://link.amazon/B0cR9y4G5',
+  minicityLibraryAmazon: 'https://link.amazon/A0iQrCA6p',
+  cutebeeOwlAmazon: 'https://amzn.to/48xUDQW',
+  cutebeeEternalAmazon: 'https://amzn.to/3Xw1tBx',
+  handsCraftFlowerAmazon: 'https://link.amazon/B088CKQVU',
+  handsCraftGardenAmazon: 'https://amzn.to/48neKTf',
+  greenleafHarrisonAmazon: 'https://link.amazon/B0cxR9lfU',
+  godHandNipperAmazon: 'https://amzn.to/4ieaOsX',
 };
 
 // =========================================================================
-// 2. ACTIVE PROMO CODES (VERIFIED THROUGH DEC 1, 2026 AT 12:00 PM PST)
+// 2. ACTIVE ROLIFE PROMO CODES (VERIFIED THROUGH DEC 1, 2026 AT 12:00 PM PST)
 // =========================================================================
 interface PromoCode {
   id: string;
@@ -55,7 +84,7 @@ const PROMO_CODES: PromoCode[] = [
     badge: 'MOST POPULAR • NO MINIMUM',
     headline: '20% OFF Sitewide',
     details:
-      'Works with no minimum spend on eligible kits through Dec 1 (12:00 PM PST), plus free shipping on orders over $68 USD.',
+      'Works with no minimum spend on eligible Rolife kits through Dec 1 (12:00 PM PST), plus free shipping on orders over $68 USD.',
     code: 'BFCM20',
     ctaLabel: 'Apply at Rolife Store ↗',
     url: LINKS.rolifeStoreHome,
@@ -69,25 +98,27 @@ const PROMO_CODES: PromoCode[] = [
     details:
       'Best for Super Creator multi-kit sets or 3 holiday gifts (e.g., DG188 + DG189 + AMS03 drops from $132.97 to $99.73). One code per order.',
     code: 'BFCM25',
-    ctaLabel: 'Shop Super Creator & Bundles ↗',
+    ctaLabel: 'Shop Super Creator & Sets ↗',
     url: LINKS.superCreatorRolife,
     highlight: true,
   },
 ];
 
 // =========================================================================
-// 3. FEATURED LIVE DEALS (COMMISSION-VERIFIED BUCKETS)
+// 3. BRAND-ORGANIZED DEALS CATALOG
 // =========================================================================
 type Category =
   | 'All'
-  | 'Flash Deals'
-  | 'Book Nooks'
-  | 'Miniature Houses'
-  | 'Holiday & Music'
-  | 'Amazon Prime';
+  | 'Rolife Flash Deals'
+  | 'Rolife'
+  | 'ROKR'
+  | 'Cutebee & MiniCity'
+  | 'Hands Craft & Greenleaf'
+  | 'Hobby Tools';
 
 interface DealItem {
   id: string;
+  brand: string;
   name: string;
   sku: string;
   categories: Exclude<Category, 'All'>[];
@@ -103,36 +134,39 @@ interface DealItem {
 }
 
 const FEATURED_DEALS: DealItem[] = [
+  // --- ROLIFE FLASH DEALS ---
   {
     id: 'tgb13',
+    brand: 'Rolife',
     name: 'Rolife Street Scene Book Nook',
     sku: 'TGB13 • Direct Flash Deal',
-    categories: ['Flash Deals', 'Book Nooks'],
+    categories: ['Rolife Flash Deals', 'Rolife'],
     badge: '50% OFF FLASH DEAL',
     regularPrice: '$49.99',
     dealPrice: '$25.00',
     isFlashDeal: true,
-    blurb: 'Vibrant vintage street-alley bookshelf insert at half off while Rolife flash-deal stock lasts.',
+    blurb: 'Vintage street-alley bookshelf insert at half off direct from Rolife while flash stock lasts.',
     rolifeUrl: LINKS.streetSceneRolife,
-    amazonUrl: LINKS.streetSceneAmazon || undefined,
   },
   {
     id: 'dw022',
+    brand: 'Rolife',
     name: 'Rolife Night Out Food Stall',
     sku: 'DW022 • Super Creator',
-    categories: ['Flash Deals', 'Miniature Houses'],
+    categories: ['Rolife Flash Deals', 'Rolife'],
     badge: '50% OFF FLASH DEAL',
     regularPrice: '$43.99',
     dealPrice: 'From $22.00',
     isFlashDeal: true,
-    blurb: 'Snap-together Super Creator late-night street food stall. Limited flash-deal inventory.',
+    blurb: 'Snap-together Super Creator late-night food stall. Limited direct flash-deal inventory.',
     rolifeUrl: LINKS.nightOutStallRolife,
   },
   {
     id: 'dg177',
+    brand: 'Rolife',
     name: "Rolife Cookii Bunny's Cookie Shop",
     sku: 'DG177 • Direct Flash Deal',
-    categories: ['Flash Deals', 'Miniature Houses'],
+    categories: ['Rolife Flash Deals', 'Rolife'],
     badge: '30% OFF FLASH DEAL',
     regularPrice: '$33.99',
     dealPrice: '$23.79',
@@ -140,109 +174,297 @@ const FEATURED_DEALS: DealItem[] = [
     blurb: 'Compact, beginner-friendly miniature bakery room box marked down 30% direct from Rolife.',
     rolifeUrl: LINKS.cookiiBunnyRolife,
   },
+
+  // --- ROLIFE DUAL-CHANNEL & HOLIDAY ---
   {
     id: 'tgb26',
+    brand: 'Rolife',
     name: 'Rolife Caroling Cathedral Book Nook',
     sku: 'TGB26 • 503 pcs',
-    categories: ['Book Nooks', 'Holiday & Music'],
+    categories: ['Rolife'],
     badge: '2026 HOLIDAY FLAGSHIP',
     regularPrice: '$58.99',
     dealPrice: '$47.19',
     codeToUse: 'BFCM20',
-    blurb: 'Detailed festive Gothic cathedral bookshelf insert with stained-glass accents and warm lighting.',
+    blurb: 'Festive Gothic cathedral bookshelf insert with stained-glass accents and warm lighting.',
     rolifeUrl: LINKS.carolingCathedralRolife,
   },
   {
     id: 'dg189',
+    brand: 'Rolife',
     name: "Rolife Teddy's Toy Shop",
     sku: 'DG189 • 335 pcs • Type-C',
-    categories: ['Miniature Houses', 'Holiday & Music'],
-    badge: 'UNDER $40 WITH CODE',
+    categories: ['Rolife'],
+    badge: 'UNDER $40 DIRECT',
     regularPrice: '$49.99',
     dealPrice: '$39.99',
     codeToUse: 'BFCM20',
-    blurb: 'European-style vintage toy shop miniature house (~6-hour build) with Type-C LED lighting.',
+    blurb: 'European-style vintage toy shop (~6-hour build) with Type-C lighting. Available direct or via Amazon.',
     rolifeUrl: LINKS.teddysToyShopRolife,
+    amazonUrl: LINKS.teddysToyShopAmazon,
   },
   {
     id: 'dg188',
+    brand: 'Rolife',
     name: 'Rolife Floral Perfume Shop',
     sku: 'DG188 • 347 pcs • Type-C',
-    categories: ['Miniature Houses'],
-    badge: 'UNDER $40 WITH CODE',
+    categories: ['Rolife'],
+    badge: 'UNDER $40 DIRECT',
     regularPrice: '$49.99',
     dealPrice: '$39.99',
     codeToUse: 'BFCM20',
-    blurb: 'Parisian-inspired fragrance boutique (~6-hour build) with glowing shelves and modular walls.',
+    blurb: 'Parisian fragrance boutique (~6-hour build) with glowing display shelves. Direct or Amazon.',
     rolifeUrl: LINKS.floralPerfumeRolife,
-  },
-  {
-    id: 'ams03',
-    name: 'Rolife Fireside Music Night',
-    sku: 'AMS03 • DIY Music Box',
-    categories: ['Holiday & Music'],
-    badge: 'UNDER $30 GIFT PICK',
-    regularPrice: '$32.99',
-    dealPrice: '$26.39',
-    codeToUse: 'BFCM20',
-    blurb: 'Cozy holiday fireplace diorama combined with a wind-up music box—easy gift pairing for $120+ carts.',
-    rolifeUrl: LINKS.firesideMusicRolife,
+    amazonUrl: LINKS.floralPerfumeAmazon,
   },
   {
     id: 'dg187',
+    brand: 'Rolife',
     name: 'Rolife Polaris Post Miniature House',
-    sku: 'DG187 • Holiday Release',
-    categories: ['Holiday & Music', 'Miniature Houses'],
+    sku: 'DG187 • Holiday Pick',
+    categories: ['Rolife'],
     badge: 'HANDS-ON TESTED',
-    dealPrice: '20% Off',
+    dealPrice: '20% Off Direct',
     codeToUse: 'BFCM20',
-    blurb: 'Festive North Pole post office miniature build—pair with other kits to hit free shipping ($68+).',
+    blurb: 'Festive North Pole post office miniature build—compare Rolife direct savings vs. Amazon Prime.',
     reviewSlug: '/blog/rolife-polaris-post-dg187-review',
     rolifeUrl: LINKS.polarisPostRolife,
+    amazonUrl: LINKS.polarisPostAmazon,
   },
   {
-    id: 'super-creator',
-    name: 'Rolife Super Creator Multi-Kit Sets',
-    sku: 'Stackable Snap-Fit Rooms',
-    categories: ['Miniature Houses', 'Holiday & Music'],
-    badge: 'BEST FOR BFCM25 ($120+)',
-    dealPrice: 'Up to 25% Off',
-    codeToUse: 'BFCM25',
-    blurb: 'Build a stackable miniature apartment block. Combine 3–4 Super Creator rooms past $120 to unlock 25% off.',
-    rolifeUrl: LINKS.superCreatorRolife,
+    id: 'tgb01',
+    brand: 'Rolife',
+    name: 'Rolife Sakura Densya Book Nook',
+    sku: 'TGB01 • Bestseller',
+    categories: ['Rolife'],
+    badge: 'READER FAVORITE',
+    regularPrice: '$49.99',
+    dealPrice: '$39.99',
+    codeToUse: 'BFCM20',
+    blurb: 'Iconic Tokyo cherry-blossom tram book nook with touch-switch warm LED lighting.',
+    reviewSlug: '/blog/robotime-sakura-densya-review',
+    rolifeUrl: LINKS.sakuraDensyaRolife,
+    amazonUrl: LINKS.sakuraDensyaAmazon,
+  },
+  {
+    id: 'dg181',
+    brand: 'Rolife',
+    name: 'Rolife A-Frame Cabin',
+    sku: 'DG181 • Snap-Fit Build',
+    categories: ['Rolife'],
+    badge: 'BEGINNER FRIENDLY',
+    dealPrice: '20% Off Direct',
+    codeToUse: 'BFCM20',
+    blurb: 'Cozy woodland cabin designed for fast, clean snap-fit assembly with minimal mess.',
+    rolifeUrl: LINKS.aFrameCabinRolife,
+    amazonUrl: LINKS.aFrameCabinAmazon,
+  },
+  {
+    id: 'dg102',
+    brand: 'Rolife',
+    name: "Rolife Sam's Study Miniature Library",
+    sku: 'DG102 • Classic',
+    categories: ['Rolife'],
+    badge: 'TOP CLASSIC PICK',
+    dealPrice: '20% Off Direct',
+    codeToUse: 'BFCM20',
+    blurb: 'Famous miniature study packed with hundreds of tiny paper books for patient crafters.',
+    rolifeUrl: LINKS.samsStudyRolife,
+    amazonUrl: LINKS.samsStudyAmazon,
+  },
+  {
+    id: 'dg104',
+    brand: 'Rolife',
+    name: "Rolife Cathy's Flower House",
+    sku: 'DG104 • Greenhouse',
+    categories: ['Rolife'],
+    badge: 'BEST DISPLAY KIT',
+    dealPrice: '20% Off Direct',
+    codeToUse: 'BFCM20',
+    blurb: 'Clear greenhouse packed with miniature plants, bouquets, and gardening tools.',
+    rolifeUrl: LINKS.cathysFlowerRolife,
+    amazonUrl: LINKS.cathysFlowerAmazon,
+  },
+  {
+    id: 'ams03',
+    brand: 'Rolife',
+    name: 'Rolife Fireside Music Night',
+    sku: 'AMS03 • DIY Music Box',
+    categories: ['Rolife'],
+    badge: 'UNDER $30 GIFT',
+    regularPrice: '$32.99',
+    dealPrice: '$26.39',
+    codeToUse: 'BFCM20',
+    blurb: 'Cozy holiday fireplace diorama paired with a wind-up music box—easy add-on to cross $120.',
+    rolifeUrl: LINKS.firesideMusicRolife,
   },
   {
     id: 'dg155',
+    brand: 'Rolife',
     name: "Rolife Kiki's Magic Emporium",
-    sku: 'DG155 • Classic Bestseller',
-    categories: ['Miniature Houses', 'Amazon Prime'],
+    sku: 'DG155 • Classic',
+    categories: ['Rolife'],
     badge: 'FAN FAVORITE',
     dealPrice: '20% Off Direct',
     codeToUse: 'BFCM20',
-    blurb: 'Whimsical witchy shop packed with tiny potion bottles, broomsticks, and spellbooks.',
+    blurb: 'Whimsical witchy shop filled with glowing potion bottles, broomsticks, and spellbooks.',
     rolifeUrl: LINKS.kikisEmporiumRolife,
-    amazonUrl: LINKS.kikisEmporiumAmazon || undefined,
   },
   {
+    id: 'super-creator',
+    brand: 'Rolife',
+    name: 'Rolife Super Creator Multi-Kit Sets',
+    sku: 'Stackable Snap-Fit Rooms',
+    categories: ['Rolife'],
+    badge: 'BEST FOR BFCM25 ($120+)',
+    dealPrice: 'Up to 25% Off',
+    codeToUse: 'BFCM25',
+    blurb: 'Combine 3–4 stackable Super Creator rooms past $120 to unlock 25% off direct from Rolife.',
+    rolifeUrl: LINKS.superCreatorRolife,
+  },
+  {
+    id: 'dg109',
+    brand: 'Rolife',
+    name: "Rolife Simon's Coffee",
+    sku: 'DG109 • Amazon Pick',
+    categories: ['Rolife'],
+    badge: 'AMAZON PRIME PICK',
+    dealPrice: 'Check Amazon',
+    blurb: 'Warm café room box with miniature espresso machines, pastries, and framed wall art.',
+    amazonUrl: LINKS.simonsCoffeeAmazon,
+  },
+  {
+    id: 'bundle-xmas',
+    brand: 'Rolife',
+    name: 'Reindeer Express + Polaris Post Bundle',
+    sku: 'DS059 + DG187 • 2-Kit Set',
+    categories: ['Rolife'],
+    badge: 'HOLIDAY BUNDLE',
+    dealPrice: 'Check Amazon',
+    blurb: 'Two festive Rolife holiday builds bundled together for weekend Christmas crafting.',
+    reviewSlug: '/blog/rolife-polaris-post-dg187-review',
+    amazonUrl: LINKS.holidayBundleAmazon,
+  },
+
+  // --- ROKR MECHANICAL (AMAZON) ---
+  {
+    id: 'lcb01',
+    brand: 'ROKR',
+    name: 'ROKR Christmas Cuckoo Clock',
+    sku: 'LCB01 • 293 pcs',
+    categories: ['ROKR'],
+    badge: 'HANDS-ON TESTED',
+    dealPrice: 'Check Amazon',
+    blurb: 'Working quartz clock with hourly cuckoo bird, gliding Santa sleigh, music & warm LEDs.',
+    reviewSlug: '/blog/rokr-christmas-cuckoo-clock-lcb01-review',
+    amazonUrl: LINKS.cuckooClockAmazon,
+  },
+  {
+    id: 'mgp01',
+    brand: 'ROKR',
+    name: 'ROKR Dinosaur Lab Pinball',
+    sku: 'MGP01 • Mechanical',
+    categories: ['ROKR'],
+    badge: 'ADVANCED BUILD',
+    dealPrice: 'Check Amazon',
+    blurb: 'Fully playable tabletop wooden pinball machine with electronic scoring and lights.',
+    amazonUrl: LINKS.dinosaurPinballAmazon,
+  },
+
+  // --- CUTEBEE & MINICITY (AMAZON) ---
+  {
     id: 'minicity-lib',
+    brand: 'MiniCity',
     name: 'MiniCity Beyond Library Book Nook',
-    sku: 'Amazon Prime Pick',
-    categories: ['Book Nooks', 'Amazon Prime'],
+    sku: 'Amazon Bestseller',
+    categories: ['Cutebee & MiniCity'],
     badge: 'FAST PRIME SHIPPING',
     dealPrice: 'Check Amazon',
-    blurb: 'Crisp laser-cut wooden library insert with included dust cover and warm LEDs via Amazon Prime.',
+    blurb: 'Crisp laser-cut wooden library insert with included dust cover and warm LED lighting.',
     reviewSlug: '/blog/minicity-library-book-nook-review',
-    amazonUrl: LINKS.minicityLibraryAmazon || undefined,
+    amazonUrl: LINKS.minicityLibraryAmazon,
+  },
+  {
+    id: 'cutebee-owl',
+    brand: 'Cutebee',
+    name: 'Cutebee Owl Bookstore Book Nook',
+    sku: 'SD02 • Quick Build',
+    categories: ['Cutebee & MiniCity'],
+    badge: 'BEST QUICK BUILD',
+    dealPrice: 'Check Amazon',
+    blurb: 'Charming vintage bookstore insert—ideal for a relaxing afternoon build or holiday gift.',
+    amazonUrl: LINKS.cutebeeOwlAmazon,
+  },
+  {
+    id: 'cutebee-eternal',
+    brand: 'Cutebee',
+    name: 'Cutebee Eternal Bookstore',
+    sku: 'Book Nook Kit',
+    categories: ['Cutebee & MiniCity'],
+    badge: 'BUDGET FAVORITE',
+    dealPrice: 'Check Amazon',
+    blurb: 'Classic multi-tier wooden bookshop insert with warm lighting at an accessible price point.',
+    amazonUrl: LINKS.cutebeeEternalAmazon,
+  },
+
+  // --- HANDS CRAFT & GREENLEAF (AMAZON) ---
+  {
+    id: 'hc-flower',
+    brand: 'Hands Craft',
+    name: 'Hands Craft Flower Shop Book Nook',
+    sku: 'Beginner Book Nook',
+    categories: ['Hands Craft & Greenleaf'],
+    badge: 'BEST FOR BEGINNERS',
+    dealPrice: 'Check Amazon',
+    blurb: 'Bright floral storefront bookshelf insert with approachable assembly for first-time builders.',
+    amazonUrl: LINKS.handsCraftFlowerAmazon,
+  },
+  {
+    id: 'hc-garden',
+    brand: 'Hands Craft',
+    name: 'Hands Craft Secret Garden',
+    sku: 'Miniature Kit',
+    categories: ['Hands Craft & Greenleaf'],
+    badge: 'COZY NATURE BUILD',
+    dealPrice: 'Check Amazon',
+    blurb: 'Lush miniature botanical retreat filled with greenery, trellises, and garden seating.',
+    amazonUrl: LINKS.handsCraftGardenAmazon,
+  },
+  {
+    id: 'greenleaf-harrison',
+    brand: 'Greenleaf',
+    name: 'Greenleaf Harrison Dollhouse Kit',
+    sku: '1:12 Traditional Shell',
+    categories: ['Hands Craft & Greenleaf'],
+    badge: 'LARGE SCALE CLASSIC',
+    dealPrice: 'Check Amazon',
+    blurb: 'Full Tudor-style 1:12 wooden dollhouse shell ready for custom painting, wallpaper, and furniture.',
+    amazonUrl: LINKS.greenleafHarrisonAmazon,
+  },
+
+  // --- HOBBY TOOLS (AMAZON) ---
+  {
+    id: 'godhand-spn120',
+    brand: 'GodHand',
+    name: 'GodHand SPN-120 Ultimate Nipper',
+    sku: 'Precision Flush Cutter',
+    categories: ['Hobby Tools'],
+    badge: 'EDITOR TOOL PICK',
+    dealPrice: 'Check Amazon',
+    blurb: 'Single-blade precision nippers for ultra-clean sprue and tab cuts without splintering tiny parts.',
+    reviewSlug: '/blog/godhand-vs-dspiae-the-real-nipper-comparison',
+    amazonUrl: LINKS.godHandNipperAmazon,
   },
 ];
 
 const CATEGORIES: Category[] = [
   'All',
-  'Flash Deals',
-  'Book Nooks',
-  'Miniature Houses',
-  'Holiday & Music',
-  'Amazon Prime',
+  'Rolife Flash Deals',
+  'Rolife',
+  'ROKR',
+  'Cutebee & MiniCity',
+  'Hands Craft & Greenleaf',
+  'Hobby Tools',
 ];
 
 export default function DealsClient() {
@@ -312,17 +534,17 @@ export default function DealsClient() {
           </span>
 
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight leading-tight mb-4">
-            Verified Rolife &amp; Miniature Kit Black Friday Codes
+            Verified Rolife, ROKR &amp; Miniature Kit Deals
           </h1>
           <p className="text-blue-100 text-base sm:text-lg max-w-2xl mx-auto mb-8">
-            Copy working 20%–25% off Rolife promo codes in one tap, catch 30%–50% direct flash deals, and check Amazon Prime alternatives.
+            Copy working 20%–25% off Rolife promo codes in one tap, filter by brand, and compare direct brand savings against fast Amazon Prime shipping.
           </p>
 
           {/* LIVE COUNTDOWN */}
           {timeLeft && (
             <div className="inline-flex items-center gap-3 sm:gap-4 bg-white/10 backdrop-blur-sm border border-white/15 rounded-2xl px-5 py-3 mb-8">
               <span className="text-xs uppercase tracking-wider text-amber-300 font-bold hidden sm:inline">
-                Codes Expire Dec 1 (12 PM PST):
+                Rolife Codes Expire Dec 1 (12 PM PST):
               </span>
               {[
                 { label: 'Days', val: timeLeft.days },
@@ -348,26 +570,24 @@ export default function DealsClient() {
               rel="noopener noreferrer"
               className="bg-blue-600 hover:bg-blue-500 text-white font-bold py-3.5 px-7 rounded-xl shadow-lg transition-transform hover:scale-105"
             >
-              Shop Rolife Black Friday (Up to 50% Off) ↗
+              Shop Rolife Direct (Up to 50% Off) ↗
             </a>
             <a
-              href={LINKS.amazonDealsPage}
-              target="_blank"
-              rel="noopener noreferrer"
+              href="#deals-grid-heading"
               className="bg-orange-500 hover:bg-orange-400 text-slate-950 font-bold py-3.5 px-7 rounded-xl shadow-lg transition-transform hover:scale-105"
             >
-              Browse Amazon Prime Deals ↗
+              Browse All Brands &amp; Amazon Picks ↓
             </a>
           </div>
 
           <p className="text-xs text-blue-200/70 mt-6">
-            Affiliate Disclosure: Purchases through our links may earn CraftsAndKits a small commission at no extra cost to you.
+            Affiliate Disclosure: As an Amazon Associate and Rolife affiliate, CraftsAndKits earns from qualifying purchases at no extra cost to you.
           </p>
         </div>
       </section>
 
       <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 -mt-6">
-        {/* SECTION 1: COPYABLE PROMO CODES (2-COLUMN CLEAN GRID) */}
+        {/* SECTION 1: COPYABLE ROLIFE PROMO CODES */}
         <section aria-labelledby="codes-heading" className="mb-14">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
             {PROMO_CODES.map((promo) => {
@@ -397,7 +617,6 @@ export default function DealsClient() {
                   </div>
 
                   <div className="space-y-3">
-                    {/* COPY BOX */}
                     <div className="flex items-center justify-between gap-2 bg-slate-100 border border-dashed border-slate-400 rounded-xl p-2 pl-4">
                       <code className="font-mono font-extrabold text-base text-slate-900 tracking-wider">
                         {promo.code}
@@ -430,28 +649,26 @@ export default function DealsClient() {
           </div>
 
           <p className="text-center text-xs sm:text-sm text-slate-600 mt-4 max-w-3xl mx-auto">
-            <strong>Checkout Tip:</strong> Rolife allows one discount code per order, and flash deals (up to 50% off) cannot be combined with promo codes. Order flash-deal kits separately so{' '}
-            <code className="font-mono font-bold text-slate-800">BFCM20</code> or{' '}
-            <code className="font-mono font-bold text-slate-800">BFCM25</code> applies to your other items.
+            <strong>Checkout Tip:</strong> Rolife codes work on official store orders only (one code per order; flash deals up to 50% off must be checked out separately). Prefer 2-day delivery? Use the orange Amazon buttons below.
           </p>
         </section>
 
-        {/* SECTION 2: FILTERABLE LIVE DEALS GRID */}
+        {/* SECTION 2: FILTERABLE BRAND DEALS GRID */}
         <section aria-labelledby="deals-grid-heading" className="mb-16">
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6">
+          <div className="flex flex-col gap-4 mb-6">
             <div>
               <h2
                 id="deals-grid-heading"
                 className="text-2xl sm:text-3xl font-extrabold text-slate-900"
               >
-                Verified 2026 Rolife &amp; Miniature Deals
+                Shop 2026 Deals by Brand
               </h2>
               <p className="text-slate-600 text-sm sm:text-base mt-1">
-                Prices checked Nov 21–22, 2026. Flash-deal prices and stock levels update frequently—click through to verify live availability.
+                Rolife direct prices checked Nov 21–22, 2026. Click any Amazon button to view live Black Friday Prime pricing.
               </p>
             </div>
 
-            {/* CATEGORY TABS */}
+            {/* BRAND CATEGORY TABS */}
             <div className="flex flex-wrap gap-2">
               {CATEGORIES.map((cat) => (
                 <button
@@ -494,12 +711,16 @@ export default function DealsClient() {
                       </span>
                     </div>
 
+                    <p className="text-[11px] font-bold uppercase tracking-wider text-blue-700 mb-1">
+                      {deal.brand}
+                    </p>
+
                     <h3 className="text-lg font-extrabold text-slate-900 leading-snug mb-2">
                       {deal.name}
                     </h3>
 
                     <div className="flex items-baseline gap-2.5 mb-3 flex-wrap">
-                      <span className="text-2xl font-extrabold text-emerald-700">
+                      <span className="text-xl font-extrabold text-emerald-700">
                         {deal.dealPrice}
                       </span>
                       {deal.regularPrice && (
@@ -512,7 +733,7 @@ export default function DealsClient() {
                           type="button"
                           onClick={() => handleCopy(`deal-${deal.id}`, deal.codeToUse!)}
                           className="ml-auto text-xs font-mono font-bold px-2.5 py-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 cursor-pointer"
-                          title="Click to copy promo code"
+                          title="Click to copy Rolife promo code"
                         >
                           {isCodeCopied ? '✓ Copied' : `Code: ${deal.codeToUse}`}
                         </button>
@@ -538,7 +759,7 @@ export default function DealsClient() {
                     )}
                   </div>
 
-                  {/* ACTION BUTTONS (AUTO-HIDES AMAZON WHEN NOT APPLICABLE) */}
+                  {/* DUAL ACTION BUTTONS */}
                   <div className="flex flex-col gap-2.5 pt-3 border-t border-slate-100">
                     {deal.rolifeUrl && (
                       <a
