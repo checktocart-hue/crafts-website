@@ -4,16 +4,23 @@ export default function TopAnnouncementBar() {
   return (
     <aside
       aria-label="Announcement"
-      className="bg-amber-600 text-white text-xs sm:text-sm py-2 px-4 text-center font-medium shadow-sm transition-colors hover:bg-amber-700"
+      className="bg-slate-950 text-white text-xs sm:text-sm py-2.5 px-4 text-center font-medium shadow-sm border-b border-blue-900/60"
     >
-      <span>Building your first miniature kit? </span>
       <Link
-        href="https://craftsman353.gumroad.com/l/miniature-guide"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="underline font-bold hover:text-amber-100 transition-colors inline-block ml-1"
+        href="/deals"
+        className="inline-flex flex-wrap items-center justify-center gap-x-2 gap-y-1 hover:text-amber-300 transition-colors"
       >
-        Get the "Zero to Finished" eBook guide →
+        <span className="bg-amber-400 text-slate-950 font-extrabold text-[10px] sm:text-xs uppercase tracking-wider px-2 py-0.5 rounded">
+          Black Friday Live
+        </span>
+        <span>
+          Save <strong>20%–25% off Rolife</strong> with codes{" "}
+          <strong className="text-amber-300">BFCM20</strong> /{" "}
+          <strong className="text-amber-300">BFCM25</strong>
+        </span>
+        <span className="underline font-bold text-amber-300">
+          Copy Codes &amp; Shop Deals →
+        </span>
       </Link>
     </aside>
   );
