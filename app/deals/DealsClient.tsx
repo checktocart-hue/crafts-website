@@ -4,13 +4,36 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 
 // =========================================================================
-// 1. MASTER AFFILIATE LINKS (ALL PRODUCT LINKS LIVE)
+// 1. SEASONAL EVENT SETTINGS (EDIT ONLY THIS BLOCK FOR CHRISTMAS / EASTER)
+// =========================================================================
+const EVENT_CONFIG = {
+  badgeText: 'Live 2026 Black Friday & Cyber Monday Hub',
+  heroTitle: 'Verified Rolife, ROKR & Miniature Kit Deals',
+  heroSubtitle:
+    'Copy working 20%–25% off Rolife promo codes in one tap, filter by brand, and compare direct brand savings against fast Amazon Prime shipping.',
+  // Leave '' (empty string) to hide the countdown timer for non-timed events
+  countdownTargetIso: '2026-12-01T20:00:00Z',
+  countdownLabel: 'Rolife Codes Expire Dec 1 (12 PM PST):',
+  primaryCtaLabel: 'Shop Rolife Direct (Up to 50% Off) ↗',
+  secondaryCtaLabel: 'Browse All Brands & Amazon Picks ↓',
+  gridHeading: 'Shop 2026 Deals by Brand',
+  gridSubheading:
+    'Rolife direct prices checked Nov 21–22, 2026. Click any Amazon button to view live Black Friday Prime pricing.',
+  guideNavLabel: "Buyer's Guide",
+  guideHref: '/blog/black-friday-miniatures-craft-kit-deals',
+  guideCtaTitle: 'Not sure whether to buy Direct or on Amazon?',
+  guideCtaText:
+    "Read our complete 2026 Black Friday Miniature Buyer's Guide for fake-deal warnings, beginner recommendations, and tool deals.",
+  guideCtaButton: "Read the Buyer's Guide →",
+};
+
+// =========================================================================
+// 2. MASTER AFFILIATE LINKS (ALL PRODUCT LINKS LIVE)
 // =========================================================================
 const LINKS = {
-  // Top Hero Store Hubs (Swap rolifeStoreHome to your Impact link for
-  // https://www.rolifeonline.com/pages/black-friday-sale if you create one)
+  // Swap rolifeStoreHome to your Impact link for
+  // https://www.rolifeonline.com/pages/black-friday-sale if you create one
   rolifeStoreHome: 'https://rolife.pxf.io/DWxGvb',
-  amazonDealsPage: 'https://link.amazon/A0iQrCA6p', // Replace with your Amazon search/deals hub link if desired
   gumroadSale: 'https://craftsman353.gumroad.com/l/miniature-guide',
 
   // --- ROLIFE FLASH DEALS & DIRECT-ONLY ---
@@ -63,7 +86,7 @@ const LINKS = {
 };
 
 // =========================================================================
-// 2. ACTIVE ROLIFE PROMO CODES (VERIFIED THROUGH DEC 1, 2026 AT 12:00 PM PST)
+// 3. ACTIVE PROMO CODES (SWAP FOR CHRISTMAS / EVERGREEN CODES AFTER DEC 1)
 // =========================================================================
 interface PromoCode {
   id: string;
@@ -105,7 +128,7 @@ const PROMO_CODES: PromoCode[] = [
 ];
 
 // =========================================================================
-// 3. BRAND-ORGANIZED DEALS CATALOG
+// 4. BRAND-ORGANIZED DEALS CATALOG
 // =========================================================================
 type Category =
   | 'All'
@@ -477,9 +500,13 @@ export default function DealsClient() {
     seconds: number;
   } | null>(null);
 
-  // Countdown to end of Rolife Black Friday Sale (Dec 1, 2026 at 12:00 PM PST / 20:00 UTC)
   useEffect(() => {
-    const targetDate = new Date('2026-12-01T20:00:00Z').getTime();
+    if (!EVENT_CONFIG.countdownTargetIso) {
+      setTimeLeft(null);
+      return;
+    }
+
+    const targetDate = new Date(EVENT_CONFIG.countdownTargetIso).getTime();
 
     const updateTimer = () => {
       const now = Date.now();
@@ -524,27 +551,58 @@ export default function DealsClient() {
       : FEATURED_DEALS.filter((d) => d.categories.includes(activeCategory));
 
   return (
-    <div className="min-h-screen bg-slate-50 pb-24">
+    <div className="min-h-screen bg-slate-50 flex flex-col">
+      {/* SLIM STICKY RETURN NAVIGATION (OPTION 2) */}
+      <header className="sticky top-0 z-40 bg-slate-950/95 backdrop-blur-sm border-b border-white/10 text-slate-200 text-xs sm:text-sm">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-12 flex items-center justify-between gap-4">
+          <Link
+            href="/"
+            className="font-extrabold text-white hover:text-amber-300 transition-colors inline-flex items-center gap-1.5"
+          >
+            <span aria-hidden="true">←</span>
+            <span>CraftsAndKits.com</span>
+          </Link>
+
+          <nav aria-label="Deals quick navigation" className="flex items-center gap-4 sm:gap-6 font-semibold">
+            <Link href="/" className="hover:text-white transition-colors">
+              Home
+            </Link>
+            <Link
+              href={EVENT_CONFIG.guideHref}
+              className="hover:text-white transition-colors"
+            >
+              {EVENT_CONFIG.guideNavLabel}
+            </Link>
+            <a
+              href="#rescue-handbook"
+              className="hidden sm:inline-block text-amber-300 hover:text-amber-200 transition-colors"
+            >
+              Rescue Handbook
+            </a>
+          </nav>
+        </div>
+      </header>
+
       {/* HERO BANNER */}
       <section className="bg-gradient-to-br from-slate-950 via-blue-950 to-slate-900 text-white py-12 md:py-16 px-4">
         <div className="max-w-5xl mx-auto text-center">
           <span className="inline-flex items-center gap-2 bg-amber-400 text-slate-950 text-xs md:text-sm font-extrabold uppercase tracking-wider px-4 py-1.5 rounded-full mb-5">
             <span className="w-2 h-2 rounded-full bg-red-600 animate-pulse" />
-            Live 2026 Black Friday &amp; Cyber Monday Hub
+            {EVENT_CONFIG.badgeText}
           </span>
 
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight leading-tight mb-4">
-            Verified Rolife, ROKR &amp; Miniature Kit Deals
+            {EVENT_CONFIG.heroTitle}
           </h1>
           <p className="text-blue-100 text-base sm:text-lg max-w-2xl mx-auto mb-8">
-            Copy working 20%–25% off Rolife promo codes in one tap, filter by brand, and compare direct brand savings against fast Amazon Prime shipping.
+            {EVENT_CONFIG.heroSubtitle}
           </p>
 
           {/* LIVE COUNTDOWN */}
           {timeLeft && (
             <div className="inline-flex items-center gap-3 sm:gap-4 bg-white/10 backdrop-blur-sm border border-white/15 rounded-2xl px-5 py-3 mb-8">
               <span className="text-xs uppercase tracking-wider text-amber-300 font-bold hidden sm:inline">
-                Rolife Codes Expire Dec 1 (12 PM PST):
+                {EVENT_CONFIG.countdownLabel}
               </span>
               {[
                 { label: 'Days', val: timeLeft.days },
@@ -570,13 +628,13 @@ export default function DealsClient() {
               rel="noopener noreferrer"
               className="bg-blue-600 hover:bg-blue-500 text-white font-bold py-3.5 px-7 rounded-xl shadow-lg transition-transform hover:scale-105"
             >
-              Shop Rolife Direct (Up to 50% Off) ↗
+              {EVENT_CONFIG.primaryCtaLabel}
             </a>
             <a
               href="#deals-grid-heading"
               className="bg-orange-500 hover:bg-orange-400 text-slate-950 font-bold py-3.5 px-7 rounded-xl shadow-lg transition-transform hover:scale-105"
             >
-              Browse All Brands &amp; Amazon Picks ↓
+              {EVENT_CONFIG.secondaryCtaLabel}
             </a>
           </div>
 
@@ -586,85 +644,90 @@ export default function DealsClient() {
         </div>
       </section>
 
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 -mt-6">
-        {/* SECTION 1: COPYABLE ROLIFE PROMO CODES */}
-        <section aria-labelledby="codes-heading" className="mb-14">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
-            {PROMO_CODES.map((promo) => {
-              const isCopied = copiedId === promo.id;
-              return (
-                <div
-                  key={promo.id}
-                  className={`rounded-2xl p-6 bg-white shadow-md flex flex-col justify-between border-2 transition-shadow hover:shadow-lg ${
-                    promo.highlight ? 'border-blue-600' : 'border-slate-200'
-                  }`}
-                >
-                  <div>
-                    <div className="flex items-center justify-between gap-2 mb-3">
-                      <span className="text-xs font-extrabold uppercase tracking-wider px-2.5 py-1 rounded-full bg-blue-50 text-blue-700">
-                        {promo.badge}
-                      </span>
+      <main className="flex-1 w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 -mt-6 pb-16">
+        {/* SECTION 1: COPYABLE PROMO CODES */}
+        {PROMO_CODES.length > 0 && (
+          <section aria-labelledby="codes-heading" className="mb-14">
+            <h2 id="codes-heading" className="sr-only">
+              Active Promo Codes
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+              {PROMO_CODES.map((promo) => {
+                const isCopied = copiedId === promo.id;
+                return (
+                  <div
+                    key={promo.id}
+                    className={`rounded-2xl p-6 bg-white shadow-md flex flex-col justify-between border-2 transition-shadow hover:shadow-lg ${
+                      promo.highlight ? 'border-blue-600' : 'border-slate-200'
+                    }`}
+                  >
+                    <div>
+                      <div className="flex items-center justify-between gap-2 mb-3">
+                        <span className="text-xs font-extrabold uppercase tracking-wider px-2.5 py-1 rounded-full bg-blue-50 text-blue-700">
+                          {promo.badge}
+                        </span>
+                      </div>
+                      <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
+                        {promo.brand}
+                      </p>
+                      <h3 className="text-2xl font-extrabold text-slate-900 mt-1 mb-2">
+                        {promo.headline}
+                      </h3>
+                      <p className="text-sm text-slate-600 leading-relaxed mb-5">
+                        {promo.details}
+                      </p>
                     </div>
-                    <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
-                      {promo.brand}
-                    </p>
-                    <h2 className="text-2xl font-extrabold text-slate-900 mt-1 mb-2">
-                      {promo.headline}
-                    </h2>
-                    <p className="text-sm text-slate-600 leading-relaxed mb-5">
-                      {promo.details}
-                    </p>
-                  </div>
 
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between gap-2 bg-slate-100 border border-dashed border-slate-400 rounded-xl p-2 pl-4">
-                      <code className="font-mono font-extrabold text-base text-slate-900 tracking-wider">
-                        {promo.code}
-                      </code>
-                      <button
-                        type="button"
-                        onClick={() => handleCopy(promo.id, promo.code)}
-                        className={`px-4 py-2 rounded-lg text-sm font-bold transition-colors cursor-pointer ${
-                          isCopied
-                            ? 'bg-emerald-600 text-white'
-                            : 'bg-slate-900 hover:bg-slate-800 text-white'
-                        }`}
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between gap-2 bg-slate-100 border border-dashed border-slate-400 rounded-xl p-2 pl-4">
+                        <code className="font-mono font-extrabold text-base text-slate-900 tracking-wider">
+                          {promo.code}
+                        </code>
+                        <button
+                          type="button"
+                          onClick={() => handleCopy(promo.id, promo.code)}
+                          className={`px-4 py-2 rounded-lg text-sm font-bold transition-colors cursor-pointer ${
+                            isCopied
+                              ? 'bg-emerald-600 text-white'
+                              : 'bg-slate-900 hover:bg-slate-800 text-white'
+                          }`}
+                        >
+                          {isCopied ? '✓ Copied!' : 'Copy Code'}
+                        </button>
+                      </div>
+
+                      <a
+                        href={promo.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="block w-full text-center bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl text-sm transition-colors"
                       >
-                        {isCopied ? '✓ Copied!' : 'Copy Code'}
-                      </button>
+                        {promo.ctaLabel}
+                      </a>
                     </div>
-
-                    <a
-                      href={promo.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="block w-full text-center bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl text-sm transition-colors"
-                    >
-                      {promo.ctaLabel}
-                    </a>
                   </div>
-                </div>
-              );
-            })}
-          </div>
+                );
+              })}
+            </div>
 
-          <p className="text-center text-xs sm:text-sm text-slate-600 mt-4 max-w-3xl mx-auto">
-            <strong>Checkout Tip:</strong> Rolife codes work on official store orders only (one code per order; flash deals up to 50% off must be checked out separately). Prefer 2-day delivery? Use the orange Amazon buttons below.
-          </p>
-        </section>
+            <p className="text-center text-xs sm:text-sm text-slate-600 mt-4 max-w-3xl mx-auto">
+              <strong>Checkout Tip:</strong> Rolife codes work on official store orders only (one code per order; flash deals up to 50% off must be checked out separately). Prefer 2-day delivery? Use the orange Amazon buttons below.
+            </p>
+          </section>
+        )}
 
         {/* SECTION 2: FILTERABLE BRAND DEALS GRID */}
-        <section aria-labelledby="deals-grid-heading" className="mb-16">
+        <section aria-labelledby="deals-grid-heading" className="mb-16 scroll-mt-16">
           <div className="flex flex-col gap-4 mb-6">
             <div>
               <h2
                 id="deals-grid-heading"
-                className="text-2xl sm:text-3xl font-extrabold text-slate-900"
+                className="text-2xl sm:text-3xl font-extrabold text-slate-900 scroll-mt-16"
               >
-                Shop 2026 Deals by Brand
+                {EVENT_CONFIG.gridHeading}
               </h2>
               <p className="text-slate-600 text-sm sm:text-base mt-1">
-                Rolife direct prices checked Nov 21–22, 2026. Click any Amazon button to view live Black Friday Prime pricing.
+                {EVENT_CONFIG.gridSubheading}
               </p>
             </div>
 
@@ -789,7 +852,10 @@ export default function DealsClient() {
         </section>
 
         {/* SECTION 3: GUMROAD $9.99 FLASH SALE */}
-        <section className="mb-14 p-6 sm:p-10 bg-gradient-to-br from-slate-900 via-blue-950 to-indigo-950 text-white rounded-3xl shadow-xl border border-blue-800/60">
+        <section
+          id="rescue-handbook"
+          className="mb-14 scroll-mt-16 p-6 sm:p-10 bg-gradient-to-br from-slate-900 via-blue-950 to-indigo-950 text-white rounded-3xl shadow-xl border border-blue-800/60"
+        >
           <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-8">
             <div className="space-y-3 lg:w-2/3">
               <span className="inline-block bg-amber-400 text-slate-950 text-xs font-extrabold uppercase tracking-wider px-3 py-1 rounded-full">
@@ -799,7 +865,7 @@ export default function DealsClient() {
                 The Miniature Maker&apos;s Rescue Handbook — Just $9.99
               </h2>
               <p className="text-blue-100 text-sm sm:text-base leading-relaxed">
-                Stocking up on Black Friday kits? Don&apos;t let snapped laser-cut wood, CA-fogged windows, or dead LEDs ruin a $60 build. Grab my 17-page field manual—packed with 25 hands-on rescue techniques plus printable glue, scale, and wiring charts (normally $14.99).
+                Stocking up on holiday kits? Don&apos;t let snapped laser-cut wood, CA-fogged windows, or dead LEDs ruin a $60 build. Grab my 17-page field manual—packed with 25 hands-on rescue techniques plus printable glue, scale, and wiring charts (normally $14.99).
               </p>
             </div>
             <div className="w-full lg:w-auto flex-shrink-0">
@@ -815,24 +881,42 @@ export default function DealsClient() {
           </div>
         </section>
 
-        {/* SECTION 4: INTERNAL LINK HUB TO BUYER'S GUIDE */}
+        {/* SECTION 4: INTERNAL LINK HUB TO SEASONAL GUIDE */}
         <section className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 shadow-sm">
           <div>
             <h2 className="text-xl font-extrabold text-slate-900 mb-1">
-              Not sure whether to buy Direct or on Amazon?
+              {EVENT_CONFIG.guideCtaTitle}
             </h2>
-            <p className="text-sm text-slate-600">
-              Read our complete 2026 Black Friday Miniature Buyer&apos;s Guide for fake-deal warnings, beginner recommendations, and tool deals.
-            </p>
+            <p className="text-sm text-slate-600">{EVENT_CONFIG.guideCtaText}</p>
           </div>
           <Link
-            href="/blog/black-friday-miniatures-craft-kit-deals"
+            href={EVENT_CONFIG.guideHref}
             className="whitespace-nowrap bg-slate-900 hover:bg-slate-800 text-white font-bold py-3 px-6 rounded-xl text-sm transition-colors"
           >
-            Read the Buyer&apos;s Guide →
+            {EVENT_CONFIG.guideCtaButton}
           </Link>
         </section>
       </main>
+
+      {/* MINIMAL RETURN FOOTER */}
+      <footer className="bg-slate-950 text-slate-400 border-t border-white/10 py-8 px-4 text-xs sm:text-sm">
+        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left">
+          <p>
+            © {new Date().getFullYear()} CraftsAndKits.com • Independent Miniature Reviews &amp; Deals
+          </p>
+          <div className="flex items-center gap-5 font-semibold text-slate-300">
+            <Link href="/" className="hover:text-amber-300 transition-colors">
+              ← Back to CraftsAndKits.com
+            </Link>
+            <Link
+              href={EVENT_CONFIG.guideHref}
+              className="hover:text-white transition-colors"
+            >
+              {EVENT_CONFIG.guideNavLabel}
+            </Link>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }
