@@ -4,31 +4,33 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 
 // =========================================================================
-// 1. UPDATE YOUR AFFILIATE LINKS HERE (SINGLE SOURCE OF TRUTH)
+// 1. AFFILIATE LINKS (ALL ROLIFE IMPACT LINKS LIVE — ADD YOUR AMAZON LINKS)
 // =========================================================================
 const LINKS = {
-  rolifeStoreHome: 'https://www.rolifeonline.com/pages/black-friday-sale: 'https://link.amazon/B0dPgKwi2: 'https://craftsman353.gumroad.com/l/miniature-guide',
+  // Tip: Create an Impact link for https://www.rolifeonline.com/pages/black-friday-sale
+  // and replace rolifeStoreHome below for best BFCM20/BFCM25 conversions.
+  rolifeStoreHome: 'https://rolife.pxf.io/DWxGvb',
 
-  // Individual Featured Kits (Direct Rolife Impact + Amazon)
-    cuckooClockAmazon: 'https://link.amazon/B0f9pWTo0',
-
-  teddysToyShopRolife: 'https://rolife.pxf.io/c/8194936/4112999/56826?prodsku=18077982357878425587720975&u=https%3A%2F%2Fwww.rolifeonline.com%2Fproducts%2Frolife-diy-miniature-house-teddy-s-toy-shop-dg189%3Fcountry%3DUS%26sku%3D18077982357878425587720975&intsrc=APIG_38465',
-  teddysToyShopAmazon: 'https://link.amazon/B0faoFlqC',
-
-  floralPerfumeRolife: '
-https://rolife.pxf.io/c/8194936/4112999/56826?prodsku=18077982357772058037710975&u=https%3A%2F%2Fwww.rolifeonline.com%2Fproducts%2Frolife-diy-miniature-house-floral-perfume-shop-dg188%3Fcountry%3DUS%26sku%3D18077982357772058037710975&intsrc=APIG_38465',
-  floralPerfumeAmazon: 'https://link.amazon/B03gfjG5e',
-
-  harvestWindmillRolife: 'https://YOUR_ROLIFE_IMPACT_LCA01_LINK',
-  harvestWindmillAmazon: 'https://amzn.to/YOUR_LCA01_AMAZON_LINK',
-
-  dinosaurPinballRolife: 'https://YOUR_ROLIFE_IMPACT_MGP01_LINK',
-  dinosaurPinballAmazon: 'https://link.amazon/B0cR9y4G5',
-
-  holidayBundleRolife: 'https://YOUR_ROLIFE_IMPACT_BUNDLE_LINK',
-  sakuraDensyaRolife: 'https://YOUR_ROLIFE_IMPACT_TGB01_LINK',
-  sakuraDensyaAmazon: 'https://amzn.to/YOUR_TGB01_AMAZON_LINK',
+  // Paste your Amazon Associate links here (leave '' to hide an Amazon button)
+  amazonDealsPage: 'https://amzn.to/YOUR_AMAZON_MINIATURE_DEALS_LINK',
+  streetSceneAmazon: '',
+  kikisEmporiumAmazon: '',
   minicityLibraryAmazon: 'https://amzn.to/YOUR_MINICITY_AMAZON_LINK',
+
+  // Gumroad Rescue Handbook (append /BFCM26 once you create the $5 off code)
+  gumroadSale: 'https://craftsman353.gumroad.com/l/miniature-guide',
+
+  // Verified Rolife Impact Deep Links
+  streetSceneRolife: 'https://rolife.pxf.io/aNgRzR',      // TGB13
+  nightOutStallRolife: 'https://rolife.pxf.io/DWo0M2',    // DW022 (subId1=crafts)
+  cookiiBunnyRolife: 'https://rolife.pxf.io/5kraB2',      // DG177
+  carolingCathedralRolife: 'https://rolife.pxf.io/2RNbNa',// TGB26
+  teddysToyShopRolife: 'https://rolife.pxf.io/gR0PeA',    // DG189
+  floralPerfumeRolife: 'https://rolife.pxf.io/1GxeM9',    // DG188
+  firesideMusicRolife: 'https://rolife.pxf.io/3kQAqM',    // AMS03
+  polarisPostRolife: 'https://rolife.pxf.io/VOX9MM',      // DG187
+  superCreatorRolife: 'https://rolife.pxf.io/yZMgP3',     // Super Creator Hub
+  kikisEmporiumRolife: 'https://rolife.pxf.io/DWNDob',    // DG155
 };
 
 // =========================================================================
@@ -49,7 +51,7 @@ interface PromoCode {
 const PROMO_CODES: PromoCode[] = [
   {
     id: 'bfcm20',
-    brand: 'Rolife & ROKR Official Store',
+    brand: 'Rolife Official Store',
     badge: 'MOST POPULAR • NO MINIMUM',
     headline: '20% OFF Sitewide',
     details:
@@ -61,32 +63,39 @@ const PROMO_CODES: PromoCode[] = [
   },
   {
     id: 'bfcm25',
-    brand: 'Rolife & ROKR Official Store',
+    brand: 'Rolife Official Store',
     badge: 'BIGGEST SAVINGS • $120+ ORDERS',
     headline: '25% OFF Orders $120+',
     details:
-      'Best for buying 2–3 gifts or large ROKR mechanical builds like Dinosaur Lab Pinball. One code per order; flash deals excluded.',
+      'Best for Super Creator multi-kit sets or 3 holiday gifts (e.g., DG188 + DG189 + AMS03 drops from $132.97 to $99.73). One code per order.',
     code: 'BFCM25',
-    ctaLabel: 'Shop $120+ Bundles ↗',
-    url: LINKS.rolifeStoreHome,
+    ctaLabel: 'Shop Super Creator & Bundles ↗',
+    url: LINKS.superCreatorRolife,
     highlight: true,
   },
 ];
 
 // =========================================================================
-// 3. FEATURED LIVE DEALS
+// 3. FEATURED LIVE DEALS (COMMISSION-VERIFIED BUCKETS)
 // =========================================================================
-type Category = 'All' | 'Book Nooks' | 'Miniature Houses' | 'ROKR Mechanical' | 'Bundles';
+type Category =
+  | 'All'
+  | 'Flash Deals'
+  | 'Book Nooks'
+  | 'Miniature Houses'
+  | 'Holiday & Music'
+  | 'Amazon Prime';
 
 interface DealItem {
   id: string;
   name: string;
   sku: string;
-  category: Exclude<Category, 'All'>;
+  categories: Exclude<Category, 'All'>[];
   badge: string;
-  regularPrice: string;
+  regularPrice?: string;
   dealPrice: string;
   codeToUse?: string;
+  isFlashDeal?: boolean;
   blurb: string;
   reviewSlug?: string;
   rolifeUrl?: string;
@@ -95,118 +104,145 @@ interface DealItem {
 
 const FEATURED_DEALS: DealItem[] = [
   {
-    id: 'lcb01',
-    name: 'ROKR Christmas Cuckoo Clock',
-    sku: 'LCB01 • 293 pcs',
-    category: 'ROKR Mechanical',
-    badge: 'HANDS-ON TESTED',
-    regularPrice: '$75.99',
-    dealPrice: '$60.79',
+    id: 'tgb13',
+    name: 'Rolife Street Scene Book Nook',
+    sku: 'TGB13 • Direct Flash Deal',
+    categories: ['Flash Deals', 'Book Nooks'],
+    badge: '50% OFF FLASH DEAL',
+    regularPrice: '$49.99',
+    dealPrice: '$25.00',
+    isFlashDeal: true,
+    blurb: 'Vibrant vintage street-alley bookshelf insert at half off while Rolife flash-deal stock lasts.',
+    rolifeUrl: LINKS.streetSceneRolife,
+    amazonUrl: LINKS.streetSceneAmazon || undefined,
+  },
+  {
+    id: 'dw022',
+    name: 'Rolife Night Out Food Stall',
+    sku: 'DW022 • Super Creator',
+    categories: ['Flash Deals', 'Miniature Houses'],
+    badge: '50% OFF FLASH DEAL',
+    regularPrice: '$43.99',
+    dealPrice: 'From $22.00',
+    isFlashDeal: true,
+    blurb: 'Snap-together Super Creator late-night street food stall. Limited flash-deal inventory.',
+    rolifeUrl: LINKS.nightOutStallRolife,
+  },
+  {
+    id: 'dg177',
+    name: "Rolife Cookii Bunny's Cookie Shop",
+    sku: 'DG177 • Direct Flash Deal',
+    categories: ['Flash Deals', 'Miniature Houses'],
+    badge: '30% OFF FLASH DEAL',
+    regularPrice: '$33.99',
+    dealPrice: '$23.79',
+    isFlashDeal: true,
+    blurb: 'Compact, beginner-friendly miniature bakery room box marked down 30% direct from Rolife.',
+    rolifeUrl: LINKS.cookiiBunnyRolife,
+  },
+  {
+    id: 'tgb26',
+    name: 'Rolife Caroling Cathedral Book Nook',
+    sku: 'TGB26 • 503 pcs',
+    categories: ['Book Nooks', 'Holiday & Music'],
+    badge: '2026 HOLIDAY FLAGSHIP',
+    regularPrice: '$58.99',
+    dealPrice: '$47.19',
     codeToUse: 'BFCM20',
-    blurb: 'Working quartz clock with hourly cuckoo bird, gliding Santa sleigh, music & warm LEDs.',
-    reviewSlug: '/blog/rokr-christmas-cuckoo-clock-lcb01-review',
-    rolifeUrl: LINKS.cuckooClockRolife,
-    amazonUrl: LINKS.cuckooClockAmazon,
+    blurb: 'Detailed festive Gothic cathedral bookshelf insert with stained-glass accents and warm lighting.',
+    rolifeUrl: LINKS.carolingCathedralRolife,
   },
   {
     id: 'dg189',
     name: "Rolife Teddy's Toy Shop",
     sku: 'DG189 • 335 pcs • Type-C',
-    category: 'Miniature Houses',
+    categories: ['Miniature Houses', 'Holiday & Music'],
     badge: 'UNDER $40 WITH CODE',
     regularPrice: '$49.99',
     dealPrice: '$39.99',
     codeToUse: 'BFCM20',
     blurb: 'European-style vintage toy shop miniature house (~6-hour build) with Type-C LED lighting.',
     rolifeUrl: LINKS.teddysToyShopRolife,
-    amazonUrl: LINKS.teddysToyShopAmazon,
   },
   {
     id: 'dg188',
     name: 'Rolife Floral Perfume Shop',
     sku: 'DG188 • 347 pcs • Type-C',
-    category: 'Miniature Houses',
+    categories: ['Miniature Houses'],
     badge: 'UNDER $40 WITH CODE',
     regularPrice: '$49.99',
     dealPrice: '$39.99',
     codeToUse: 'BFCM20',
-    blurb: 'Detailed Parisian-style fragrance boutique (~6-hour build) with glowing display shelves.',
+    blurb: 'Parisian-inspired fragrance boutique (~6-hour build) with glowing shelves and modular walls.',
     rolifeUrl: LINKS.floralPerfumeRolife,
-    amazonUrl: LINKS.floralPerfumeAmazon,
   },
   {
-    id: 'lca01',
-    name: 'ROKR Harvest Windmill Table Clock',
-    sku: 'LCA01 • 563 pcs',
-    category: 'ROKR Mechanical',
-    badge: '20% OFF DEAL',
-    regularPrice: '$78.99',
-    dealPrice: '$63.19',
+    id: 'ams03',
+    name: 'Rolife Fireside Music Night',
+    sku: 'AMS03 • DIY Music Box',
+    categories: ['Holiday & Music'],
+    badge: 'UNDER $30 GIFT PICK',
+    regularPrice: '$32.99',
+    dealPrice: '$26.39',
     codeToUse: 'BFCM20',
-    blurb: 'Mechanical Dutch windmill (~8-hour build) with working clock, turning sails, and music box.',
-    rolifeUrl: LINKS.harvestWindmillRolife,
-    amazonUrl: LINKS.harvestWindmillAmazon,
+    blurb: 'Cozy holiday fireplace diorama combined with a wind-up music box—easy gift pairing for $120+ carts.',
+    rolifeUrl: LINKS.firesideMusicRolife,
   },
   {
-    id: 'mgp01',
-    name: 'ROKR Dinosaur Lab Pinball',
-    sku: 'MGP01 • Advanced',
-    category: 'ROKR Mechanical',
-    badge: 'QUALIFIES FOR BFCM25',
-    regularPrice: '$129.99',
-    dealPrice: '$97.49',
-    codeToUse: 'BFCM25',
-    blurb: 'Fully playable tabletop wooden pinball machine. Crosses $120 solo to unlock 25% off.',
-    rolifeUrl: LINKS.dinosaurPinballRolife,
-    amazonUrl: https://link.amazon/B0cR9y4G5,
-  },
-  {
-    id: 'bundle-xmas',
-    name: 'Reindeer Express + Polaris Post Bundle',
-    sku: 'DS059 + DG187',
-    category: 'Bundles',
-    badge: '2-KIT GIFT BUNDLE',
-    regularPrice: '$73.98',
-    dealPrice: '$59.18',
+    id: 'dg187',
+    name: 'Rolife Polaris Post Miniature House',
+    sku: 'DG187 • Holiday Release',
+    categories: ['Holiday & Music', 'Miniature Houses'],
+    badge: 'HANDS-ON TESTED',
+    dealPrice: '20% Off',
     codeToUse: 'BFCM20',
-    blurb: 'Two festive Rolife holiday builds in one discounted bundle—ideal for weekend crafting.',
+    blurb: 'Festive North Pole post office miniature build—pair with other kits to hit free shipping ($68+).',
     reviewSlug: '/blog/rolife-polaris-post-dg187-review',
-   amazonUrl: https://link.amazon/B01SxHrDB,
+    rolifeUrl: LINKS.polarisPostRolife,
   },
   {
-    id: 'tgb01',
-    name: 'Rolife Sakura Densya Book Nook',
-    sku: 'TGB01 • Bestseller',
-    category: 'Book Nooks',
-    badge: 'READER FAVORITE',
-    regularPrice: '$49.99',
-    dealPrice: '$39.99',
+    id: 'super-creator',
+    name: 'Rolife Super Creator Multi-Kit Sets',
+    sku: 'Stackable Snap-Fit Rooms',
+    categories: ['Miniature Houses', 'Holiday & Music'],
+    badge: 'BEST FOR BFCM25 ($120+)',
+    dealPrice: 'Up to 25% Off',
+    codeToUse: 'BFCM25',
+    blurb: 'Build a stackable miniature apartment block. Combine 3–4 Super Creator rooms past $120 to unlock 25% off.',
+    rolifeUrl: LINKS.superCreatorRolife,
+  },
+  {
+    id: 'dg155',
+    name: "Rolife Kiki's Magic Emporium",
+    sku: 'DG155 • Classic Bestseller',
+    categories: ['Miniature Houses', 'Amazon Prime'],
+    badge: 'FAN FAVORITE',
+    dealPrice: '20% Off Direct',
     codeToUse: 'BFCM20',
-    blurb: 'The iconic Tokyo cherry-blossom tram book nook with touch-switch warm lighting.',
-    reviewSlug: '/blog/robotime-sakura-densya-review',
-    rolifeUrl: https://rolife.pxf.io/c/8194936/4112999/56826?prodsku=18055906533414975711883087&u=https%3A%2F%2Fwww.rolifeonline.com%2Fproducts%2Frolife-tgb01-sakura-densya-3d-wooden-diy-miniature-house-book-nook-%3Fcountry%3DUS%26sku%3D18055906533414975711883087&intsrc=APIG_38465 ,
-    amazonUrl: https://link.amazon/B0j4JHmk1 ,
+    blurb: 'Whimsical witchy shop packed with tiny potion bottles, broomsticks, and spellbooks.',
+    rolifeUrl: LINKS.kikisEmporiumRolife,
+    amazonUrl: LINKS.kikisEmporiumAmazon || undefined,
   },
   {
     id: 'minicity-lib',
     name: 'MiniCity Beyond Library Book Nook',
     sku: 'Amazon Prime Pick',
-    category: 'Book Nooks',
+    categories: ['Book Nooks', 'Amazon Prime'],
     badge: 'FAST PRIME SHIPPING',
-    regularPrice: '$45.99',
     dealPrice: 'Check Amazon',
-    blurb: 'Crisp laser-cut wooden library insert with included dust cover and warm LEDs.',
+    blurb: 'Crisp laser-cut wooden library insert with included dust cover and warm LEDs via Amazon Prime.',
     reviewSlug: '/blog/minicity-library-book-nook-review',
-    amazonUrl: https://link.amazon/A0iQrCA6p,
+    amazonUrl: LINKS.minicityLibraryAmazon || undefined,
   },
 ];
 
 const CATEGORIES: Category[] = [
   'All',
+  'Flash Deals',
   'Book Nooks',
   'Miniature Houses',
-  'ROKR Mechanical',
-  'Bundles',
+  'Holiday & Music',
+  'Amazon Prime',
 ];
 
 export default function DealsClient() {
@@ -263,7 +299,7 @@ export default function DealsClient() {
   const filteredDeals =
     activeCategory === 'All'
       ? FEATURED_DEALS
-      : FEATURED_DEALS.filter((d) => d.category === activeCategory);
+      : FEATURED_DEALS.filter((d) => d.categories.includes(activeCategory));
 
   return (
     <div className="min-h-screen bg-slate-50 pb-24">
@@ -276,10 +312,10 @@ export default function DealsClient() {
           </span>
 
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight leading-tight mb-4">
-            Verified Rolife, ROKR &amp; Miniature Kit Promo Codes
+            Verified Rolife &amp; Miniature Kit Black Friday Codes
           </h1>
           <p className="text-blue-100 text-base sm:text-lg max-w-2xl mx-auto mb-8">
-            Copy working 20%–25% off codes in one tap, compare official brand pricing against Amazon Prime, and lock in holiday builds before stock sells out.
+            Copy working 20%–25% off Rolife promo codes in one tap, catch 30%–50% direct flash deals, and check Amazon Prime alternatives.
           </p>
 
           {/* LIVE COUNTDOWN */}
@@ -408,10 +444,10 @@ export default function DealsClient() {
                 id="deals-grid-heading"
                 className="text-2xl sm:text-3xl font-extrabold text-slate-900"
               >
-                Top Verified 2026 Kit Deals
+                Verified 2026 Rolife &amp; Miniature Deals
               </h2>
               <p className="text-slate-600 text-sm sm:text-base mt-1">
-                Prices checked Nov 21, 2026 using official Black Friday codes; live stock and regional pricing may vary.
+                Prices checked Nov 21–22, 2026. Flash-deal prices and stock levels update frequently—click through to verify live availability.
               </p>
             </div>
 
@@ -444,7 +480,13 @@ export default function DealsClient() {
                 >
                   <div>
                     <div className="flex items-center justify-between gap-2 mb-3">
-                      <span className="text-[11px] font-extrabold uppercase tracking-wider px-2.5 py-1 rounded-md bg-amber-100 text-amber-900">
+                      <span
+                        className={`text-[11px] font-extrabold uppercase tracking-wider px-2.5 py-1 rounded-md ${
+                          deal.isFlashDeal
+                            ? 'bg-rose-100 text-rose-800'
+                            : 'bg-amber-100 text-amber-900'
+                        }`}
+                      >
                         {deal.badge}
                       </span>
                       <span className="text-xs font-semibold text-slate-400">
@@ -456,13 +498,15 @@ export default function DealsClient() {
                       {deal.name}
                     </h3>
 
-                    <div className="flex items-baseline gap-2.5 mb-3">
+                    <div className="flex items-baseline gap-2.5 mb-3 flex-wrap">
                       <span className="text-2xl font-extrabold text-emerald-700">
                         {deal.dealPrice}
                       </span>
-                      <span className="text-sm text-slate-400 line-through">
-                        {deal.regularPrice}
-                      </span>
+                      {deal.regularPrice && (
+                        <span className="text-sm text-slate-400 line-through">
+                          {deal.regularPrice}
+                        </span>
+                      )}
                       {deal.codeToUse && (
                         <button
                           type="button"
@@ -472,6 +516,11 @@ export default function DealsClient() {
                         >
                           {isCodeCopied ? '✓ Copied' : `Code: ${deal.codeToUse}`}
                         </button>
+                      )}
+                      {deal.isFlashDeal && (
+                        <span className="ml-auto text-[11px] font-bold px-2.5 py-1 rounded bg-rose-50 text-rose-700 border border-rose-200">
+                          No Code Needed
+                        </span>
                       )}
                     </div>
 
@@ -489,7 +538,7 @@ export default function DealsClient() {
                     )}
                   </div>
 
-                  {/* DUAL ACTION BUTTONS */}
+                  {/* ACTION BUTTONS (AUTO-HIDES AMAZON WHEN NOT APPLICABLE) */}
                   <div className="flex flex-col gap-2.5 pt-3 border-t border-slate-100">
                     {deal.rolifeUrl && (
                       <a
@@ -526,10 +575,10 @@ export default function DealsClient() {
                 Black Friday Flash Sale • Save 33%
               </span>
               <h2 className="text-2xl sm:text-3xl font-extrabold leading-tight">
-                Zero to Finished Miniature Blueprint — Just $9.99
+                The Miniature Maker&apos;s Rescue Handbook — Just $9.99
               </h2>
               <p className="text-blue-100 text-sm sm:text-base leading-relaxed">
-                Stocking up on Black Friday kits? Skip the snapped laser-cut wood, messy glue smudges, and dead LEDs. My 6-module digital guide walks you through invisible seams, clean micro-wiring, and rescuing broken parts (normally $14.99).
+                Stocking up on Black Friday kits? Don&apos;t let snapped laser-cut wood, CA-fogged windows, or dead LEDs ruin a $60 build. Grab my 17-page field manual—packed with 25 hands-on rescue techniques plus printable glue, scale, and wiring charts (normally $14.99).
               </p>
             </div>
             <div className="w-full lg:w-auto flex-shrink-0">
@@ -539,7 +588,7 @@ export default function DealsClient() {
                 rel="noopener noreferrer"
                 className="block w-full lg:w-auto text-center bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold py-4 px-8 rounded-xl shadow-lg transition-transform hover:scale-105 text-base"
               >
-                Grab the $9.99 Flash Sale ↗
+                Grab the $9.99 Rescue Handbook ↗
               </a>
             </div>
           </div>
