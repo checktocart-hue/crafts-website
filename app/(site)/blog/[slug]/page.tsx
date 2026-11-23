@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { collection, query, where, getDocs, limit, doc, getDoc } from 'firebase/firestore';
 import { db } from '@/app/lib/firebase';
@@ -5,15 +6,25 @@ import { marked } from 'marked';
 import TableOfContents from '@/components/TableOfContents';
 import BuildersResourceWidget from '@/components/BuildersResourceWidget';
 
+// =========================================================================
+// HANDBOOK PROMO SETTINGS (UPDATE PRICE IN ONE PLACE ON DEC 2)
+// =========================================================================
+const HANDBOOK_CTA = {
+  href: '/handbook',
+  badge: 'Illustrated Edition v2 • Rescue Handbook',
+  defaultButton: 'Look Inside the Handbook ($9.99) →',
+  footerButton: 'Look Inside the Handbook — $9.99 →',
+};
+
 // Helper to safely fetch a post by slug across both collections
 async function getPostBySlug(slug: string): Promise<Record<string, any> | null> {
   if (!slug) return null;
 
-  const collections = ["blog", "reviews"];
+  const collections = ['blog', 'reviews'];
 
   try {
     for (const col of collections) {
-      const q = query(collection(db, col), where("slug", "==", slug), limit(1));
+      const q = query(collection(db, col), where('slug', '==', slug), limit(1));
       const snapshot = await getDocs(q);
       if (!snapshot.empty) {
         return snapshot.docs[0].data();
@@ -29,7 +40,7 @@ async function getPostBySlug(slug: string): Promise<Record<string, any> | null> 
       }
     }
   } catch (error) {
-    console.error("Firestore fetch error for slug:", slug, error);
+    console.error('Firestore fetch error for slug:', slug, error);
   }
 
   return null;
@@ -49,9 +60,10 @@ export async function generateMetadata({
     return { title: 'Post Not Found | CraftsAndKits' };
   }
 
-  const rawText = typeof post.content === 'string'
-    ? post.content.replace(/(<([^>]+)>)/gi, '').substring(0, 155)
-    : '';
+  const rawText =
+    typeof post.content === 'string'
+      ? post.content.replace(/(<([^>]+)>)/gi, '').substring(0, 155)
+      : '';
 
   return {
     title: post.seoTitle || post.title || 'CraftsAndKits',
@@ -341,30 +353,28 @@ const renderContent = (rawContent: string) => {
       return (
         <div
           key={index}
-          className="my-10 p-6 md:p-8 bg-gradient-to-br from-slate-900 via-blue-950 to-indigo-950 text-white rounded-2xl shadow-lg border border-blue-800/60 relative overflow-hidden not-prose"
+          className="my-10 p-6 md:p-8 bg-[#132238] border-2 border-[#C59B43] text-white rounded-2xl shadow-lg relative overflow-hidden not-prose"
         >
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
             <div className="space-y-2 md:w-2/3">
-              <span className="inline-block bg-amber-400 text-slate-950 text-xs font-extrabold uppercase tracking-wider px-3 py-1 rounded-full">
-                📘 Zero to Finished Blueprint
+              <span className="inline-block bg-[#C59B43] text-[#132238] text-xs font-extrabold uppercase tracking-wider px-3 py-1 rounded-full">
+                {HANDBOOK_CTA.badge}
               </span>
-              <h3 className="text-xl md:text-2xl font-extrabold text-white leading-snug pt-1">
-                {headline || 'Want Your Miniature Build to Look Flawless?'}
+              <h3 className="font-serif text-xl md:text-2xl font-bold text-white leading-snug pt-1">
+                {headline || 'Save Your Next Build Before Glue Dries'}
               </h3>
-              <p className="text-blue-100 text-sm md:text-base leading-relaxed m-0">
+              <p className="text-slate-200 text-sm md:text-base leading-relaxed m-0">
                 {body ||
-                  'Grab my 6-module beginner eBook covering invisible glue seams, foolproof micro-LED wiring, hiding battery boxes, and rescuing snapped wood parts.'}
+                  "Get 25 numbered workshop fixes, 6 editorial photos, 8 custom diagrams, and printable glue, scale, and LED charts in The Miniature Maker's Rescue Handbook."}
               </p>
             </div>
             <div className="w-full md:w-auto flex-shrink-0">
-              <a
-                href="https://craftsman353.gumroad.com/l/miniature-guide"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="block w-full md:w-auto text-center bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold py-3.5 px-6 rounded-xl shadow-md transition-transform hover:scale-105 text-sm md:text-base"
+              <Link
+                href={HANDBOOK_CTA.href}
+                className="block w-full md:w-auto text-center bg-[#C59B43] hover:bg-[#d6ad54] text-[#132238] font-extrabold py-3.5 px-6 rounded-xl shadow-md transition-transform hover:scale-105 text-sm md:text-base"
               >
-                {btnText || 'Download Blueprint ($14.99) ↗'}
-              </a>
+                {btnText || HANDBOOK_CTA.defaultButton}
+              </Link>
             </div>
           </div>
         </div>
@@ -468,22 +478,23 @@ export default async function BlogPostPage({
           {renderContent(post.content || '')}
         </div>
 
-        {/* In-Article Gumroad Pitch */}
-        <div className="mt-16 p-8 bg-blue-900 text-white rounded-2xl shadow-xl text-center">
-          <h3 className="text-2xl font-bold mb-4">
-            Tired of Breaking Laser-Cut Wood and Messing Up Your Wiring?
+        {/* End-of-Article Rescue Handbook Pitch */}
+        <div className="mt-16 p-8 bg-[#132238] border-2 border-[#C59B43] text-white rounded-2xl shadow-xl text-center">
+          <span className="inline-block bg-[#C59B43] text-[#132238] text-xs font-extrabold uppercase tracking-wider px-3 py-1 rounded-full mb-3">
+            {HANDBOOK_CTA.badge}
+          </span>
+          <h3 className="font-serif text-2xl md:text-3xl font-bold mb-3">
+            One Snapped Tab Shouldn&apos;t Ruin a $60 Miniature Kit
           </h3>
-          <p className="mb-6 opacity-90">
-            Grab my 6-module beginner&apos;s blueprint, <em>Zero to Finished</em>, and learn how to build flawless, fully-lit dioramas the right way.
+          <p className="mb-6 text-slate-200 max-w-2xl mx-auto leading-relaxed">
+            Keep <strong>The Miniature Maker&apos;s Rescue Handbook</strong> beside your cutting mat—25 step-by-step workshop fixes, 6 editorial photos, 8 custom diagrams, and printable glue, scale, and LED charts by Rashy Michaels.
           </p>
-          <a
-            href="https://craftsman353.gumroad.com/l/miniature-guide"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-block bg-white text-blue-900 font-bold py-4 px-8 rounded-full shadow-md hover:bg-gray-100 transition-colors"
+          <Link
+            href={HANDBOOK_CTA.href}
+            className="inline-block bg-[#C59B43] hover:bg-[#d6ad54] text-[#132238] font-extrabold py-4 px-8 rounded-xl shadow-md transition-transform hover:scale-105"
           >
-            Get the Blueprint for $14.99 ↗
-          </a>
+            {HANDBOOK_CTA.footerButton}
+          </Link>
         </div>
       </article>
 
