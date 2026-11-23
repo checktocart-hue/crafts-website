@@ -38,6 +38,11 @@ const nextConfig: NextConfig = {
 
       // 1. SPECIFIC SLUG FIXES & SEO CANNIBALIZATION MERGES
       {
+        source: '/blog/black-friday-miniature-kit-deals-2026',
+        destination: 'https://www.craftsandkits.com/blog/black-friday-miniatures-craft-kit-deals',
+        permanent: true,
+      },
+      {
         source: '/blog/best-modern-miniature-dollhouse-kits-for-adults',
         destination: '/blog/best-miniature-dollhouse-kits-adults',
         permanent: true,
