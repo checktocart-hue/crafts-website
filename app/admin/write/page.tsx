@@ -59,7 +59,7 @@ function cleanUrl(rawUrl?: string): string {
   return stripped;
 }
 
-// Live Studio Renderer so you can see Dual Buttons, Gumroad Boxes, and Cards render in real-time
+// Live Studio Renderer so you can see Dual Buttons, Handbook Boxes, and Cards render in real-time
 function renderStudioPreview(rawContent: string) {
   if (!rawContent) return null;
   const decodedContent = decodeHtmlEntities(rawContent);
@@ -136,7 +136,7 @@ function renderStudioPreview(rawContent: string) {
                   <span className="text-sm">Buy Direct from Rolife ↗</span>
                   {promo && (
                     <span className="text-xs text-amber-200 mt-0.5 font-extrabold">
-                      15% Off Code: {promo}
+                      Promo Code: {promo}
                     </span>
                   )}
                 </a>
@@ -210,7 +210,7 @@ function renderStudioPreview(rawContent: string) {
                     <span>Buy Direct from Rolife ↗</span>
                     {promo && (
                       <span className="text-[11px] text-amber-200 mt-0.5 font-extrabold">
-                        15% Off Code: {promo}
+                        Promo Code: {promo}
                       </span>
                     )}
                   </a>
@@ -302,25 +302,23 @@ function renderStudioPreview(rawContent: string) {
       return (
         <div
           key={index}
-          className="my-6 p-6 bg-gradient-to-br from-slate-900 via-blue-950 to-indigo-950 text-white rounded-2xl shadow-md"
+          className="my-6 p-6 bg-[#132238] border-2 border-[#C59B43] text-white rounded-2xl shadow-md"
         >
-          <span className="inline-block bg-amber-400 text-slate-950 text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-0.5 rounded-full">
-            📘 Zero to Finished Blueprint
+          <span className="inline-block bg-[#C59B43] text-[#132238] text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-0.5 rounded-full">
+            Illustrated Edition v2 • Rescue Handbook
           </span>
           <h3 className="text-lg font-extrabold text-white mt-2 mb-1">
-            {headline || "Want Your Miniature Build to Look Flawless?"}
+            {headline || "Save Your Next Build Before Glue Dries"}
           </h3>
-          <p className="text-blue-100 text-xs leading-relaxed mb-4">
+          <p className="text-slate-200 text-xs leading-relaxed mb-4">
             {body ||
-              "Grab my 6-module beginner eBook covering invisible glue seams, foolproof micro-LED wiring, and rescuing snapped wood parts."}
+              "Get 25 numbered workshop fixes, 6 editorial photos, 8 custom diagrams, and printable glue, scale, and LED charts in The Miniature Maker's Rescue Handbook."}
           </p>
           <a
-            href="https://craftsman353.gumroad.com/l/miniature-guide"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-block bg-amber-400 text-slate-950 font-extrabold py-2.5 px-5 rounded-xl text-xs"
+            href="/handbook"
+            className="inline-block bg-[#C59B43] hover:bg-[#d6ad54] text-[#132238] font-extrabold py-2.5 px-5 rounded-xl text-xs transition-colors"
           >
-            {btnText || "Download Blueprint ($14.99) ↗"}
+            {btnText || "Look Inside the Handbook ($9.99) →"}
           </a>
         </div>
       );
@@ -1123,12 +1121,12 @@ function EditorForm() {
                       type="button"
                       onClick={() =>
                         insertShortcode(
-                          "[GUMROAD_BOX || Want Your Miniature Build to Look Flawless? || Grab my 6-module beginner eBook covering invisible glue seams, foolproof micro-LED wiring, and rescuing snapped wood parts. || Download Blueprint ($14.99) ↗]"
+                          "[GUMROAD_BOX || Save Your Next Build Before Glue Dries || Get 25 numbered workshop fixes, 6 editorial photos, 8 custom diagrams, and printable glue, scale, and LED charts in The Miniature Maker's Rescue Handbook. || Look Inside the Handbook ($9.99) →]"
                         )
                       }
-                      className="text-xs bg-slate-800 hover:bg-slate-900 text-amber-300 font-bold px-3 py-1.5 rounded-md transition cursor-pointer"
+                      className="text-xs bg-[#132238] hover:bg-slate-900 text-[#F4E8CC] border border-[#C59B43] font-bold px-3 py-1.5 rounded-md transition cursor-pointer"
                     >
-                      + Gumroad Box
+                      + Handbook Box
                     </button>
                     <button
                       type="button"
@@ -1150,7 +1148,7 @@ function EditorForm() {
                     </button>
                   </div>
 
-                  {/* Row 2: Dual Rolife + Amazon Shortcodes (13% Impact Commission + 15% Off Promo) */}
+                  {/* Row 2: Dual Rolife + Amazon Shortcodes */}
                   <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-gray-200">
                     <span className="text-[11px] font-extrabold text-blue-700 uppercase tracking-wider mr-1">
                       🔥 Dual Buttons (Rolife + Amazon):
@@ -1159,7 +1157,7 @@ function EditorForm() {
                       type="button"
                       onClick={() =>
                         insertShortcode(
-                          "[QUICK_PICK || Rolife Kit Name || Why builders love this kit... || https://YOUR-IMPACT-ROLIFE-LINK || https://amzn.to/YOUR-AMAZON-LINK || BFCM2026]"
+                          "[QUICK_PICK || Rolife Kit Name || Why builders love this kit... || https://YOUR-IMPACT-ROLIFE-LINK || https://amzn.to/YOUR-AMAZON-LINK || BFCM20]"
                         )
                       }
                       className="text-xs bg-blue-600 hover:bg-blue-700 text-white font-bold px-3 py-1.5 rounded-md shadow-xs transition cursor-pointer"
@@ -1170,7 +1168,7 @@ function EditorForm() {
                       type="button"
                       onClick={() =>
                         insertShortcode(
-                          "[AMAZON_CARD || Rolife Kit Name || Top Holiday Pick || https://m.media-amazon.com/... || https://YOUR-IMPACT-ROLIFE-LINK || https://amzn.to/YOUR-AMAZON-LINK || BFCM2026]"
+                          "[AMAZON_CARD || Rolife Kit Name || Top Holiday Pick || https://m.media-amazon.com/... || https://YOUR-IMPACT-ROLIFE-LINK || https://amzn.to/YOUR-AMAZON-LINK || BFCM20]"
                         )
                       }
                       className="text-xs bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-3 py-1.5 rounded-md shadow-xs transition cursor-pointer"
@@ -1181,7 +1179,7 @@ function EditorForm() {
                       type="button"
                       onClick={() =>
                         insertShortcode(
-                          "[BOUNTY_BUTTON || Buy Direct from Rolife ↗ || https://YOUR-IMPACT-ROLIFE-LINK || https://amzn.to/YOUR-AMAZON-LINK || BFCM2026]"
+                          "[BOUNTY_BUTTON || Buy Direct from Rolife ↗ || https://YOUR-IMPACT-ROLIFE-LINK || https://amzn.to/YOUR-AMAZON-LINK || BFCM20]"
                         )
                       }
                       className="text-xs bg-teal-700 hover:bg-teal-800 text-white font-bold px-3 py-1.5 rounded-md shadow-xs transition cursor-pointer"
