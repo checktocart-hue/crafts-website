@@ -39,7 +39,7 @@ const nextConfig: NextConfig = {
       // 1. SPECIFIC SLUG FIXES & SEO CANNIBALIZATION MERGES
       {
         source: '/blog/black-friday-miniature-kit-deals-2026',
-        destination: 'https://www.craftsandkits.com/blog/black-friday-miniatures-craft-kit-deals',
+        destination: '/blog/black-friday-miniatures-craft-kit-deals', // Cleaned to a relative path
         permanent: true,
       },
       {
@@ -59,7 +59,6 @@ const nextConfig: NextConfig = {
       },
 
       // 2. WILDCARD: Retire /projects/ route entirely
-      // The asterisk is fine here because you want the main /projects/ page to redirect too
       {
         source: '/projects/:path*',
         destination: '/blog/:path*',
@@ -67,7 +66,6 @@ const nextConfig: NextConfig = {
       },
 
       // 3. THE FIX: Redirect individual review articles, but keep the main /reviews page alive!
-      // The '+' ensures it only redirects if there is a specific article slug after the slash
       {
         source: '/reviews/:path+',
         destination: '/blog/:path+',
