@@ -1,8 +1,10 @@
 import { MetadataRoute } from 'next';
 import { collection, getDocs, query } from 'firebase/firestore';
-import { db } from '@/app/lib/firebase'; // Adjust path if needed
+import { db } from '@/app/lib/firebase';
 
-// Helper to safely parse Firestore timestamps, ISO strings, or Dates
+// Refresh the sitemap every hour so newly published posts appear promptly
+export const revalidate = 3600;
+
 function parseFirestoreDate(dateField: any): Date {
   if (!dateField) return new Date();
   if (typeof dateField.toDate === 'function') return dateField.toDate();
@@ -52,21 +54,27 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         };
       });
 
-    // 4. Map Review URLs (change `/reviews/` to `/blog/` if they share the blog route)
+    // 4. Map Review URLs directly to /blog/ to match your next.config.ts canonical route
     const reviewUrls: MetadataRoute.Sitemap = reviewsSnap.docs
       .filter((doc) => doc.data().status === "published" || !doc.data().status)
       .map((doc) => {
         const data = doc.data();
         const slug = data.slug || doc.id;
         return {
-          url: `${baseUrl}/reviews/${slug}`,
+          url: `${baseUrl}/blog/${slug}`,
           lastModified: parseFirestoreDate(data.updatedAt || data.createdAt),
           changeFrequency: 'weekly' as const,
           priority: 0.7,
         };
       });
 
-    return [...staticRoutes, ...blogUrls, ...reviewUrls];
+    // Deduplicate URLs in case a slug exists in both collections
+    const allDynamicUrls = [...blogUrls, ...reviewUrls];
+    const uniqueDynamicUrls = Array.from(
+      new Map(allDynamicUrls.map((item) => [item.url, item])).values()
+    );
+
+    return [...staticRoutes, ...uniqueDynamicUrls];
   } catch (error) {
     console.error("Error generating dynamic sitemap from Firebase:", error);
     return staticRoutes;
