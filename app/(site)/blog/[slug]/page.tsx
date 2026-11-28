@@ -187,7 +187,7 @@ const renderContent = (rawContent: string) => {
                 <a
                   href={link1}
                   target="_blank"
-                  rel="noopener noreferrer"
+                  rel="sponsored noopener"
                   className="flex-1 text-center bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl transition-transform hover:scale-105 flex flex-col items-center justify-center shadow-md"
                 >
                   <span className="text-lg">Buy Direct from Rolife ↗</span>
@@ -200,7 +200,7 @@ const renderContent = (rawContent: string) => {
                 <a
                   href={link2}
                   target="_blank"
-                  rel="noopener noreferrer"
+                  rel="sponsored noopener"
                   className="flex-1 text-center bg-orange-500 hover:bg-orange-600 text-gray-900 font-bold py-3 px-4 rounded-xl transition-transform hover:scale-105 flex flex-col items-center justify-center shadow-md"
                 >
                   <span className="text-lg">Buy on Amazon ↗</span>
@@ -213,7 +213,7 @@ const renderContent = (rawContent: string) => {
               <a
                 href={link1}
                 target="_blank"
-                rel="noopener noreferrer"
+                rel="sponsored noopener"
                 className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition-colors"
               >
                 Check Price on Amazon ↗
@@ -258,7 +258,7 @@ const renderContent = (rawContent: string) => {
                   <a
                     href={link1}
                     target="_blank"
-                    rel="noopener noreferrer"
+                    rel="sponsored noopener"
                     className="flex-1 text-center bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition-colors flex flex-col items-center justify-center"
                   >
                     <span>Buy Direct from Rolife ↗</span>
@@ -271,7 +271,7 @@ const renderContent = (rawContent: string) => {
                   <a
                     href={link2}
                     target="_blank"
-                    rel="noopener noreferrer"
+                    rel="sponsored noopener"
                     className="flex-1 text-center bg-orange-400 hover:bg-orange-500 text-gray-900 font-bold py-3 px-4 rounded-lg transition-colors flex flex-col items-center justify-center"
                   >
                     <span>View on Amazon ↗</span>
@@ -282,7 +282,7 @@ const renderContent = (rawContent: string) => {
                 <a
                   href={link1}
                   target="_blank"
-                  rel="noopener noreferrer"
+                  rel="sponsored noopener"
                   className="w-full md:w-auto text-center bg-orange-400 hover:bg-orange-500 text-gray-900 font-bold py-3 px-6 rounded-lg transition-colors"
                 >
                   View on Amazon ↗
@@ -311,7 +311,7 @@ const renderContent = (rawContent: string) => {
               <a
                 href={link1}
                 target="_blank"
-                rel="noopener noreferrer"
+                rel="sponsored noopener"
                 className="w-full sm:w-auto text-center bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-8 rounded-xl shadow-md transition-transform hover:scale-105 flex flex-col items-center"
               >
                 <span className="text-lg">{cta || 'Buy Direct ↗'}</span>
@@ -324,7 +324,7 @@ const renderContent = (rawContent: string) => {
               <a
                 href={link2}
                 target="_blank"
-                rel="noopener noreferrer"
+                rel="sponsored noopener"
                 className="w-full sm:w-auto text-center bg-orange-500 hover:bg-orange-600 text-gray-900 font-bold py-4 px-8 rounded-xl shadow-md transition-transform hover:scale-105 flex flex-col items-center"
               >
                 <span className="text-lg">Buy on Amazon ↗</span>
@@ -335,7 +335,7 @@ const renderContent = (rawContent: string) => {
             <a
               href={link1}
               target="_blank"
-              rel="noopener noreferrer"
+              rel="sponsored noopener"
               className="inline-block w-full md:w-auto text-center bg-orange-400 hover:bg-orange-500 text-gray-900 font-bold py-3 px-8 rounded-lg shadow-sm transition-transform hover:scale-105"
             >
               {cta || 'Check Price ↗'}
@@ -504,7 +504,7 @@ export default async function BlogPostPage({
           <a
             href={cleanUrl(post.affiliateLink)}
             target="_blank"
-            rel="noopener noreferrer"
+            rel="sponsored noopener"
             className="w-full max-w-md text-center bg-orange-500 hover:bg-orange-600 text-white font-bold py-4 px-6 rounded-xl transition-colors"
           >
             Check Current Price ↗
