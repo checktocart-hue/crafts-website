@@ -42,7 +42,7 @@ export default function AmazonProductCard({
         <a 
           href={amazonUrl}
           target="_blank"
-          rel="noopener noreferrer"
+          rel="sponsored noopener"
           className="inline-block w-full md:w-auto bg-gray-900 hover:bg-gray-800 text-white font-bold py-3 px-8 rounded-lg transition-colors text-sm shadow-sm"
         >
           Check Price on Amazon ↗
