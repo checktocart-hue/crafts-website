@@ -625,7 +625,7 @@ export default function DealsClient() {
             <a
               href={LINKS.rolifeStoreHome}
               target="_blank"
-              rel="noopener noreferrer"
+              rel="sponsored noopener"
               className="bg-blue-600 hover:bg-blue-500 text-white font-bold py-3.5 px-7 rounded-xl shadow-lg transition-transform hover:scale-105"
             >
               {EVENT_CONFIG.primaryCtaLabel}
@@ -699,7 +699,7 @@ export default function DealsClient() {
                       <a
                         href={promo.url}
                         target="_blank"
-                        rel="noopener noreferrer"
+                        rel="sponsored noopener"
                         className="block w-full text-center bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl text-sm transition-colors"
                       >
                         {promo.ctaLabel}
@@ -828,7 +828,7 @@ export default function DealsClient() {
                       <a
                         href={deal.rolifeUrl}
                         target="_blank"
-                        rel="noopener noreferrer"
+                        rel="sponsored noopener"
                         className="w-full text-center bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-4 rounded-xl text-sm transition-colors"
                       >
                         Buy Direct from Rolife ↗
@@ -838,7 +838,7 @@ export default function DealsClient() {
                       <a
                         href={deal.amazonUrl}
                         target="_blank"
-                        rel="noopener noreferrer"
+                        rel="sponsored noopener"
                         className="w-full text-center bg-orange-400 hover:bg-orange-500 text-slate-950 font-bold py-2.5 px-4 rounded-xl text-sm transition-colors"
                       >
                         Check Price on Amazon ↗
@@ -872,7 +872,7 @@ export default function DealsClient() {
               <a
                 href={LINKS.gumroadSale}
                 target="_blank"
-                rel="noopener noreferrer"
+                rel="sponsored noopener"
                 className="block w-full lg:w-auto text-center bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold py-4 px-8 rounded-xl shadow-lg transition-transform hover:scale-105 text-base"
               >
                 Grab the $9.99 Rescue Handbook ↗
