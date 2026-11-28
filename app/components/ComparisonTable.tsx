@@ -120,7 +120,7 @@ export default function ComparisonTable({ value }: { value: any }) {
                   <a 
                     href={product.link} 
                     target="_blank" 
-                    rel="nofollow noreferrer sponsored"
+                    rel="sponsored noopener"
                     className={`block w-full text-center font-bold py-2.5 px-3 rounded-lg shadow-sm transform hover:-translate-y-0.5 transition-all text-sm ${getButtonStyle(product.affiliateSource)}`}
                   >
                     {product.buttonText || "Check Price"}
@@ -165,7 +165,7 @@ export default function ComparisonTable({ value }: { value: any }) {
              <a 
                 href={product.link} 
                 target="_blank" 
-                rel="nofollow noreferrer sponsored"
+                rel="sponsored noopener"
                 className={`block w-full text-center font-bold py-3 px-4 rounded-lg shadow-sm ${getButtonStyle(product.affiliateSource)}`}
               >
                 {product.buttonText || "Check Price"}
