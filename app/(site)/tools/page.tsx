@@ -120,7 +120,7 @@ export default function ToolsShopPage() {
                   <a 
                     href={item.url}
                     target="_blank"
-                    rel="noopener noreferrer"
+                    rel="sponsored noopener"
                     className="w-full inline-flex items-center justify-center gap-2 bg-gray-900 text-white px-6 py-3.5 rounded-2xl text-sm font-bold hover:bg-green-700 transition-all shadow-sm hover:shadow-green-900/20"
                   >
                     Check Price on {item.merchant} <ExternalLink size={16} />
