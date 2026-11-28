@@ -160,7 +160,7 @@ export default async function HomePage() {
           <div className="flex flex-col gap-10">
             {topTools.map((tool: any) => (
               <div key={tool.id} className="group flex flex-col">
-                <a href={tool.affiliateLink || "#"} target="_blank" rel="noopener noreferrer" className="mb-3 block bg-white shadow-sm hover:shadow-md transition rounded-sm overflow-hidden">
+                <a href={tool.affiliateLink || "#"} target="_blank" rel="sponsored noopener" className="mb-3 block bg-white shadow-sm hover:shadow-md transition rounded-sm overflow-hidden">
                   <div className="w-full aspect-square bg-gray-50 flex items-center justify-center overflow-hidden border border-gray-200">
                     {tool.image ? (
                       <img src={tool.image} alt={tool.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
@@ -169,7 +169,7 @@ export default async function HomePage() {
                     )}
                   </div>
                 </a>
-                <a href={tool.affiliateLink || "#"} target="_blank" rel="noopener noreferrer" className="font-bold text-gray-900 text-lg leading-tight hover:underline mb-2 decoration-2 underline-offset-2">
+                <a href={tool.affiliateLink || "#"} target="_blank" rel="sponsored noopener" className="font-bold text-gray-900 text-lg leading-tight hover:underline mb-2 decoration-2 underline-offset-2">
                   {tool.title}
                 </a>
                 <div className="text-[15px]">
