@@ -71,7 +71,7 @@ const components = {
   },
   marks: {
       link: ({children, value}: any) => {
-        const rel = !value.href.startsWith('/') ? 'noreferrer noopener' : undefined;
+        const rel = !value.href.startsWith('/') ? 'sponsored noopener' : undefined;
         return (
           <a href={value.href} rel={rel} className="text-primary underline font-bold hover:text-green-700">
             {children}
